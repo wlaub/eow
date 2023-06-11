@@ -16,8 +16,11 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool eow_initialized = false;
         public bool eow_enabled = false;
 
+        private bool confiscate;
+
         public UniqueGlider(EntityData e, Vector2 offset) : base(e, offset)
         {
+            confiscate = e.Bool("confiscate");
         }
 
     }

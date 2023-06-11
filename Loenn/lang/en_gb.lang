@@ -1,0 +1,9 @@
+
+mods.ErrandOfWednesday.name=Errand of Wednesday
+
+entities.eow/UniqueJellyfish.placements.name.normal=Unique Jellyfish
+entities.eow/UniqueJellyfish.placements.name.floating=Unique Jellyfish (Floating)
+entities.eow/UniqueJellyfish.attributes.description.bubble=Whether the entity should hover in the air before being grabbed.
+entities.eow/UniqueJellyfish.attributes.description.tutorial=Whether the entity should show the usage tutorial.
+entities.eow/UniqueJellyfish.attributes.description.confiscate=Whether a held jellyfish should be taken away from the player on room transition.
+

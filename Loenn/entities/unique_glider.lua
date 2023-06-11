@@ -3,7 +3,22 @@ local uniqueGlider = {}
 
 uniqueGlider.name = "eow/UniqueJellyfish"
 uniqueGlider.placements = {
-    name = "unique_glider"
+    {
+        name = "normal",
+        data = {
+            tutorial = false,
+            bubble = false,
+            confiscate = false
+        }
+    },
+    {
+        name = "floating",
+        data = {
+            tutorial = false,
+            bubble = true,
+            confiscate = false
+        }
+    }
 }
 
 uniqueGlider.depth = -5
