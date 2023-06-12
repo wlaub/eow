@@ -14,9 +14,6 @@ namespace Celeste.Mod.ErrandOfWednesday
     public class UniqueGlider : Glider 
     {
 
-        public bool eow_initialized = false;
-        public bool eow_enabled = false;
-
         public bool confiscate;
 
         public UniqueGlider(EntityData e, Vector2 offset) : base(e, offset)
