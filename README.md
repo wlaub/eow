@@ -1,2 +1,29 @@
 # ErrandOfWednesday
-Replace with your mod's readme!
+
+Disclaimer: I have no idea what I'm doing.
+
+## Entities
+
+### Unique Jellyfish
+
+When the player enters a room or otherwise respawns, only the unique jellyfish closest to the player will spawn. If the player is holding a jellyfish when entering a room, then none of the other jellyfish will spawn unless the one closest to the player has 'confiscate' enabled, in which case the player's held jellyfish will be removed.
+
+The effect is that a player can seemlessly carry a jellyfish between rooms without producing duplicates, and a jellyfish can be placed near every respawn in a room without producing duplicates.
+
+Currently doesn't interact with other jellyfish.
+
+### Lookout decal
+
+[TODO]
+A decal that is only visible when using a lookout (or only visible when not using a lookout).
+
+## Triggers
+
+### Entity Remover
+
+A bigger hammer to make any entity a flag entity.
+
+Only works on entities that implement point or rect collision. Should fail silently if they don't, but be sure to test to make sure it doesn't crash.
+
+When activated, removes the entity nearest each of its nodes. Can be configured to active on entering a room and/or only if a flag is set.
+

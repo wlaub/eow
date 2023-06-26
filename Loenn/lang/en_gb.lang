@@ -7,3 +7,6 @@ entities.eow/UniqueJellyfish.attributes.description.bubble=Whether the entity sh
 entities.eow/UniqueJellyfish.attributes.description.tutorial=Whether the entity should show the usage tutorial.
 entities.eow/UniqueJellyfish.attributes.description.confiscate=Whether a held jellyfish should be taken away from the player on room transition.
 
+triggers.eow/EntityRemover.placements.name.normal=Entity Remover
+triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated
+
