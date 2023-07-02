@@ -7,6 +7,15 @@ entities.eow/UniqueJellyfish.attributes.description.bubble=Whether the entity sh
 entities.eow/UniqueJellyfish.attributes.description.tutorial=Whether the entity should show the usage tutorial.
 entities.eow/UniqueJellyfish.attributes.description.confiscate=Whether a held jellyfish should be taken away from the player on room transition.
 
+entities.eow/WatchtowerDecal.placements.name.normal=Watchtower Decal
+entities.eow/WatchtowerDecal.placements.description.normal=Decal that appears depending on whether the player is using a vanilla watchtower
+
+entities.eow/WatchtowerDecal.attributes.description.lookout=The decal will be visible when the player is using a watchtower
+entities.eow/WatchtowerDecal.attributes.description.not_lookout=The decal will be visible when the player is not using a watchtower
+entities.eow/WatchtowerDecal.attributes.description.flag=If a flag is specified and not set, then the decal will never appear.
+entities.eow/WatchtowerDecal.attributes.description.inverted=Inverts the flag condition
+
+
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated
 

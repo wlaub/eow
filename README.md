@@ -12,10 +12,12 @@ The effect is that a player can seemlessly carry a jellyfish between rooms witho
 
 Currently doesn't interact with other jellyfish.
 
-### Lookout decal
+### Watchtower decal
 
-[TODO]
-A decal that is only visible when using a lookout (or only visible when not using a lookout).
+Because of the way watchtowers are implemented, this only works with vanilla watchtowers.
+
+A decal that can be configured to appear depending on whether the player is using a watchtower. If the decal is configured to appear when using a watchtower, it will appeari instally after the start animation finishes.
+
 
 ## Triggers
 
