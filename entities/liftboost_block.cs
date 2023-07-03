@@ -22,11 +22,36 @@ namespace Celeste.Mod.ErrandOfWednesday
         public float reset_timer = 0;
         public float boost_start_timer = 0;
         public float boost_stop_timer = 0;
+
+        public float reset_duration = 0.8f;
+        public float start_time = 0f;
+        public float stop_time = 0.05f;
+
+        public DisplacementRenderer.Burst burst;
+
+        public bool activated = false;
  
         public LiftboostBlock(EntityData data, Vector2 offset) : base(data.Position+offset, data.Width, data.Height, safe:false)
         {
             target = data.Nodes[0]+offset;
-            boost = (target-Position)*10f;
+            boost = (target-Position)*5f;
+
+            if(boost == Vector2.Zero)
+            {
+                boost.Y = 240f;
+            }
+
+            if( data.Bool("normalize"))
+            {
+                    float scale = 240f/Math.Max(Math.Abs(boost.X), Math.Abs(boost.Y));
+                    boost.X *=scale;
+                    boost.Y *=scale;
+            }
+
+            if(!data.Bool("instant"))
+            {
+                stop_time = reset_duration;
+            }
 
             string sprite_dir = data.Attr("spriteDirectory");
 
@@ -62,9 +87,9 @@ namespace Celeste.Mod.ErrandOfWednesday
         public void on_dash(Vector2 direction)
         {
             if(reset_timer > 0f) return;
-            reset_timer = 0.8f;
-            boost_start_timer = 0f;
-            boost_stop_timer = 0.05f;
+            reset_timer = reset_duration;
+            boost_start_timer = start_time;
+            boost_stop_timer = stop_time;
         }
 
         public override void Update() 
@@ -79,15 +104,16 @@ namespace Celeste.Mod.ErrandOfWednesday
                 if (reset_timer <= 0f)
                 {
                     arrow.Play("idle");
+                    activated = false;
                     return;
                 }
 
             }
 
-
             if(boost_start_timer > 0)
             {
                 arrow.Play("idle");
+                activated = false;
             }
             else if(boost_stop_timer >0)           
             {
@@ -95,7 +121,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Player player = GetPlayerRider();
                 if(player != null)
                 {
-Logger.Log(LogLevel.Info, "eow", "liftboost: "+boost);
                     player.LiftSpeed = boost;
                 }
                 else
@@ -103,15 +128,22 @@ Logger.Log(LogLevel.Info, "eow", "liftboost: "+boost);
                     player = GetPlayerOnSide();
                     if(player != null)
                     {
-Logger.Log(LogLevel.Info, "eow", "liftboost: "+boost);
                     player.LiftSpeed = boost;
  
                     }
                 }
+                if(!activated)
+                {
+                    burst = (base.Scene as Level).Displacement.AddBurst(base.Center, 0.2f, 0f, 16f);
+                    Audio.Play("event:/game/05_mirror_temple/swapblock_move_end", base.Center); 
+
+                }
+                activated = true;
             }
             else if(reset_timer > 0)
             {
                 arrow.Play("cooldown");
+                activated = false;
             }
         }
 

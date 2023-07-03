@@ -15,6 +15,16 @@ entities.eow/WatchtowerDecal.attributes.description.not_lookout=The decal will b
 entities.eow/WatchtowerDecal.attributes.description.flag=If a flag is specified and not set, then the decal will never appear.
 entities.eow/WatchtowerDecal.attributes.description.inverted=Inverts the flag condition
 
+entities.eow/LiftboostBlock.placements.name.normal=Liftboost Block
+entities.eow/LiftboostBlock.placements.description.normal=Grants a liftboost in the direction of the node when the player contacts the block.
+
+entities.eow/LiftboostBlock.attributes.description.normalize=Scale the largest component of the liftboost to 240.
+entities.eow/LiftboostBlock.attributes.description.instant=Only provide liftboost during the first few frames of activation.
+
+
+
+
+
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated

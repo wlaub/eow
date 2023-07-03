@@ -20,8 +20,11 @@ A decal that can be configured to appear depending on whether the player is usin
 
 ### Liftboost Block
 
-[TODO]
-Sort of like a swap block that doesn't move. When the player dashes, there are a couple of frames where it grants a liftboost in the direction of its node to the player if the player is touching the block. The further the node, the stronger the boost. A node 3 tiles (24 pixels) away from the center of the block gives a liftboost equivalent to a swap block.
+Sort of like a swap block that doesn't move. 
+
+When the player dashes while touching the block, it gives liftboost in the direction of the node and then goes on cooldown for 0.8 s.
+
+With normalize enabled (the default), the liftboost will be scaled so that largest component is 240 (equivalent to a swap block). When normalize is disabled, the liftboost will be the vector to the node scaled by 5 (e.g. 1x1 tile offset gives 40x40 liftboost).
 
 ## Triggers
 

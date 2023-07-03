@@ -12,11 +12,13 @@ liftboost_block.nodeLimits = {1, 1}
 liftboost_block.minimumSize = {16, 16}
 
 liftboost_block.placements = {
-    name = "liftboostblock",
+    name = "normal",
     data = {
         width = 16,
         height = 16,
-        spriteDirectory = "objects/swapblock",
+        spriteDirectory = "objects/eow/LiftboostBlock/",
+        normalize = true,
+        instant = true,
     }
 }
 
@@ -82,7 +84,13 @@ end
 
 liftboost_block.nodeColor = {0, .5, .5, .5}
 function liftboost_block.nodeRectangle(room, entity, node)
-    local result = rectangle.create(node.x+4, node.y+4, 8,8)    
+    local w = entity.width or 16
+    local h = entity.height or 16
+
+    local cx = w/2
+    local cy = h/2
+
+    local result = rectangle.create(cx+node.x-4, cy+node.y-4, 8,8)    
     return result
 end
 
