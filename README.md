@@ -21,7 +21,7 @@ A decal that can be configured to appear depending on whether the player is usin
 ### Liftboost Block
 
 [TODO]
-A swap block that doesn't move.
+Sort of like a swap block that doesn't move. When the player dashes, there are a couple of frames where it grants a liftboost in the direction of its node to the player if the player is touching the block. The further the node, the stronger the boost. A node 3 tiles (24 pixels) away from the center of the block gives a liftboost equivalent to a swap block.
 
 ## Triggers
 
