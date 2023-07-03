@@ -18,6 +18,10 @@ Because of the way watchtowers are implemented, this only works with vanilla wat
 
 A decal that can be configured to appear depending on whether the player is using a watchtower. If the decal is configured to appear when using a watchtower, it will appeari instally after the start animation finishes.
 
+### Liftboost Block
+
+[TODO]
+A swap block that doesn't move.
 
 ## Triggers
 
