@@ -31,16 +31,19 @@ namespace Celeste.Mod.ErrandOfWednesday
         public DisplacementRenderer.Burst burst;
 
         public bool activated = false;
+        public bool valid = true;
  
         public LiftboostBlock(EntityData data, Vector2 offset) : base(data.Position+offset, data.Width, data.Height, safe:false)
         {
             target = data.Nodes[0]+offset;
             boost = (target-Position)*5f;
 
+            float angle=(float)Math.PI/2;
             if(boost == Vector2.Zero)
             {
-                boost.Y = 240f;
+                valid = false;
             }
+
 
             if( data.Bool("normalize"))
             {
@@ -48,10 +51,14 @@ namespace Celeste.Mod.ErrandOfWednesday
                     boost.X *=scale;
                     boost.Y *=scale;
             }
+            if(valid)
+            {
+                angle = (float)Math.Atan2(boost.Y, boost.X);
+            }
 
             if(!data.Bool("instant"))
             {
-                stop_time = reset_duration;
+                stop_time = 0.5f;
             }
 
             start_threshold = reset_duration - start_time;
@@ -59,7 +66,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             string sprite_dir = data.Attr("spriteDirectory");
 
-            float angle = (float)Math.Atan2(boost.Y, boost.X);
+
             
             Add(arrow = new Sprite(GFX.Game, sprite_dir));
             arrow.Add("idle", "arrow_idle", 0.1f, "idle");
@@ -81,6 +88,12 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
             }
 
+            if(!valid)
+            {
+                arrow.Play("cooldown");
+                return;
+            }
+
             Add(new DashListener
             {
                 OnDash = on_dash
@@ -98,7 +111,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Update();
 
-            if (reset_timer <= 0)
+            if (reset_timer <= 0 || !valid)
             {
                 return;
             }

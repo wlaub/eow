@@ -64,8 +64,17 @@ function add_arrow_sprite(sprites, entity, arrow_texture)
     local nodes = entity.nodes or {}
     local x, y = entity.x or 0, entity.y or 0
     local angle = math.atan2(nodes[1].y-y, nodes[1].x-x)
+
     local width, height = entity.width, entity.height
-    local arrow_sprite = drawableSprite.fromTexture(arrow_texture, entity)
+
+    local arrow = "arrow_idle"
+    if math.abs(nodes[1].x-x) < 1 and math.abs(nodes[1].y-y) < 1 then
+        angle = 1.57
+        arrow = "arrow_cooldown"
+    end
+
+
+    local arrow_sprite = drawableSprite.fromTexture(arrow_texture .. arrow, entity)
     arrow_sprite:addPosition(math.floor(width/2), math.floor(height/2))
     arrow_sprite.depth = block_depth
     arrow_sprite.rotation=angle
@@ -77,7 +86,7 @@ function liftboost_block.sprite(room, entity)
     local sprites = {}
 
     add_block_sprite(sprites, entity, entity.spriteDirectory .. "block")
-    add_arrow_sprite(sprites, entity, entity.spriteDirectory .. "arrow_idle")
+    add_arrow_sprite(sprites, entity, entity.spriteDirectory)
 
     return sprites
 end
