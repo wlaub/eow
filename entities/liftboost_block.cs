@@ -20,12 +20,13 @@ namespace Celeste.Mod.ErrandOfWednesday
         public Sprite arrow;
 
         public float reset_timer = 0;
-        public float boost_start_timer = 0;
-        public float boost_stop_timer = 0;
+
+        public float start_threshold;
+        public float stop_threshold;
 
         public float reset_duration = 0.8f;
         public float start_time = 0f;
-        public float stop_time = 0.05f;
+        public float stop_time = 0.1f;
 
         public DisplacementRenderer.Burst burst;
 
@@ -52,6 +53,9 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 stop_time = reset_duration;
             }
+
+            start_threshold = reset_duration - start_time;
+            stop_threshold = reset_duration - stop_time;
 
             string sprite_dir = data.Attr("spriteDirectory");
 
@@ -88,34 +92,32 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             if(reset_timer > 0f) return;
             reset_timer = reset_duration;
-            boost_start_timer = start_time;
-            boost_stop_timer = stop_time;
         }
 
         public override void Update() 
         {
             base.Update();
 
-            if(reset_timer > 0f)
+            if (reset_timer <= 0)
             {
-                reset_timer -= Engine.DeltaTime;
-                boost_start_timer -= Engine.DeltaTime;
-                boost_stop_timer -= Engine.DeltaTime;
-                if (reset_timer <= 0f)
-                {
-                    arrow.Play("idle");
-                    activated = false;
-                    return;
-                }
-
+                return;
             }
 
-            if(boost_start_timer > 0)
+            reset_timer -= Engine.DeltaTime;
+            if (reset_timer <= 0f)
+            {
+                arrow.Play("idle");
+                activated = false;
+                return;
+            }
+
+
+            if(reset_timer > start_threshold)
             {
                 arrow.Play("idle");
                 activated = false;
             }
-            else if(boost_stop_timer >0)           
+            else if(reset_timer > stop_threshold)
             {
                 arrow.Play("active");
                 Player player = GetPlayerRider();
@@ -128,8 +130,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     player = GetPlayerOnSide();
                     if(player != null)
                     {
-                    player.LiftSpeed = boost;
- 
+                        player.LiftSpeed = boost;
                     }
                 }
                 if(!activated)

@@ -26,6 +26,21 @@ When the player dashes while touching the block, it gives liftboost in the direc
 
 With normalize enabled (the default), the liftboost will be scaled so that largest component is 240 (equivalent to a swap block). When normalize is disabled, the liftboost will be the vector to the node scaled by 5 (e.g. 1x1 tile offset gives 40x40 liftboost).
 
+With instant enabled (the default), the block will grant liftboost on contact during the first 5 frames of activation. With instant disabled, it will grant liftboost for the entire 0.8 s.
+
+### Yet another collectable
+
+[TODO]
+Another custom heart/gem/collectable
+- Option to require dash towards to collect
+- Option to pull player to center while gathering paricles
+- Option to Show custom poem from specified dialog
+- Optional heartbeat effect
+- Optional lua cutscene?
+- Set/clear flag after collect
+- Persistent
+- Activates triggers at nodes
+
 ## Triggers
 
 ### Entity Remover
