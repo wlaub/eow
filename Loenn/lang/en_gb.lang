@@ -20,10 +20,7 @@ entities.eow/LiftboostBlock.placements.description.normal=Grants a liftboost in 
 
 entities.eow/LiftboostBlock.attributes.description.normalize=Scale the largest component of the liftboost to 240.
 entities.eow/LiftboostBlock.attributes.description.instant=Only provide liftboost during the first few frames of activation.
-
-
-
-
+entities.eow/LiftboostBlock.attributes.description.always_on=Always provides liftboost
 
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover

@@ -17,8 +17,10 @@ liftboost_block.placements = {
         width = 16,
         height = 16,
         spriteDirectory = "objects/eow/LiftboostBlock/",
+        arrow_directory = "",
         normalize = true,
         instant = true,
+        always_on = false,
     }
 }
 
@@ -59,7 +61,7 @@ local function add_block_sprite(sprites, entity, frameTexture)
 
 end
 
-function add_arrow_sprite(sprites, entity, arrow_texture)
+function add_arrow_sprite(sprites, entity, block_texture, arrow_texture)
 
     local nodes = entity.nodes or {}
     local x, y = entity.x or 0, entity.y or 0
@@ -74,7 +76,13 @@ function add_arrow_sprite(sprites, entity, arrow_texture)
     end
 
 
-    local arrow_sprite = drawableSprite.fromTexture(arrow_texture .. arrow, entity)
+    local arrow_sprite
+    if arrow_texture ~= '' and arrow_texture ~=nil then
+        arrow_sprite = drawableSprite.fromTexture(arrow_texture .. arrow, entity)
+    else
+        arrow_sprite = drawableSprite.fromTexture(block_texture .. arrow, entity)
+    end
+
     arrow_sprite:addPosition(math.floor(width/2), math.floor(height/2))
     arrow_sprite.depth = block_depth
     arrow_sprite.rotation=angle
@@ -86,7 +94,7 @@ function liftboost_block.sprite(room, entity)
     local sprites = {}
 
     add_block_sprite(sprites, entity, entity.spriteDirectory .. "block")
-    add_arrow_sprite(sprites, entity, entity.spriteDirectory)
+    add_arrow_sprite(sprites, entity, entity.spriteDirectory, entity.arrow_directory)
 
     return sprites
 end

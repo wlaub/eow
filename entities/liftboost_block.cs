@@ -30,6 +30,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public DisplacementRenderer.Burst burst;
 
+        public bool always_on = false;
+
         public bool activated = false;
         public bool valid = true;
  
@@ -44,7 +46,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                 valid = false;
             }
 
-
             if( data.Bool("normalize"))
             {
                     float scale = 240f/Math.Max(Math.Abs(boost.X), Math.Abs(boost.Y));
@@ -56,6 +57,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 angle = (float)Math.Atan2(boost.Y, boost.X);
             }
 
+            always_on = data.Bool("always_on");
+
             if(!data.Bool("instant"))
             {
                 stop_time = 0.5f;
@@ -65,10 +68,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             stop_threshold = reset_duration - stop_time;
 
             string sprite_dir = data.Attr("spriteDirectory");
+            string arrow_dir = data.Attr("arrow_directory");
+            if(arrow_dir == "")
+            {
+                arrow_dir = sprite_dir;
+            }
 
-
-            
-            Add(arrow = new Sprite(GFX.Game, sprite_dir));
+            Add(arrow = new Sprite(GFX.Game, arrow_dir));
             arrow.Add("idle", "arrow_idle", 0.1f, "idle");
             arrow.Add("active", "arrow_active", 0.1f, "active");
             arrow.Add("cooldown", "arrow_cooldown", 0.1f, "cooldown");
@@ -93,12 +99,19 @@ namespace Celeste.Mod.ErrandOfWednesday
                 arrow.Play("cooldown");
                 return;
             }
-
-            Add(new DashListener
+            else if(always_on)
             {
-                OnDash = on_dash
-            });
-                    
+                arrow.Play("active");
+            }
+
+            if(!always_on)
+            {
+                Add(new DashListener
+                {
+                    OnDash = on_dash
+                });
+            }
+
         }
 
         public void on_dash(Vector2 direction)
@@ -111,55 +124,79 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Update();
 
-            if (reset_timer <= 0 || !valid)
+            if (!valid)
             {
                 return;
             }
 
-            reset_timer -= Engine.DeltaTime;
-            if (reset_timer <= 0f)
+            if(!always_on)
             {
-                arrow.Play("idle");
-                activated = false;
-                return;
-            }
+                if(reset_timer <= 0)
+                {
+                    return;
+                }
+
+                reset_timer -= Engine.DeltaTime;
+                if (reset_timer <= 0f)
+                {
+                    arrow.Play("idle");
+                    activated = false;
+                    return;
+                }
 
 
-            if(reset_timer > start_threshold)
-            {
-                arrow.Play("idle");
-                activated = false;
+                if(reset_timer > start_threshold)
+                {
+                    arrow.Play("idle");
+                    activated = false;
+                }
+                else if(reset_timer > stop_threshold)
+                {
+                    arrow.Play("active");
+                    if(!activated)
+                    {
+                        do_burst();
+                    }
+                    activated = true;
+                }
+                else if(reset_timer > 0)
+                {
+                    arrow.Play("cooldown");
+                    activated = false;
+                }
             }
-            else if(reset_timer > stop_threshold)
+
+            if(activated || always_on)
             {
-                arrow.Play("active");
-                Player player = GetPlayerRider();
+
+                Player player = GetPlayer();
                 if(player != null)
                 {
                     player.LiftSpeed = boost;
                 }
-                else
-                {
-                    player = GetPlayerOnSide();
-                    if(player != null)
-                    {
-                        player.LiftSpeed = boost;
-                    }
-                }
-                if(!activated)
-                {
-                    burst = (base.Scene as Level).Displacement.AddBurst(base.Center, 0.2f, 0f, 16f);
-                    Audio.Play("event:/game/05_mirror_temple/swapblock_move_end", base.Center); 
+            }
 
-                }
-                activated = true;
-            }
-            else if(reset_timer > 0)
-            {
-                arrow.Play("cooldown");
-                activated = false;
-            }
         }
+
+    public void do_burst()
+    {
+        burst = (base.Scene as Level).Displacement.AddBurst(base.Center, 0.2f, 0f, 16f);
+        Audio.Play("event:/game/05_mirror_temple/swapblock_move_end", base.Center); 
+
+
+    }
+
+    public Player GetPlayer()
+    {
+        Player player = GetPlayerRider();
+        if(player != null)
+        {
+            return player;
+        }
+        player = GetPlayerOnSide();
+        return player;
+
+    }
 
 	public Player GetPlayerOnSide()
 	{

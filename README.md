@@ -28,6 +28,8 @@ With normalize enabled (the default), the liftboost will be scaled so that large
 
 With instant enabled (the default), the block will grant liftboost on contact during the first 5 frames of activation. With instant disabled, it will grant liftboost for 30 frames.
 
+With always on enabled (disabled by default), the usual timers are bypassed and the block is always in the active state.
+
 ### Yet another collectable
 
 [TODO]
