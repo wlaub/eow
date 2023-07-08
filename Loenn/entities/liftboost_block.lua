@@ -18,10 +18,19 @@ liftboost_block.placements = {
         height = 16,
         spriteDirectory = "objects/eow/LiftboostBlock/",
         arrow_directory = "",
+        flag = "",
+        inverted = false,
         normalize = true,
         instant = true,
         always_on = false,
     }
+}
+
+liftboost_block.fieldOrder = {
+"x", "y", "width", "height",
+"spriteDirectory", "arrow_directory",
+"flag", "inverted",
+"instant", "normalize", "always_on"
 }
 
 liftboost_block.nodeLineRenderType = "fan"

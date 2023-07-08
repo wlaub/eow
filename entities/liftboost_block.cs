@@ -35,8 +35,15 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool activated = false;
         public bool valid = true;
  
+        public bool flag_inverted = false;
+        public string flag = "";
+
         public LiftboostBlock(EntityData data, Vector2 offset) : base(data.Position+offset, data.Width, data.Height, safe:false)
         {
+            always_on = data.Bool("always_on");
+            flag_inverted = data.Bool("inverted");
+            flag = data.Attr("flag");
+
             target = data.Nodes[0]+offset;
             boost = (target-Position)*5f;
 
@@ -57,12 +64,12 @@ namespace Celeste.Mod.ErrandOfWednesday
                 angle = (float)Math.Atan2(boost.Y, boost.X);
             }
 
-            always_on = data.Bool("always_on");
-
             if(!data.Bool("instant"))
             {
                 stop_time = 0.5f;
             }
+
+
 
             start_threshold = reset_duration - start_time;
             stop_threshold = reset_duration - stop_time;
@@ -118,6 +125,21 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             if(reset_timer > 0f) return;
             reset_timer = reset_duration;
+        }
+
+        public override void Added(Scene scene)
+        {
+            base.Added(scene);
+            if(flag == "")
+            {
+                return;
+            }
+            if(SceneAs<Level>().Session.GetFlag(flag) == flag_inverted)
+            {
+                valid = false;
+                arrow.Play("cooldown");
+            }
+            
         }
 
         public override void Update() 
