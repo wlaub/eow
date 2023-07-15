@@ -51,6 +51,8 @@ Another custom heart/gem/collectable
 
 A bigger hammer to make any entity a flag entity.
 
+Warning: This can do some unexpected things. For example, Removing a red boost the player has used will also remove the player, rendering the game unresponsive to player input.
+
 Only works on entities that implement point or rect collision. Should fail silently if they don't, but be sure to test to make sure it doesn't crash.
 
 When activated, removes the entity nearest each of its nodes. Can be configured to active on entering a room and/or only if a flag is set.
