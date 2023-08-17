@@ -102,6 +102,28 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
+        public void activate_nodes(Player player)
+        {
+            if(player is null || player.Scene is null)
+            {
+                return;
+            }
+            
+            foreach(Trigger trigger in Scene.Tracker.GetEntities<Trigger>())
+            {
+                for(int i = 0; i < targets.Length; ++i)
+                {
+                    Vector2 target = targets[i];
+                    if(trigger.CollidePoint(target))
+                    {
+                        trigger.OnEnter(player);
+                        trigger.OnStay(player);
+                    }
+                }
+            }
+
+        }
+
         public void OnPlayer(Player player)
         {
             if(collected)
@@ -143,15 +165,16 @@ namespace Celeste.Mod.ErrandOfWednesday
             Visible = false;
             Collidable = false;
 
-            DynamicData pdata = new DynamicData(player);
-
             Level level = SceneAs<Level>();
             
             player.StateMachine.State = Player.StDummy;
             player.DummyGravity = false;
             player.DummyMoving = true;
             player.DummyAutoAnimate = false;
-            player.Visible = false;
+            //player.Visible = false;
+
+            player.Sprite.Play(PlayerSprite.StartStarFly);
+            player.Hair.Visible = false;
 
             //Somehow make starfly happen without hair
 
@@ -182,6 +205,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 yield return null;
             }
 
+            activate_nodes(player);
+
             for(float t = 0f; t < 0.1f; t+= Engine.RawDeltaTime)
             {
                 yield return null;
@@ -190,6 +215,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 //            player.DummyAutoAnimate = true;
 //            player.DummyGravity = true;
 
+            DynamicData pdata = new DynamicData(player);
             player.Speed.Y = strength;
             for(float t = 0f; t< 4f; t+= Engine.RawDeltaTime)
             {
@@ -211,7 +237,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 level.ParticlesFG.Emit(SummitGem.P_Shatter, 5, player.Center, Vector2.One * 4f, (float)Math.PI*2f*i/16); 
             }
 
-            player.Visible = true;
+            player.Hair.Visible = true;
             player.StateMachine.State = Player.StNormal;
             RemoveSelf();
 

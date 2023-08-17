@@ -40,7 +40,6 @@ Another custom heart/gem/collectable
 - Option to pull player to center while gathering paricles
 - Option to Show custom poem from specified dialog
 - Optional heartbeat effect
-- Optional lua cutscene?
 - Set/clear flag after collect
 - Persistent
 - Activates triggers at nodes
