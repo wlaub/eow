@@ -34,15 +34,10 @@ If specified, the flag determines whether the block will be enabled on loading t
 
 ### Yet another collectable
 
-[TODO]
-Another custom heart/gem/collectable
-- Option to require dash towards to collect
-- Option to pull player to center while gathering paricles
-- Option to Show custom poem from specified dialog
-- Optional heartbeat effect
-- Set/clear flag after collect
-- Persistent
-- Activates triggers at nodes
+Problem: there are 15 competing standards.
+
+A custom collectable created for the wednesday on the edge of forever. It can do the heartbeat thing, it can do the wiggle thing, it can require that the player dash toward it to collect, it can pull the player to its center, it can play a sound, it can do a little animation, it can show a poem (without the heart background), it can activate triggers at its nodes, it can refill or unfill the player's dashes, it can set a flag, and (as with all other custom collectables), it's probably not quite what you're looking for.
+
 
 ## Triggers
 

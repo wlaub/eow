@@ -29,6 +29,12 @@ entities.eow/LiftboostBlock.attributes.description.always_on=Always provides lif
 entities.eow/LiftboostBlock.attributes.description.flag=A flag that determines whether the block is enabled on loading a room.
 
 
+entities.eow/PowerupCollectable.placements.name.normal=Powerup Collectable
+entities.eow/PowerupCollectable.placements.description.normal=Another custom collectable
+
+entities.eow/PowerupCollectable.attributes.description.heart_index=The poem color
+entities.eow/PowerupCollectable.attributes.description.sprite=sprite path relative to Atlases/Gameplay
+entities.eow/PowerupCollectable.attributes.description.strength=Unused debug attribute
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated

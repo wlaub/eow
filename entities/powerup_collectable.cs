@@ -27,21 +27,37 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool center_player;
         public bool show_animation;
         public bool show_poem;
+        public bool do_wiggle;
+        public bool do_refill = true;
+        public bool do_unfill = false;
+
+        public int heart_index = 3;
    
         public string poem_dialog;
         public string flag;
+        public string sound_name;
 
         public Color shatter_color;
 
         public float strength;
 
         public bool collected = false;
+        public bool activated = false;
 
         public Wiggler move_wiggler;
         public Vector2 move_wiggler_dir;
+        public float bounce_sound_delay = 0f;
 
-        public PowerupCollectable(EntityData data, Vector2 offset) : base(data.Position + offset)
+        public SoundEmitter sfx;
+
+        public Poem poem;
+        public BloomPoint bloom;
+
+        public EntityID eid;
+
+        public PowerupCollectable(EntityData data, Vector2 offset, EntityID eid) : base(data.Position + offset)
         {
+            this.eid = eid;
 
             do_pulse = data.Bool("do_pulse");
             must_dash_toward = data.Bool("must_dash_toward");
@@ -49,11 +65,18 @@ namespace Celeste.Mod.ErrandOfWednesday
             show_animation = data.Bool("show_animation");
             show_poem = data.Bool("show_poem");
 
+            do_wiggle = data.Bool("do_wiggle");
+            do_refill = data.Bool("do_refill");
+            do_unfill = data.Bool("do_unfill");
+
+            heart_index = data.Int("heart_index");
+
             strength = data.Float("strength");
 
             flag = data.Attr("flag");
             poem_dialog = data.Attr("poem_dialog");
-            
+            sound_name = data.Attr("collect_sound");
+ 
             shatter_color = Calc.HexToColor(data.Attr("shatter_color"));
 
             targets = new Vector2[data.Nodes.Length];
@@ -90,7 +113,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
             };
 
-	    	base.Collider = new Hitbox(16f, 16f, -8f, -8f);
+	    	base.Collider = new Hitbox(12f, 12f, -6f, -6f);
     		Add(new PlayerCollider(OnPlayer));            
 
         }
@@ -99,12 +122,13 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Update();
             sprite.Position = move_wiggler_dir * move_wiggler.Value * -8f;
+            bounce_sound_delay -= Engine.DeltaTime;
 
         }
 
         public void activate_nodes(Player player)
         {
-            if(player is null || player.Scene is null)
+            if(player is null || player.Scene is null || activated)
             {
                 return;
             }
@@ -121,6 +145,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     }
                 }
             }
+            activated = true;
 
         }
 
@@ -140,9 +165,17 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             player.PointBounce(Center);
             Input.Rumble(RumbleStrength.Medium, RumbleLength.Medium);
-            move_wiggler.Start();
-            move_wiggler_dir = (Center-player.Center).SafeNormalize(Vector2.UnitY);
+            if(bounce_sound_delay <= 0f)
+            {
+                Audio.Play("event:/game/general/crystalheart_bounce", Position);
+                bounce_sound_delay = 0.1f;
+            }
 
+            if(do_wiggle)
+            {
+                move_wiggler.Start();
+                move_wiggler_dir = (Center-player.Center).SafeNormalize(Vector2.UnitY);
+            }
         }
 
         public bool _dashing_toward(Player player)
@@ -160,85 +193,180 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
+        public void do_center_player(Player player)
+        {
+            if(center_player)
+            {
+                Vector2 offset = Center - player.Center;
+                if(offset.LengthSquared() >= 1)
+                {
+                    player.Speed = player.Speed*0.85f + offset * 2.5f;
+                }
+                else
+                {
+                    player.Speed = Vector2.Zero;
+
+                }
+            }
+            else
+            {
+                player.Speed *= 0.85f;
+            }
+        }
+
         public IEnumerator collect_coroutine(Player player)
         {   
             Visible = false;
             Collidable = false;
 
             Level level = SceneAs<Level>();
-            
-            player.StateMachine.State = Player.StDummy;
-            player.DummyGravity = false;
-            player.DummyMoving = true;
-            player.DummyAutoAnimate = false;
-            //player.Visible = false;
 
-            player.Sprite.Play(PlayerSprite.StartStarFly);
-            player.Hair.Visible = false;
-
-            //Somehow make starfly happen without hair
-
-            SoundEmitter.Play("event:/game/07_summit/gem_get", this);
-
- 
-            for(int i = 0; i < 10; ++ i)
+            if (sound_name != "")
             {
-                Scene.Add(new AbsorbOrb(Position, player));
+                sfx = SoundEmitter.Play(sound_name, this);
             }
 
-            for(float t = 0f; t < 2f; t+= Engine.RawDeltaTime)
+            if(show_animation || show_poem)
             {
-                if(center_player)
-                {
-                    Vector2 offset = Center - player.Center;
-                    if(offset.LengthSquared() >= 1)
-                    {
-                        player.Speed = player.Speed*0.85f + offset * 2.5f;
-                    }
-                    else
-                    {
-                        player.Speed = Vector2.Zero;
+                Audio.PauseMusic = true;
+            }
 
+            if(show_animation)
+            {
+                for(int i = 0; i < 4; ++ i)
+                {
+                    Scene.Add(new AbsorbOrb(Position, player));
+                }
+            }
+            else
+            {
+                for(int i = 0; i < 10; ++ i)
+                {
+                    Scene.Add(new AbsorbOrb(Position, player));
+                }
+            }
+
+
+
+            //Start animation
+            if(show_animation)
+            {
+                level.CanRetry = false;
+                player.StateMachine.State = Player.StDummy;
+                player.DummyGravity = false;
+                player.DummyMoving = true;
+                player.DummyAutoAnimate = false;
+
+                player.Sprite.Play(PlayerSprite.StartStarFly);
+                player.Hair.Visible = false;
+
+                player.Add(bloom = new BloomPoint(1f, 0f));
+
+                float next = 0f;
+                for(float t = 0f; t < 2f; t+= Engine.RawDeltaTime)
+                {
+                    if (t>= next)
+                    {
+                        Scene.Add(new AbsorbOrb(Position, player));
+
+                        bloom.Radius = (t-0.2f)*16;
+
+                        next += 0.2f;
                     }
+
+                    do_center_player(player);
+     
+                    yield return null;
+                } 
+
+                for(float t = 0f; t < 1f; t+= Engine.RawDeltaTime)
+                {
+                    do_center_player(player);
+
+                    yield return null;
                 }
 
-                yield return null;
             }
 
             activate_nodes(player);
-
-            for(float t = 0f; t < 0.1f; t+= Engine.RawDeltaTime)
+            if(flag != "")
             {
-                yield return null;
+                level.Session.SetFlag(flag, true);
             }
 
-//            player.DummyAutoAnimate = true;
-//            player.DummyGravity = true;
-
-            DynamicData pdata = new DynamicData(player);
-            player.Speed.Y = strength;
-            for(float t = 0f; t< 4f; t+= Engine.RawDeltaTime)
+            if(do_refill)
             {
-/*                if(pdata.Get<bool>("OnGround"))
+                player.UseRefill(false);
+            }
+            if(do_unfill)
+            {
+                player.Dashes = 0;
+            }
+
+            //Do Poem
+            if(show_poem)
+            {
+
+                level.FormationBackdrop.Display = true;
+                level.FormationBackdrop.Alpha = 1f;
+
+                string poem_text = Dialog.Clean(poem_dialog);
+
+                poem = new Poem(poem_text, heart_index, 0.0f);
+                poem.Heart.Visible = false;
+                poem.Alpha = 0f;
+                Scene.Add(poem);
+                for (float t3 = 0f; t3 < 1f; t3 += Engine.RawDeltaTime)
                 {
-                    break;
-                }*/
-                yield return null;
-            }
+                    poem.Alpha = Ease.CubeOut(t3);
+                    yield return null;
+                }            
+                while (!Input.MenuConfirm.Pressed && !Input.MenuCancel.Pressed)
+                {
+                    yield return null;
+                }
+               
+                for (float t3 = 0f; t3 < 1f; t3 += Engine.RawDeltaTime * 2f)
+                {
+                    poem.Alpha = Ease.CubeIn(1f - t3);
+                    yield return null;
+                }
+                player.Depth = 0;
 
-            for(float t = 0f; t < 0.5f; t+= Engine.RawDeltaTime)
+        		level.FormationBackdrop.Display = false;
+
+            } 
+
+            //Finish
+            if(show_animation)
             {
-                yield return null;
+                for(float t = 0f; t < 0.1f; t+= Engine.RawDeltaTime)
+                {
+                    yield return null;
+                }
+
+                for(int i = 0 ; i < 7; ++i)
+                {
+                    SummitGem.P_Shatter.Color = shatter_color;
+                    level.ParticlesFG.Emit(SummitGem.P_Shatter, 5, player.Center, Vector2.One * 4f, (float)Math.PI*2f*i/7); 
+                }
+
+                bloom.Visible = false;
+                bloom.RemoveSelf();
+
+                player.Hair.Visible = true;
+                player.StateMachine.State = Player.StNormal;
             }
 
-            for(int i = 0 ; i < 16; ++i)
+            if (sound_name != "")
             {
-                SummitGem.P_Shatter.Color = shatter_color;
-                level.ParticlesFG.Emit(SummitGem.P_Shatter, 5, player.Center, Vector2.One * 4f, (float)Math.PI*2f*i/16); 
+                sfx.Source.Param("end", 1f);
             }
+            Audio.PauseMusic = false;
 
-            player.Hair.Visible = true;
-            player.StateMachine.State = Player.StNormal;
+            level.CanRetry = true;
+            level.Session.DoNotLoad.Add(eid);
+
             RemoveSelf();
 
         }
