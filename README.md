@@ -54,8 +54,19 @@ When activated, removes the entity nearest each of its nodes. Can be configured 
 ### Area Introduction Cutscene
 
 TODO
+A trigger that pans the camera across a series of nodes and displays some text. 
 
-A trigger that pans the camera across a series of nodes and displays some text. Not sure yet how this will work given the need to transition between rooms. Might be a chain of triggers with one per room, which would also allow camera movement settings to be configured per-room or per-trigger.
+The first trigger in the sequence should be marked as initial, and will trigger when the player enters the room. It will immediately jump to the `next_room`. During an intro cutscene, entering a room will cause the introduction cutscene trigger in it to activate, traverse the camera across its nodes, and then jump to the `next_room`. When a trigger has no `next_room`, it will instead end the cutscene and return the player to the spawn nearest where they entered the room.
+
+The trigger parameters control the speed that the camera moves, the delay before it starts moving (pause), and the delay after it stops moving before moving to the next room (hold). At present the speed is the duration in second between nodes, but should be the total duration to traverse the path or an actual fixed camera speed.
+
+Note: the cutscene spawns the player at a spawn point in each room it visits. The player won't be visible, but can still be killed if spawning inside a hazard, causing the cutscene to loop forever. This softlocks the map. If you find yourself dying repeatedly, check for stray spawn points.
+
+Note: if a cutscene trigger visits a room that doesn't have a cutscene trigger, then the player will probably be messed up until at least a room transition due to state not getting cleaned up. if the cutscene ends prematurely and the player is messed up, then you might be missing a cutscene trigger.
+
+Note: there's no validation on the `next_room` field. Be careful.
+
+Note: the intended usage of this is to have an initial cutscene trigger at the entrance to a room, jump through a sequence of rooms each containing a cutscene trigger with the trigger outside the bounds of the room and nodes denoting the camera path. The penultimate trigger has the initial room as its `next_room`. The final camera trigger is in the intial room and specifies a path that ends on the player. I am assuming there will be two camera triggers in the room where the cutscene starts, and one in each room it traverses. This is not enforced. Deviations are possible but may lead to undefined behavior. It may be possible to end in a room other than the initial room and then simply teleport back to the start. For an example of the intended usage, see https://github.com/wlaub/twoteof.
 
 ### Self-destruct Timer
 
