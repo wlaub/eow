@@ -51,3 +51,30 @@ Only works on entities that implement point or rect collision. Should fail silen
 
 When activated, removes the entity nearest each of its nodes. Can be configured to active on entering a room and/or only if a flag is set.
 
+### Area Introduction Cutscene
+
+TODO
+
+A trigger that pans the camera across a series of nodes and displays some text. Not sure yet how this will work given the need to transition between rooms. Might be a chain of triggers with one per room, which would also allow camera movement settings to be configured per-room or per-trigger.
+
+### Self-destruct Timer
+
+TODO
+
+A trigger that sets a timer and ends the level when the timer expires. The timer should save its time each time the player's spawn location changes and reset when the player respawns. May also include triggers for canceling the timer and adding or removing time.
+
+Should have the option to play arbitrary sounds at the beginning and end of the timer as well as at specific times.
+
+Would be nice to be able to have the timer simply activate other triggers, but that doesn't seem feasible without ensuring the player will be in a specific room when the timer ends or duplicating the set of triggers in every applicable room.
+
+### Trigger Sequence
+
+TODO
+
+A sequence of triggers that will do something if the player passes through them in the correct order. This is a noded trigger with the options:
+
+* start active (for first trigger)
+* activate triggers (for last trigger)
+
+If the trigger is active when the player enters it, then it will set all the triggers at its nodes to active and set itself to inactive. If it's configured to activate triggers, then it will activate the triggers at its nodes instead
+
