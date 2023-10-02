@@ -181,17 +181,32 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 Level level = SceneAs<Level>();
                 in_cutscene = true;
-                starting_position = player.Position;
+//                starting_position = player.Position;
+                starting_position = nodes[0];
                 starting_room = level.Session.Level;
-//Logger.Log(LogLevel.Info, "eow", "initializing cutscene");
-//Logger.Log(LogLevel.Info, "eow", level.Session.Level);
+Logger.Log(LogLevel.Info, "eow", $"initializing cutscene, {starting_position.X}, {starting_position.Y}");
+Logger.Log(LogLevel.Info, "eow", level.Session.Level);
                 level.StartCutscene(cleanup); 
             }
 
             player.StateMachine.State = Player.StDummy;
+            player.Speed.X = 0;
+            player.Speed.Y = 0;
             player.DummyGravity = false;
-            player.Visible = false;
+            player.Sprite.Visible = player.Hair.Visible = false;
             player.Collidable = false;
+
+            if(next_room == "")
+            {
+Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X}, {starting_position.Y}");
+                player.Position = starting_position;
+                Level level = SceneAs<Level>();
+                if(level.Session.Level == starting_room)
+                {
+                    player.Sprite.Visible = player.Hair.Visible = true;
+                }
+            }
+
 
 //            if(title != "")
             {
@@ -204,17 +219,21 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static void cleanup(Level level)
         {
 //Logger.Log(LogLevel.Info, "eow", "doing cleanup");
+Logger.Log(LogLevel.Info, "eow", $"doing cleanup, {starting_position.X}, {starting_position.Y}");
 //            Level level = SceneAs<Level>();
             Player player = level.Tracker.GetEntity<Player>();
             player.StateMachine.State = 0;
-            player.Visible = true;
+            player.Sprite.Visible = player.Hair.Visible = true;
             player.Collidable = true;
             in_cutscene = false;
             level.ZoomSnap(Vector2.Zero, 1f);
 
             level.OnEndOfFrame += delegate {
+Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_position.Y}");
                 level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
-                    };
+                player.Position = starting_position;
+                level.Camera.Position = player.CameraTarget;
+                };
             level.EndCutscene(); 
 
         }
@@ -248,7 +267,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(next_room == "")
             {
-                player.Visible = true;
+                player.Sprite.Visible = player.Hair.Visible = true;
             }
             _raise_alpha = true;
 
@@ -357,14 +376,9 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
 //Logger.Log(LogLevel.Info, "eow", $"moving to next room {next_room}");
                 Level level = SceneAs<Level>();
-                Vector2? spawn = null;
-                if(next_room == starting_room)
-                {
-                    spawn = starting_position;
-                }
                 level.OnEndOfFrame += delegate {
-                    level.TeleportTo(player, next_room, Player.IntroTypes.Transition, spawn);
-                    };
+                    level.TeleportTo(player, next_room, Player.IntroTypes.Transition, starting_position);
+                };
             }
  
         }

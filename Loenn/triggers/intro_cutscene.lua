@@ -2,7 +2,7 @@
 local trigger = {}
 
 trigger.name = "eow/AreaIntroCutscene"
-trigger.nodeLimits = {2, -1}
+trigger.nodeLimits = {1, -1}
 --trigger.nodeLineRenderType = "fan"
 
 --TODO field ordering
