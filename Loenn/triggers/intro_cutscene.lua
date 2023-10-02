@@ -5,6 +5,8 @@ trigger.name = "eow/AreaIntroCutscene"
 trigger.nodeLimits = {2, -1}
 --trigger.nodeLineRenderType = "fan"
 
+--TODO field ordering
+
 trigger.placements = {
     {
         name = "normal",
@@ -36,6 +38,7 @@ trigger.fieldInformation = {
         },
 } 
 
+--TODO it woulbe be nice if the nodes showed the camera range. Is such a thing even possible?
 
 return trigger;
 

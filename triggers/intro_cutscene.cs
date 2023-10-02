@@ -350,7 +350,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(next_room == "")
             {
                 Level level = SceneAs<Level>();
-                cleanup(level);
+                level.SkipCutscene();
+//                cleanup(level);
             }
             else
             {
@@ -380,8 +381,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         public override void OnEnter(Player player)
         {
             base.OnEnter(player);
-
-
             start_cutscene(player);
 
         }
