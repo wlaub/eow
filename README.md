@@ -60,6 +60,8 @@ The first trigger in the sequence should be marked as initial, and will trigger 
 
 The trigger parameters control the speed that the camera moves, the delay before it starts moving (pause), and the delay after it stops moving before moving to the next room (hold). At present the speed is the duration in second between nodes, but should be the total duration to traverse the path or an actual fixed camera speed.
 
+Note: the nodes on the initial trigger don't do anything. i could have made them define the final route somehow, but wanted to keep it a little more flexible just in case.
+
 Note: the cutscene spawns the player at a spawn point in each room it visits. The player won't be visible, but can still be killed if spawning inside a hazard, causing the cutscene to loop forever. This softlocks the map. If you find yourself dying repeatedly, check for stray spawn points.
 
 Note: if a cutscene trigger visits a room that doesn't have a cutscene trigger, then the player will probably be messed up until at least a room transition due to state not getting cleaned up. if the cutscene ends prematurely and the player is messed up, then you might be missing a cutscene trigger.

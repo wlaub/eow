@@ -16,9 +16,15 @@ namespace Celeste.Mod.ErrandOfWednesday
     {
         public string title;
         public string sub_title;
-        public float alpha = 1f;
+        public float alpha_title = 0f;
+        public float alpha_sub = 0f;
+        public Color color_title = Color.White;
+        public Color color_sub = Color.White;
+        public float title_size = 2.5f;
+        public float sub_size = 1.25f;
 
-        public TitleMessage(string title, string sub_title, float alpha)
+
+        public TitleMessage(string title, string sub_title, float title_size, float sub_size, Color title_color, Color sub_color)
         {
             
             base.Tag = Tags.HUD;
@@ -26,7 +32,10 @@ namespace Celeste.Mod.ErrandOfWednesday
     //      text = array[data.Int("line")];
             this.title = title;
             this.sub_title = sub_title;
-            this.alpha = alpha;
+            this.title_size = title_size;
+            this.sub_size = sub_size;
+            this.color_title = title_color;
+            this.color_sub = sub_color;
         }
 
         public override void Update()
@@ -36,14 +45,35 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public override void Render()
         {
-Logger.Log(LogLevel.Info, "eow", "lol");
-            Vector2 position = (base.Scene as Level).Camera.Position;
-            Vector2 vector = position + new Vector2(160f, 90f);
-            ActiveFont.Draw(title, vector, new Vector2(0.5f, 0.5f), Vector2.One * 2.5f, Color.White * alpha);
+            Vector2 position = new Vector2(160f, 90f);
 
-            Vector2 vector2 = vector + new Vector2(160f, 140f);
-            ActiveFont.Draw(sub_title, vector, new Vector2(0.5f, 0.5f), Vector2.One * 1.25f, Color.White * alpha);
- 
+            if(sub_title != "")
+            {
+                float margin = 0f;//6f*4;
+                Vector2 vector = position*6f + new Vector2(0f, -margin);
+                ActiveFont.Draw(title, vector, new Vector2(0.5f, 1f), Vector2.One * title_size, color_title * alpha_title);
+
+                Vector2 vector2 = position*6f + new Vector2(0f, margin);
+                ActiveFont.Draw(sub_title, vector2, new Vector2(0.5f, 0f), Vector2.One * sub_size, color_sub * alpha_sub);
+
+                Vector2 size = ActiveFont.Measure(title)*title_size;
+                Vector2 size2 = ActiveFont.Measure(sub_title)*sub_size;
+                float width = (size2.X + size.X)/2;
+                width = Calc.Max(width, size2.X);
+                Draw.Line(
+                    position*6f + new Vector2(-width/2, 0f), 
+                    position*6f + new Vector2(width/2, 0f), 
+                    color_sub*alpha_sub, 6);
+
+
+            }
+            else
+            {
+                ActiveFont.Draw(title, position*6f, new Vector2(0.5f, 0.5f), Vector2.One * 2.5f, color_title * alpha_title);
+
+
+            }
+
         }
     }
 
@@ -55,11 +85,16 @@ Logger.Log(LogLevel.Info, "eow", "lol");
         public float speed;
         public float pause;
         public float hold;
+        public float fade_in_time;
+        public float title_size;
+        public float sub_title_size;
         public string title;
         public string sub_title;
         public string next_room;
         public bool once;
         public bool initial;
+        public Color title_color;
+        public Color sub_title_color;
         public Vector2[] nodes;
 
         public bool triggered = false;
@@ -71,7 +106,15 @@ Logger.Log(LogLevel.Info, "eow", "lol");
         public static Vector2 starting_position;
         public static string starting_room;
 
-        public float _alpha = 1;
+        public static float title_alpha = 0f;
+        public static float sub_alpha = 0f;
+
+        public bool _raise_alpha = false;
+        public bool _lower_alpha = false;
+        public float _raise_value;
+
+        public float _path_length = 0;
+        public float _effective_speed;
 
         public TitleMessage _title;
 
@@ -87,10 +130,49 @@ Logger.Log(LogLevel.Info, "eow", "lol");
             speed = data.Float("speed");
             pause = data.Float("pause");
             hold = data.Float("hold");
+            fade_in_time = data.Float("fade_in_time");
+
+            title_size = data.Float("title_size");
+            sub_title_size = data.Float("sub_title_size");
+            title_color = Calc.HexToColor(data.Attr("title_color"));
+            sub_title_color = Calc.HexToColor(data.Attr("sub_title_color"));
             
             title = data.Attr("title");
             sub_title = data.Attr("sub_title");
+            if(title != "")
+            {
+                title = Dialog.Clean(title);
+            }
+            if(sub_title != "")
+            {
+                sub_title = Dialog.Clean(sub_title);
+            }
+
+
             next_room = data.Attr("next_room");
+
+            if (fade_in_time <= 0)
+            {
+                _raise_value = 1;
+            }
+            else
+            {
+                _raise_value = 1f/(fade_in_time*60f);
+            }
+
+            Vector2 prev = nodes[0];
+            for(int idx = 1; idx < nodes.Length; ++idx)
+            {
+                Vector2 next = nodes[idx];
+                _path_length += Vector2.Distance(prev, next);
+                prev = next;
+            }
+
+            if(initial)
+            {
+                title_alpha = 0;
+                sub_alpha = 0;
+            }
         }
 
         public void setup(Player player)
@@ -101,9 +183,9 @@ Logger.Log(LogLevel.Info, "eow", "lol");
                 in_cutscene = true;
                 starting_position = player.Position;
                 starting_room = level.Session.Level;
-Logger.Log(LogLevel.Info, "eow", "initializing cutscene");
-Logger.Log(LogLevel.Info, "eow", level.Session.Level);
- 
+//Logger.Log(LogLevel.Info, "eow", "initializing cutscene");
+//Logger.Log(LogLevel.Info, "eow", level.Session.Level);
+                level.StartCutscene(cleanup); 
             }
 
             player.StateMachine.State = Player.StDummy;
@@ -113,15 +195,17 @@ Logger.Log(LogLevel.Info, "eow", level.Session.Level);
 
 //            if(title != "")
             {
-                _title = new TitleMessage(title, sub_title, 1);
+                _title = new TitleMessage(title, sub_title, title_size, sub_title_size, title_color, sub_title_color);
+                update_alpha();
                 Scene.Add(_title);
             }
 
         }
-        public void cleanup(Player player)
+        public static void cleanup(Level level)
         {
-Logger.Log(LogLevel.Info, "eow", "doing cleanup");
-            Level level = SceneAs<Level>();
+//Logger.Log(LogLevel.Info, "eow", "doing cleanup");
+//            Level level = SceneAs<Level>();
+            Player player = level.Tracker.GetEntity<Player>();
             player.StateMachine.State = 0;
             player.Visible = true;
             player.Collidable = true;
@@ -131,7 +215,7 @@ Logger.Log(LogLevel.Info, "eow", "doing cleanup");
             level.OnEndOfFrame += delegate {
                 level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
                     };
- 
+            level.EndCutscene(); 
 
         }
 
@@ -147,6 +231,15 @@ Logger.Log(LogLevel.Info, "eow", "doing cleanup");
 
         }
 
+        public void update_alpha()
+        {
+            if(_title != null)
+            {
+                _title.alpha_title = title_alpha;
+                _title.alpha_sub = sub_alpha;
+            }
+        }
+
         public IEnumerator do_cutscene(Player player)
         {
             Level level = SceneAs<Level>();
@@ -157,6 +250,7 @@ Logger.Log(LogLevel.Info, "eow", "doing cleanup");
             {
                 player.Visible = true;
             }
+            _raise_alpha = true;
 
             if(!initial)
             {
@@ -171,11 +265,13 @@ Logger.Log(LogLevel.Info, "eow", "doing cleanup");
                 for(int idx = 1; idx < nodes.Length; ++idx)
                 {
                     Vector2 next = nodes[idx];
-
-                    for (float t = 0f; t < speed; t += Engine.RawDeltaTime)
+                    float segment_length = Vector2.Distance(next, prev);
+                    float segment_duration = speed*segment_length/_path_length;
+                    for (float t = 0f; t < segment_duration; t += Engine.RawDeltaTime)
                     {
-                        Vector2 cam = Vector2.Lerp(prev, next, t/speed);
+                        Vector2 cam = Vector2.Lerp(prev, next, t/segment_duration);
                         set_camera_position(level, cam);
+     
                         yield return null;
 
                     }            
@@ -183,6 +279,11 @@ Logger.Log(LogLevel.Info, "eow", "doing cleanup");
 
                 }
 
+                _raise_alpha = false;
+                if(next_room == "")
+                {
+                    _lower_alpha = true;
+                }
                 for (float t = 0f; t < hold; t += Engine.RawDeltaTime)        
                 {
                     yield return null;
@@ -194,16 +295,49 @@ Logger.Log(LogLevel.Info, "eow", "doing cleanup");
 
             if(once || initial)
             {
-Logger.Log(LogLevel.Info, "eow", $"Do not load {eid}");
+//Logger.Log(LogLevel.Info, "eow", $"Do not load {eid}");
                 (base.Scene as Level).Session.DoNotLoad.Add(eid);
             }
 
             yield return null;
         }
 
+        public void inc_alpha(float amount)
+        {
+                if(title != "")
+                {
+                    title_alpha += amount;
+                    title_alpha = Calc.Clamp(title_alpha, 0, 1) ;
+                }
+                if(sub_title != "")
+                {
+                    if(amount > 0 && title_alpha < 0.9)
+                    {
+                        return;
+                    }
+                    sub_alpha += amount;
+                    sub_alpha = Calc.Clamp(sub_alpha, 0, 1) ;
+            }
+ 
+        }
+
+
         public override void Update()
         {
             base.Update();
+            if(_raise_alpha)
+            {
+                inc_alpha(_raise_value);
+            }
+            if(_lower_alpha)
+            {
+                if(hold > 0)
+                {
+                    inc_alpha(-Calc.Max(1f, 1f/hold)/60);
+                }
+            }
+            update_alpha();
+
             if(done)
             {
                 Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
@@ -215,11 +349,12 @@ Logger.Log(LogLevel.Info, "eow", $"Do not load {eid}");
         {
             if(next_room == "")
             {
-                cleanup(player);
+                Level level = SceneAs<Level>();
+                cleanup(level);
             }
             else
             {
-Logger.Log(LogLevel.Info, "eow", $"moving to next room {next_room}");
+//Logger.Log(LogLevel.Info, "eow", $"moving to next room {next_room}");
                 Level level = SceneAs<Level>();
                 Vector2? spawn = null;
                 if(next_room == starting_room)
@@ -267,13 +402,6 @@ Logger.Log(LogLevel.Info, "eow", $"moving to next room {next_room}");
                 Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
                 start_cutscene(player);
             }
-        }
-
-        public override void Render()
-        {
-Logger.Log(LogLevel.Info, "eow", title);
-            Level level = SceneAs<Level>();
-            ActiveFont.Draw(title, level.Camera.Position, new Vector2(0.5f, 0.5f), Vector2.One * 1.25f, Color.White * _alpha);
         }
 
     }
