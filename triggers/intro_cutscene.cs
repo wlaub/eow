@@ -139,15 +139,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             
             title = data.Attr("title");
             sub_title = data.Attr("sub_title");
-            if(title != "")
-            {
-                title = Dialog.Clean(title);
-            }
-            if(sub_title != "")
-            {
-                sub_title = Dialog.Clean(sub_title);
-            }
-
 
             next_room = data.Attr("next_room");
 
@@ -193,7 +184,7 @@ Logger.Log(LogLevel.Info, "eow", level.Session.Level);
             player.Speed.X = 0;
             player.Speed.Y = 0;
             player.DummyGravity = false;
-            player.Sprite.Visible = player.Hair.Visible = false;
+            player.Sprite.Visible = (player.Hair.Visible = false);
             player.Collidable = false;
 
             if(next_room == "")
@@ -203,14 +194,14 @@ Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X},
                 Level level = SceneAs<Level>();
                 if(level.Session.Level == starting_room)
                 {
-                    player.Sprite.Visible = player.Hair.Visible = true;
+                    show_player_ending(player);
                 }
             }
 
 
 //            if(title != "")
             {
-                _title = new TitleMessage(title, sub_title, title_size, sub_title_size, title_color, sub_title_color);
+                _title = new TitleMessage(Dialog.Clean(title), Dialog.Clean(sub_title), title_size, sub_title_size, title_color, sub_title_color);
                 update_alpha();
                 Scene.Add(_title);
             }
@@ -222,8 +213,8 @@ Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X},
 Logger.Log(LogLevel.Info, "eow", $"doing cleanup, {starting_position.X}, {starting_position.Y}");
 //            Level level = SceneAs<Level>();
             Player player = level.Tracker.GetEntity<Player>();
+            player.Sprite.Visible = (player.Hair.Visible = true);
             player.StateMachine.State = 0;
-            player.Sprite.Visible = player.Hair.Visible = true;
             player.Collidable = true;
             in_cutscene = false;
             level.ZoomSnap(Vector2.Zero, 1f);
@@ -259,6 +250,14 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
             }
         }
 
+        public void show_player_ending(Player player)
+        {
+            player.DummyAutoAnimate = false;
+            player.Sprite.Visible = (player.Hair.Visible = true);
+            player.ResetSprite(player.Sprite.Mode);
+            player.Sprite.Play("idle");
+        }
+
         public IEnumerator do_cutscene(Player player)
         {
             Level level = SceneAs<Level>();
@@ -266,8 +265,8 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
             setup(player);
 
             if(next_room == "")
-            {
-                player.Sprite.Visible = player.Hair.Visible = true;
+            { 
+                show_player_ending(player);
             }
             _raise_alpha = true;
 
