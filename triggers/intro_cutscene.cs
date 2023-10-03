@@ -224,6 +224,8 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
                 level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
                 player.Position = starting_position;
                 level.Camera.Position = player.CameraTarget;
+                level.Session.HitCheckpoint = true;
+                level.Session.RespawnPoint = starting_position;
                 };
             level.EndCutscene(); 
 
@@ -343,6 +345,7 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
         public override void Update()
         {
             base.Update();
+
             if(_raise_alpha)
             {
                 inc_alpha(_raise_value);
@@ -355,10 +358,15 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
                 }
             }
             update_alpha();
-
+                Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
+//Logger.Log(LogLevel.Info, "eow", $"{player.Sprite.HasHair} {player.Sprite.HairFrame}");
+            if(player.Sprite.Texture != null)
+            {
+//Logger.Log(LogLevel.Info, "eow", $"{player.Sprite.Texture.AtlasPath}");
+            }
             if(done)
             {
-                Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
+//                Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
                 do_next(player);
             }
         }

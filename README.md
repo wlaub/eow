@@ -58,11 +58,9 @@ A trigger that pans the camera across a series of nodes and displays some text.
 
 The first trigger in the sequence should be marked as initial, and will trigger when the player enters the room. It will immediately jump to the `next_room`. During an intro cutscene, entering a room will cause the introduction cutscene trigger in it to activate, traverse the camera across its nodes, and then jump to the `next_room`. When a trigger has no `next_room`, it will instead end the cutscene and return the player to the spawn nearest where they entered the room.
 
-The first node of the first trigger determine's the player's spawn point at the end of the cutscene.
+The first node of the first trigger determine's the player's spawn point at the end of the cutscene (place it at the player's feet).
 
 The trigger parameters control the speed that the camera moves, the delay before it starts moving (pause), and the delay after it stops moving before moving to the next room (hold). At present the speed is the duration in second between nodes, but should be the total duration to traverse the path or an actual fixed camera speed.
-
-Note: the nodes on the initial trigger don't do anything. i could have made them define the final route somehow, but wanted to keep it a little more flexible just in case.
 
 Note: the cutscene spawns the player at a spawn point in each room it visits. The player won't be visible, but can still be killed if spawning inside a hazard, causing the cutscene to loop forever. This softlocks the map. If you find yourself dying repeatedly, check for stray spawn points.
 
