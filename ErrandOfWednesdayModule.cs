@@ -27,6 +27,12 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         public static bool all_lookouts = false;
 
+
+        public static bool sd_hooks_loaded = false;
+        public static bool sd_active = false;
+        public static float sd_timer = 0f;
+        public static float sd_checkpoint_time = 0f;
+
         public ErrandOfWednesdayModule() {
             Instance = this;
 #if DEBUG
@@ -41,11 +47,35 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public override void Load() {
             On.Celeste.Lookout.Update += lookout_stop;
             On.Monocle.Engine.Update += Update;
+
+            Everest.Events.Level.OnLoadLevel += on_load_level;
         }
 
         public override void Unload() {
             On.Celeste.Lookout.Update -= lookout_stop;
             On.Monocle.Engine.Update -= Update;
+
+            Everest.Events.Level.OnLoadLevel -= on_load_level;
+            SDTimerDisplay.Unload();
+        }
+
+        private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
+        {
+            if(Session.sd_active && SDTimerDisplay.instance == null)
+            {
+                SDTimerDisplay timer = new SDTimerDisplay();
+                SDTimerDisplay.load_session();
+                level.Add(timer);
+                //TODO hitting f5 makes this go away, but it's important to not add more than one copy.
+            }
+        }
+
+        private void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
+        {
+            if(sd_active)
+            {
+            }
+            SDTimerDisplay.Unload();
         }
 
         public void lookout_stop(On.Celeste.Lookout.orig_Update orig, Lookout self)

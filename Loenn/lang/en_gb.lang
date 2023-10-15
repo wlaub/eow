@@ -39,3 +39,7 @@ entities.eow/PowerupCollectable.attributes.description.strength=Unused debug att
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated
 
+triggers.eow/AreaIntroCutscene.placements.name.normal=Area introduction Cutscene
+triggers.eow/AreaIntroCutscene.placements.description.normal=Used to build a cutscene that pans the camera across a few rooms and displays and area title just like a real metroidvania.
+
+
