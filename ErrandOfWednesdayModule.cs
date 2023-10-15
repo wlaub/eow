@@ -49,6 +49,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             On.Monocle.Engine.Update += Update;
 
             Everest.Events.Level.OnLoadLevel += on_load_level;
+            Everest.Events.Level.OnExit += on_exit_hook;
         }
 
         public override void Unload() {
@@ -56,6 +57,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             On.Monocle.Engine.Update -= Update;
 
             Everest.Events.Level.OnLoadLevel -= on_load_level;
+            Everest.Events.Level.OnExit -= on_exit_hook;
             SDTimerDisplay.Unload();
         }
 
@@ -71,8 +73,9 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         private void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
         {
-            if(sd_active)
+            if(Session.sd_active)
             {
+                SDTimerDisplay.save_session();
             }
             SDTimerDisplay.Unload();
         }

@@ -49,6 +49,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(!hooked) return;
             Everest.Events.Player.OnSpawn -= on_spawn;
             Everest.Events.Level.OnTransitionTo -= on_transition;
+            instance = null;
+            timer_set = false;
             hooked = false;
         }
 
