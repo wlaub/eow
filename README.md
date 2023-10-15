@@ -53,7 +53,6 @@ When activated, removes the entity nearest each of its nodes. Can be configured 
 
 ### Area Introduction Cutscene
 
-TODO
 A trigger that pans the camera across a series of nodes and displays some text. 
 
 The first trigger in the sequence should be marked as initial, and will trigger when the player enters the room. It will immediately jump to the `next_room`. During an intro cutscene, entering a room will cause the introduction cutscene trigger in it to activate, traverse the camera across its nodes, and then jump to the `next_room`. When a trigger has no `next_room`, it will instead end the cutscene and return the player to the spawn nearest where they entered the room.
