@@ -61,12 +61,11 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
         {
-            if(Session.sd_active && SDTimerDisplay.instance == null)
+            if(Session.sd_active)
             {
-                SDTimerDisplay timer = new SDTimerDisplay();
+                SDTimerDisplay timer = SDTimerDisplay.create();
                 SDTimerDisplay.load_session();
                 level.Add(timer);
-                //TODO hitting f5 makes this go away, but it's important to not add more than one copy.
             }
         }
 

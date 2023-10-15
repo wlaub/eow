@@ -12,13 +12,12 @@ namespace Celeste.Mod.ErrandOfWednesday
 {
     public class SDTimerDisplay : Entity
     {
-        public static float time_remaining = 600f;
-        public static float checkpoint_time = 600f;
+        public static float time_remaining = 420f;
+        public static float checkpoint_time = 420f;
 
         public static bool hooked = false;
 
-        public bool inited = false;
-
+        public static bool timer_set = false;
         public static SDTimerDisplay instance = null;
 
         public SDTimerDisplay()
@@ -30,7 +29,6 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static SDTimerDisplay create()
         {
-            save_session();
             if(instance != null)
             {
                 return instance;
@@ -57,6 +55,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static void set_time(float duration)
         {
             checkpoint_time = time_remaining = duration;
+            timer_set = true;
             save_session();
         }
 
@@ -68,8 +67,13 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void load_session()
         {
+            if(timer_set)
+            {
+                return;
+            }
             checkpoint_time = ErrandOfWednesdayModule.Session.sd_checkpoint_time;
             time_remaining = checkpoint_time;
+            timer_set = true;
         }
 
         public static void on_transition(Level level, LevelData next, Vector2 direction)
