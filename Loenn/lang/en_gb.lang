@@ -42,4 +42,10 @@ triggers.eow/EntityRemover.placements.description.normal=Removes the entities at
 triggers.eow/AreaIntroCutscene.placements.name.normal=Area introduction Cutscene
 triggers.eow/AreaIntroCutscene.placements.description.normal=Used to build a cutscene that pans the camera across a few rooms and displays and area title just like a real metroidvania.
 
+triggers.eow/SelfDestructActivateTrigger.placements.name.normal=Self-Destruct Sequence Activate Trigger
+triggers.eow/SelfDestructActivateTrigger.placements.description.normal=Activates a self-sequence that ends the map if time runs out
+
+triggers.eow/SelfDestructCancelTrigger.placements.name.normal=Self-Destruct Sequence Cancel Trigger
+triggers.eow/SelfDestructCancelTrigger.placements.description.normal=Cancels an active self-destruct trigger
+
 

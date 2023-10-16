@@ -69,15 +69,25 @@ Note: there's no validation on the `next_room` field. Be careful.
 
 Note: the intended usage of this is to have an initial cutscene trigger at the entrance to a room, jump through a sequence of rooms each containing a cutscene trigger with the trigger outside the bounds of the room and nodes denoting the camera path. The penultimate trigger has the initial room as its `next_room`. The final camera trigger is in the intial room and specifies a path that ends on the player. I am assuming there will be two camera triggers in the room where the cutscene starts, and one in each room it traverses. This is not enforced. Deviations are possible but may lead to undefined behavior. It may be possible to end in a room other than the initial room and then simply teleport back to the start. For an example of the intended usage, see https://github.com/wlaub/twoteof.
 
-### Self-destruct Timer
+### Self-Destruct Triggers
 
-TODO
+These triggers are intended to create a timed self-destruct sequence that ends in the player escaping (by activating a cancel trigger) or dying in the mine (ending the map).
 
-A trigger that sets a timer and ends the level when the timer expires. The timer should save its time each time the player's spawn location changes and reset when the player respawns. May also include triggers for canceling the timer and adding or removing time.
+#### Self-Destruct Activate Trigger
 
-Should have the option to play arbitrary sounds at the beginning and end of the timer as well as at specific times.
+The Activate trigger sets a timer, plays the start sound, and sets the `eow_sd_active` flag.
 
-Would be nice to be able to have the timer simply activate other triggers, but that doesn't seem feasible without ensuring the player will be in a specific room when the timer ends or duplicating the set of triggers in every applicable room.
+The while the self-destruct is active, the remaining time is displayed on the screen. When the player changes rooms, the current time is saved, and if the player dies then the timer is reset to the saved time. The countdown does not proceed while the game is paused.
+
+Note: Pressing F5 will reset the timer to the saved checkpoint time. This means that a player can traverse a room, press f5, and then proceed to the next room without the time spent traversing the room counting. It's up to the player to decide what they do with this information.
+
+The countdown sound, if provided, is played so that it ends at the same time as the timer. While the countdown sound is playing, the player can't pause, but can use a Cancel Trigger.
+
+Once the countdown ends, the player is frozen, the game timer stops, the death sound plays, and the screen shakes while fading to white. After the screen fade and death sound both end, the maps is ended with no fanfare, and the player returned to chapter select.
+
+#### Self-Destruct Cancel Trigger
+
+The Cancel trigger cancels the self-destruct sequence as long as it's entered before the countdown ends.
 
 ### Trigger Sequence
 

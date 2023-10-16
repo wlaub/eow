@@ -15,10 +15,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 {
     public class SDTimerDisplay : Entity
     {
+        public const string sd_active_flag = "eow_sd_active";
+
         public static float time_remaining = 420f;
         public static float checkpoint_time = 420f;
         public static string countdown_sound;
         public static string death_sound;
+        public static string timer_color_base;
+        public static Color timer_color;
 
         public static bool hooked = false;
 
@@ -75,10 +79,16 @@ namespace Celeste.Mod.ErrandOfWednesday
             checkpoint_time = time_remaining = duration;
             death_sound = data.Attr("death_sound");
             set_countdown_sound(data.Attr("countdown_sound"));
-
+            set_timer_color(data.Attr("timer_color"));
             sd_active = true;
             save_session();
     
+        }
+
+        public static void set_timer_color(string color)
+        {
+            timer_color_base = color;
+            timer_color = Calc.HexToColor(color);
         }
 
         public static void set_countdown_sound(string sound)
@@ -93,7 +103,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                     desc.getLength(out base_length);
                     countdown_duration = base_length/1000f;
                     countdown_configured = true;
-Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
                 }
                 else
                 {
@@ -110,6 +119,7 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
             ErrandOfWednesdayModule.Session.sd_countdown_sound = countdown_sound;
             ErrandOfWednesdayModule.Session.sd_death_sound = death_sound;
             ErrandOfWednesdayModule.Session.sd_checkpoint_time = checkpoint_time;
+            ErrandOfWednesdayModule.Session.sd_timer_color = timer_color_base;
         }
 
         public static void load_session()
@@ -121,7 +131,7 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
             checkpoint_time = ErrandOfWednesdayModule.Session.sd_checkpoint_time;
             death_sound = ErrandOfWednesdayModule.Session.sd_death_sound;
             set_countdown_sound(ErrandOfWednesdayModule.Session.sd_countdown_sound);
-
+            set_timer_color(ErrandOfWednesdayModule.Session.sd_timer_color);
             time_remaining = checkpoint_time;
             sd_active = true;
         }
@@ -148,9 +158,29 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
                 Audio.Stop(instance.countdown_event);
             }
             instance.clear_failstate();
+            instance.clear_flag();
+            instance.RemoveSelf();
+            instance = null;
             sd_active = false;
+            save_session();
             Unload();
         }
+
+        public override void Awake(Scene scene)
+        {
+            base.Awake(scene);
+            set_flag();
+        }
+
+        public void clear_flag()
+        {
+            SceneAs<Level>().Session.SetFlag(sd_active_flag, false);
+        }
+        public void set_flag()
+        {
+            SceneAs<Level>().Session.SetFlag(sd_active_flag, true);
+        }
+
         public void clear_failstate()
         {
             if(failstate)
@@ -163,7 +193,7 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
         public static void set_failstate(Level level)
         {
             failstate = true;
-//            level.PauseLock = true;
+            level.PauseLock = true;
         }
 
         public IEnumerator death_routine(Player player)
@@ -187,9 +217,9 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
             level.RegisterAreaComplete();
             Vector2 base_cam = level.Camera.Position;
 
-            for(float t = 0f; t < 3f; t+= Engine.RawDeltaTime)
+            for(float t = 0f; t < 5f; t+= Engine.RawDeltaTime)
             {
-                death_alpha = t/3;
+                death_alpha = t/5;
                 float shake_amt = death_alpha * 6;
                 
                 level.Camera.Position = base_cam + new Vector2(
@@ -245,12 +275,10 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
             }
             string text = $"T-{seconds} S";
             ActiveFont.Draw(text, 
-                new Vector2(160f, 90f)*6f,
+                new Vector2(160f, 45f)*6f,
                 new Vector2(0.5f, 0.5f), Vector2.One,
-                Color.Green
+                timer_color
                 );
-            //TODO make color configurable
-            //TODO timer position???           
  
             if(dying)
             {
@@ -267,6 +295,8 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
     [CustomEntity("eow/SelfDestructActivateTrigger")]
     public class SelfDestructActivateTrigger : Trigger 
     {
+        public EntityID eid;
+        
         public bool triggered = false;
 
         public float timer_duration;
@@ -274,8 +304,9 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
 
         public EntityData data;
 
-        public SelfDestructActivateTrigger (EntityData data, Vector2 offset) : base(data, offset)
+        public SelfDestructActivateTrigger (EntityData data, Vector2 offset, EntityID eid) : base(data, offset)
         {
+            this.eid = eid;
             this.data = data;
             timer_duration = data.Float("timer_duration");
             start_sound = data.Attr("start_sound");
@@ -294,10 +325,52 @@ Logger.Log(LogLevel.Info, "eow", $"{countdown_sound}: {countdown_duration}");
             }
 
             SDTimerDisplay timer = SDTimerDisplay.create();
-            SDTimerDisplay.configure(data);
             SceneAs<Level>().Add(timer);
+            SDTimerDisplay.configure(data);
+
             triggered = true;
-            //TODO DNL
+            SceneAs<Level>().Session.DoNotLoad.Add(eid);
+        }
+
+        public override void OnEnter(Player player)
+        {
+            activate();
+        }
+
+        public override void Awake(Scene scene)
+        {
+            base.Awake(scene);
+
+            if(SceneAs<Level>().Session.DoNotLoad.Contains(eid))
+            {
+                RemoveSelf();
+                return;
+            }
+        }
+
+    }
+   
+
+
+    [Tracked]
+    [CustomEntity("eow/SelfDestructCancelTrigger")]
+    public class SelfDestructCancelTrigger : Trigger 
+    {
+        public bool triggered = false;
+
+        public SelfDestructCancelTrigger (EntityData data, Vector2 offset) : base(data, offset)
+        {
+        }
+
+        public void activate()
+        {
+            if(triggered)
+            {
+                return;
+            }
+
+            SDTimerDisplay.cancel_sd();
+            triggered = true;
         }
 
         public override void OnEnter(Player player)
