@@ -346,6 +346,11 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
         {
             base.Update();
 
+            if(!in_cutscene)
+            {
+                return;
+            }
+
             if(_raise_alpha)
             {
                 inc_alpha(_raise_value);
@@ -358,7 +363,7 @@ Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_
                 }
             }
             update_alpha();
-                Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
+            Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
 //Logger.Log(LogLevel.Info, "eow", $"{player.Sprite.HasHair} {player.Sprite.HairFrame}");
             if(player.Sprite.Texture != null)
             {
