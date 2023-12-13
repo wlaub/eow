@@ -38,7 +38,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool flag_inverted = false;
         public string flag = "";
 
-        public LiftboostBlock(EntityData data, Vector2 offset) : base(data.Position+offset, data.Width, data.Height, safe:false)
+        public LiftboostBlock(EntityData data, Vector2 offset) : base(data.Position+offset, data.Width, data.Height, safe:true)
         {
             always_on = data.Bool("always_on");
             flag_inverted = data.Bool("inverted");
