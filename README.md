@@ -38,6 +38,9 @@ Problem: there are 15 competing standards.
 
 A custom collectable created for the wednesday on the edge of forever. It can do the heartbeat thing, it can do the wiggle thing, it can require that the player dash toward it to collect, it can pull the player to its center, it can play a sound, it can do a little animation, it can show a poem (without the heart background), it can activate triggers at its nodes, it can refill or unfill the player's dashes, it can set a flag, and (as with all other custom collectables), it's probably not quite what you're looking for.
 
+### Mirror Block
+
+It's like a lock block, but I needed it to have a different depth a mirror effect for The Wednesday On The Edge Of Forever. I also wanted to be able to start the animation at the start of the unlock routine, but I couldn't do that without copypasting 100% of the code for the base object (private members are fascism).
 
 ## Triggers
 
