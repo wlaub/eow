@@ -80,13 +80,23 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 arrow_dir = sprite_dir;
             }
+            angle = -angle;
+            if(angle < 0)
+            {
+                angle += (float)Math.PI*2;
+            }
+
+            int angle_index = (int)Math.Round(32*angle/(2*Math.PI));
+            char angle_offset = (char)('a'+(angle_index%8));
+
+            float angle_rotate = -(float)((angle_index/8)*Math.PI/2);
 
             Add(arrow = new Sprite(GFX.Game, arrow_dir));
-            arrow.Add("idle", "arrow_idle", 0.1f, "idle");
-            arrow.Add("active", "arrow_active", 0.1f, "active");
-            arrow.Add("cooldown", "arrow_cooldown", 0.1f, "cooldown");
+            arrow.Add("idle", "arrow_idle_"+angle_offset, 0.1f, "idle");
+            arrow.Add("active", "arrow_active_"+angle_offset, 0.1f, "active");
+            arrow.Add("cooldown", "arrow_cooldown_"+angle_offset, 0.1f, "cooldown");
             arrow.Position = (new Vector2(Width / 2f, Height / 2f));
-            arrow.Rotation = angle;
+            arrow.Rotation = angle_rotate;
     		arrow.CenterOrigin();
 
             arrow.Play("idle");
