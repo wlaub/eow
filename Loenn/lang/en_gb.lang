@@ -36,6 +36,11 @@ entities.eow/PowerupCollectable.attributes.description.heart_index=The poem colo
 entities.eow/PowerupCollectable.attributes.description.sprite=sprite path relative to Atlases/Gameplay
 entities.eow/PowerupCollectable.attributes.description.strength=Unused debug attribute
 
+entities.eow/FakeWallDashBlock.placements.name.eow_dash_block=Fake Wall Dash Block
+entities.eow/FakeWallDashBlock.placements.description.eow_dash_block=A dash block that tracks as a fake wall so that e.g. NPC ui elements will be hidden "behind" it.
+
+
+
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated
 

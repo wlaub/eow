@@ -42,6 +42,10 @@ A custom collectable created for the wednesday on the edge of forever. It can do
 
 It's like a lock block, but I needed it to have a different depth a mirror effect for The Wednesday On The Edge Of Forever. I also wanted to be able to start the animation at the start of the unlock routine, but I couldn't do that without copypasting 100% of the code for the base object (private members are fascism).
 
+### Fake Wall Dash Block
+
+It's exactly the same thing as a regular Dash Block, but it tracks as a Fake Wall, which causes certain UI elements to (NPC interaction indicators) to be hidden "behind" it. It's a dash block that can hide NPCs and hopefully won't break anything.
+
 ## Triggers
 
 ### Entity Remover
