@@ -37,6 +37,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public EventInstance audio = null;
 
+        public static List<EventInstance> audio_queue = new();
+
         public MyAudioTrigger (EntityData data, Vector2 offset, EntityID eid) : base(data, offset)
         {
             this.eid = eid;
@@ -50,6 +52,21 @@ namespace Celeste.Mod.ErrandOfWednesday
             once_per_room = data.Bool("once_per_room");
             once_per_session = data.Bool("once_per_session");
 
+        }
+
+        public static void stop_all()
+        {
+
+            foreach(EventInstance audio in audio_queue)
+            {
+                audio.stop(STOP_MODE.ALLOWFADEOUT);
+            }
+            audio_queue.Clear();
+        }
+
+        private static bool clear_finished(EventInstance x)
+        {
+            return !Audio.IsPlaying(x);
         }
 
         public override void Added(Scene scene)
@@ -72,6 +89,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 Everest.Events.Level.OnTransitionTo -= transition_hook;
             }
+            audio_queue.RemoveAll(clear_finished);
         }
 
         public void transition_hook(Level level, LevelData next, Vector2 direction)
@@ -87,12 +105,14 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(nodes.Length == 0)
             {
                 audio = Audio.Play(audio_event);
+                audio_queue.Add(audio);
             }
             else
             {
                for(int idx = 0; idx < nodes.Length; ++idx) 
                 {
                     audio = Audio.Play(audio_event, nodes[idx]);
+                    audio_queue.Add(audio);
                 }
             }
 

@@ -78,6 +78,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 SDTimerDisplay.save_session();
             }
             SDTimerDisplay.Unload();
+            MyAudioTrigger.stop_all();
         }
 
         public void lookout_stop(On.Celeste.Lookout.orig_Update orig, Lookout self)
