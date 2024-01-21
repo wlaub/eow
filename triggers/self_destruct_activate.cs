@@ -41,6 +41,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Tag = Tags.HUD | Tags.Global;
             instance = this;
+            death_alpha = 0f;
             Load();
         }
 
@@ -128,10 +129,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 return;
             }
+            string timer_color = ErrandOfWednesdayModule.Session.sd_timer_color;
             checkpoint_time = ErrandOfWednesdayModule.Session.sd_checkpoint_time;
             death_sound = ErrandOfWednesdayModule.Session.sd_death_sound;
             set_countdown_sound(ErrandOfWednesdayModule.Session.sd_countdown_sound);
-            set_timer_color(ErrandOfWednesdayModule.Session.sd_timer_color);
+            set_timer_color(timer_color);
             time_remaining = checkpoint_time;
             sd_active = true;
         }
