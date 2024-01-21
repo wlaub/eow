@@ -42,6 +42,10 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Tag = Tags.HUD | Tags.Global;
             instance = this;
             death_alpha = 0f;
+            dying = false;
+            failstate = false;
+            countdown_configured = false;
+            sd_active = false;
             Load();
         }
 
@@ -270,7 +274,7 @@ namespace Celeste.Mod.ErrandOfWednesday
     
         public override void Render()
         {
-            int seconds = (int)(Math.Round(time_remaining));
+            int seconds = (int)(Math.Ceiling(time_remaining));
             if(seconds < 0)
             {
                 seconds = 0;
