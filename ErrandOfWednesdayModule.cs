@@ -50,6 +50,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
             Everest.Events.Level.OnLoadLevel += on_load_level;
             Everest.Events.Level.OnExit += on_exit_hook;
+            Everest.Events.Level.OnTransitionTo += transition_hook;
         }
 
         public override void Unload() {
@@ -58,6 +59,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
             Everest.Events.Level.OnLoadLevel -= on_load_level;
             Everest.Events.Level.OnExit -= on_exit_hook;
+            Everest.Events.Level.OnTransitionTo -= transition_hook;
             SDTimerDisplay.Unload();
         }
 
@@ -78,7 +80,13 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 SDTimerDisplay.save_session();
             }
             SDTimerDisplay.Unload();
-            MyAudioTrigger.stop_all();
+            MyAudioTrigger.on_exit(level);
+        }
+
+
+        public void transition_hook(Level level, LevelData next, Vector2 direction)
+        {
+            MyAudioTrigger.on_transition(level);
         }
 
         public void lookout_stop(On.Celeste.Lookout.orig_Update orig, Lookout self)

@@ -15,6 +15,7 @@ trigger.placements = {
             once_per_run = true,
             once_per_room = false,
             once_per_session = false,
+            once_per_save = false,
         },
     },
 } 
