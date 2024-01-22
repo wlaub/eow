@@ -16,6 +16,63 @@ using Celeste.Mod.Entities;
 namespace Celeste.Mod.ErrandOfWednesday
 {
 
+    public class MySourceEntity : Entity
+    {
+        public EventInstance instance;
+        public string audio_event;
+
+
+        public MySourceEntity(string path, Vector2 position)
+        {
+            base.Tag = Tags.Global;
+            Position = position;
+            audio_event=path;
+        }
+        
+        public override void Added(Scene scene)
+        {
+            base.Added(scene);
+
+            instance = Audio.Play(audio_event, Position);
+            if (instance != null)
+            {
+                Audio.Position(instance, Position);
+            }
+        }
+
+        public override void Removed(Scene scene)
+        {
+            if (instance != null)
+            {
+                instance.stop(STOP_MODE.ALLOWFADEOUT);
+                instance = null;
+            }
+ 
+        }
+        public override void SceneEnd(Scene scene)
+        {
+            if (instance != null)
+            {
+                instance.stop(STOP_MODE.ALLOWFADEOUT);
+                instance = null;
+            }
+ 
+        }
+
+
+        public override void Update()
+        {
+            Audio.Position(instance, Position);
+            instance.getPlaybackState(out var state);
+            if (state == PLAYBACK_STATE.STOPPED)
+            {
+                instance.release();
+                instance = null;
+                RemoveSelf();
+            }
+        }        
+    }
+
     [Tracked]
     [CustomEntity("eow/MyAudioTrigger")]
     public class MyAudioTrigger : Trigger 
@@ -38,6 +95,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public EventInstance audio = null;
 
         public static List<EventInstance> audio_queue = new();
+        public static List<SoundSource> sources = new();
 
         public MyAudioTrigger (EntityData data, Vector2 offset, EntityID eid) : base(data, offset)
         {
@@ -111,8 +169,9 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                for(int idx = 0; idx < nodes.Length; ++idx) 
                 {
-                    audio = Audio.Play(audio_event, nodes[idx]);
-                    audio_queue.Add(audio);
+                    
+                    SceneAs<Level>().Add(new MySourceEntity(audio_event, nodes[idx]));
+                    
                 }
             }
 
