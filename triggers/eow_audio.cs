@@ -22,12 +22,15 @@ namespace Celeste.Mod.ErrandOfWednesday
         public string audio_event;
         public bool is_3d = true;
 
-        public MySourceEntity(string path, Vector2 position, bool is_3d = true)
+        public EntityID eid;
+
+        public MySourceEntity(string path, Vector2 position, EntityID eid, bool is_3d = true)
         {
             base.Tag = Tags.Global;
             Position = position;
             audio_event=path;
             this.is_3d = is_3d;
+            this.eid = eid;
         }
         
         public override void Added(Scene scene)
@@ -42,6 +45,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 instance = Audio.Play(audio_event);
             }
+            MyAudioTrigger.playing_ids.Add(eid);
 
             if (instance != null && is_3d)
             {
@@ -81,6 +85,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 instance.release();
                 instance = null;
                 RemoveSelf();
+                MyAudioTrigger.playing_ids.Remove(eid);
             }
         }        
     }
@@ -98,8 +103,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool once_per_room;
         public bool once_per_session;
         public bool once_per_save;
-        public bool interruptable;
-        public bool dont_interrupt;
+        public bool no_repeat;
 
         public bool triggerable;
         public bool dnlable;
@@ -117,6 +121,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static HashSet<EntityID> session_ids = new();
         public static HashSet<EntityID> room_ids = new();
 
+        public static HashSet<EntityID> playing_ids = new();
+
         public MyAudioTrigger (EntityData data, Vector2 offset, EntityID eid) : base(data, offset)
         {
             this.eid = eid;
@@ -130,6 +136,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             once_per_room = data.Bool("once_per_room");
             once_per_session = data.Bool("once_per_session");
             once_per_save = data.Bool("once_per_save");
+            no_repeat = data.Bool("no_repeat");
 
             triggerable = once_per_run || once_per_room || once_per_session || once_per_save;
             dnlable = once_per_room || once_per_session || once_per_save;
@@ -164,9 +171,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             clear_session(level);
         }
 
-
-
-
         public override void Added(Scene scene)
         {
             base.Added(scene);
@@ -187,16 +191,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(nodes.Length == 0)
             {
-                SceneAs<Level>().Add(new MySourceEntity(audio_event, Position, false));
- 
+                SceneAs<Level>().Add(new MySourceEntity(audio_event, Position, eid, false));
             }
             else
             {
                for(int idx = 0; idx < nodes.Length; ++idx) 
                 {
                     
-                    SceneAs<Level>().Add(new MySourceEntity(audio_event, nodes[idx]));
-                    
+                    SceneAs<Level>().Add(new MySourceEntity(audio_event, nodes[idx], eid));
                 }
             }
 
@@ -227,6 +229,17 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             if(flag != "" && SceneAs<Level>().Session.GetFlag(flag) != flag_state)
             {
+                return false;
+            }
+            if(no_repeat)
+            {
+                foreach (EntityID id in playing_ids)
+                {
+                }
+            }
+            if(no_repeat && playing_ids.Contains(eid))
+            {
+
                 return false;
             }
 
