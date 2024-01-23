@@ -151,6 +151,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 level.Session.DoNotLoad.Remove(id);
             }
             session_ids.Clear();
+            playing_ids.Clear();
         }
         public static void clear_rooms(Level level)
         {
