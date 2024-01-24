@@ -10,6 +10,7 @@ trigger.placements = {
         name = "my_audio_trigger",
         data = {
             flag = "",
+            block_group = "",
             flag_state = true,
             audio_event = "event:/",
             once_per_run = true,

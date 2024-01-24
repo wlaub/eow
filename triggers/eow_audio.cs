@@ -21,16 +21,20 @@ namespace Celeste.Mod.ErrandOfWednesday
         public EventInstance instance;
         public string audio_event;
         public bool is_3d = true;
+        public string block_group;
 
         public EntityID eid;
 
-        public MySourceEntity(string path, Vector2 position, EntityID eid, bool is_3d = true)
+        public Vector2 last_player_position = new(0,0);
+
+        public MySourceEntity(string path, Vector2 position, EntityID eid, string block_group, bool is_3d = true)
         {
             base.Tag = Tags.Global;
             Position = position;
             audio_event=path;
             this.is_3d = is_3d;
             this.eid = eid;
+            this.block_group = block_group;
         }
         
         public override void Added(Scene scene)
@@ -46,6 +50,10 @@ namespace Celeste.Mod.ErrandOfWednesday
                 instance = Audio.Play(audio_event);
             }
             MyAudioTrigger.playing_ids.Add(eid);
+            if(block_group != "")
+            {
+                MyAudioTrigger.blocking_groups.Add(block_group);
+            }
 
             if (instance != null && is_3d)
             {
@@ -58,8 +66,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             if (instance != null)
             {
                 instance.stop(STOP_MODE.ALLOWFADEOUT);
-                instance = null;
             }
+            cleanup();
  
         }
         public override void SceneEnd(Scene scene)
@@ -67,25 +75,44 @@ namespace Celeste.Mod.ErrandOfWednesday
             if (instance != null)
             {
                 instance.stop(STOP_MODE.ALLOWFADEOUT);
-                instance = null;
             }
- 
+            cleanup();
         }
 
+        public void cleanup()
+        {
+            instance = null;
+            MyAudioTrigger.playing_ids.Remove(eid);           
+            MyAudioTrigger.blocking_groups.Remove(block_group);
+        }
 
         public override void Update()
         {
+            if(instance == null)
+            {
+                return;
+            }
             if(is_3d)
             {
-                Audio.Position(instance, Position);
+                Vector2 offset = new(0,0);
+                Level level = SceneAs<Level>();
+                if(level != null) 
+                {
+                     Player player = level.Tracker.GetEntity<Player>();
+                    if(player != null)
+                    {
+                        last_player_position = player.Position;
+                    }
+                    offset = level.Camera.Position+ new Vector2(320f, 180f) / 2f - last_player_position;
+                }
+                Audio.Position(instance, Position+offset);
             }
             instance.getPlaybackState(out var state);
             if (state == PLAYBACK_STATE.STOPPED)
             {
                 instance.release();
-                instance = null;
+                cleanup();
                 RemoveSelf();
-                MyAudioTrigger.playing_ids.Remove(eid);
             }
         }        
     }
@@ -98,6 +125,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public string flag;
         public string audio_event;
+        public string block_group;
         public bool flag_state;
         public bool once_per_run;
         public bool once_per_room;
@@ -123,6 +151,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static HashSet<EntityID> playing_ids = new();
 
+        public static HashSet<string> blocking_groups = new();
+
         public MyAudioTrigger (EntityData data, Vector2 offset, EntityID eid) : base(data, offset)
         {
             this.eid = eid;
@@ -130,6 +160,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             flag = data.Attr("flag");
             audio_event = data.Attr("audio_event");
+            block_group = data.Attr("block_group");
 
             flag_state = data.Bool("flag_state");
             once_per_run = data.Bool("once_per_run");
@@ -152,6 +183,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             session_ids.Clear();
             playing_ids.Clear();
+            blocking_groups.Clear();
         }
         public static void clear_rooms(Level level)
         {
@@ -192,14 +224,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(nodes.Length == 0)
             {
-                SceneAs<Level>().Add(new MySourceEntity(audio_event, Position, eid, false));
+                SceneAs<Level>().Add(new MySourceEntity(audio_event, Position, eid, block_group, false));
             }
             else
             {
                for(int idx = 0; idx < nodes.Length; ++idx) 
                 {
                     
-                    SceneAs<Level>().Add(new MySourceEntity(audio_event, nodes[idx], eid));
+                    SceneAs<Level>().Add(new MySourceEntity(audio_event, nodes[idx], eid, block_group));
                 }
             }
 
@@ -241,6 +273,10 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(no_repeat && playing_ids.Contains(eid))
             {
 
+                return false;
+            }
+            if(blocking_groups.Contains(block_group))
+            {
                 return false;
             }
 
