@@ -132,6 +132,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool once_per_session;
         public bool once_per_save;
         public bool no_repeat;
+        public bool on_load;
 
         public bool triggerable;
         public bool dnlable;
@@ -168,6 +169,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             once_per_session = data.Bool("once_per_session");
             once_per_save = data.Bool("once_per_save");
             no_repeat = data.Bool("no_repeat");
+            on_load = data.Bool("on_load");
 
             triggerable = once_per_run || once_per_room || once_per_session || once_per_save;
             dnlable = once_per_room || once_per_session || once_per_save;
@@ -221,7 +223,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
 
             Level level = SceneAs<Level>();
-
+//Logger.Log(LogLevel.Info, "eow", $"activate");
             if(nodes.Length == 0)
             {
                 SceneAs<Level>().Add(new MySourceEntity(audio_event, Position, eid, block_group, false));
@@ -230,7 +232,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                for(int idx = 0; idx < nodes.Length; ++idx) 
                 {
-                    
+// Logger.Log(LogLevel.Info, "eow", $"boop");                   
                     SceneAs<Level>().Add(new MySourceEntity(audio_event, nodes[idx], eid, block_group));
                 }
             }
@@ -297,6 +299,12 @@ namespace Celeste.Mod.ErrandOfWednesday
         public override void Awake(Scene scene)
         {
             base.Awake(scene);
+
+            if(on_load && check())
+            {
+                activate();
+            }
+
 
        }
 

@@ -18,6 +18,7 @@ trigger.placements = {
             once_per_session = false,
             once_per_save = false,
             no_repeat = true,
+            on_load = false,
         },
     },
 } 
