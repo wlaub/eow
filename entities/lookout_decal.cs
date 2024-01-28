@@ -52,7 +52,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Added(scene);
             sprite.Play("enabled");
             Visible = not_lookout;
-Logger.Log(LogLevel.Info, "eow", "lookout: "+lookout+", not lookout: "+not_lookout);
+//Logger.Log(LogLevel.Info, "eow", "lookout: "+lookout+", not lookout: "+not_lookout);
         }
 
         public override void Update()
