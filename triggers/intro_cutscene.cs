@@ -175,8 +175,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 //                starting_position = player.Position;
                 starting_position = nodes[0];
                 starting_room = level.Session.Level;
-Logger.Log(LogLevel.Info, "eow", $"initializing cutscene, {starting_position.X}, {starting_position.Y}");
-Logger.Log(LogLevel.Info, "eow", level.Session.Level);
+//Logger.Log(LogLevel.Info, "eow", $"initializing cutscene, {starting_position.X}, {starting_position.Y}");
+//Logger.Log(LogLevel.Info, "eow", level.Session.Level);
                 level.StartCutscene(cleanup); 
             }
 
@@ -189,7 +189,7 @@ Logger.Log(LogLevel.Info, "eow", level.Session.Level);
 
             if(next_room == "")
             {
-Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X}, {starting_position.Y}");
+//Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X}, {starting_position.Y}");
                 player.Position = starting_position;
                 Level level = SceneAs<Level>();
                 if(level.Session.Level == starting_room)
@@ -210,26 +210,49 @@ Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X},
         public static void cleanup(Level level)
         {
 //Logger.Log(LogLevel.Info, "eow", "doing cleanup");
-Logger.Log(LogLevel.Info, "eow", $"doing cleanup, {starting_position.X}, {starting_position.Y}");
+//Logger.Log(LogLevel.Info, "eow", $"doing cleanup, {starting_position.X}, {starting_position.Y}");
 //            Level level = SceneAs<Level>();
-            Player player = level.Tracker.GetEntity<Player>();
-            player.Sprite.Visible = (player.Hair.Visible = true);
-            player.StateMachine.State = 0;
-            player.Collidable = true;
+
             in_cutscene = false;
+            title_alpha = 0f;
+            sub_alpha = 0f;
             level.ZoomSnap(Vector2.Zero, 1f);
 
-            level.OnEndOfFrame += delegate {
-Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_position.Y}");
-                level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
-                player.Position = starting_position;
-                level.Camera.Position = player.CameraTarget;
-                level.Session.HitCheckpoint = true;
-                level.Session.RespawnPoint = starting_position;
-                };
-            level.EndCutscene(); 
+            Player player = level.Tracker.GetEntity<Player>();
+            if(player != null)
+            {
+                player.Sprite.Visible = (player.Hair.Visible = true);
+                player.StateMachine.State = 0;
+                player.Collidable = true;
+
+                level.OnEndOfFrame += delegate {
+//    Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_position.Y}");
+                    level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
+                    player.Position = starting_position;
+                    level.Camera.Position = player.CameraTarget;
+                    level.Session.HitCheckpoint = true;
+                    level.Session.RespawnPoint = starting_position;
+                    };
+            }
+            if(level.InCutscene)
+            {
+                level.EndCutscene(); 
+            }
 
         }
+
+        public static void on_exit(Level level)
+        {
+            cleanup(level);
+        }
+
+        public override void SceneEnd(Scene scene)
+        {
+//     Logger.Log(LogLevel.Info, "eow", $"scene ending");           
+            cleanup(scene as Level);
+            base.SceneEnd(scene);
+        }
+
 
 
         public void set_camera_position(Level level, Vector2 target)

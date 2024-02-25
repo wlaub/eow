@@ -81,6 +81,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             }
             SDTimerDisplay.Unload();
             MyAudioTrigger.on_exit(level);
+            AreaIntroCutscene.on_exit(level);
         }
 
 
