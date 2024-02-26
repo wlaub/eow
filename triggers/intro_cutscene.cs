@@ -213,6 +213,11 @@ namespace Celeste.Mod.ErrandOfWednesday
 //Logger.Log(LogLevel.Info, "eow", $"doing cleanup, {starting_position.X}, {starting_position.Y}");
 //            Level level = SceneAs<Level>();
 
+            if(!in_cutscene)
+            {
+                return;
+            }
+            
             in_cutscene = false;
             title_alpha = 0f;
             sub_alpha = 0f;
@@ -225,14 +230,17 @@ namespace Celeste.Mod.ErrandOfWednesday
                 player.StateMachine.State = 0;
                 player.Collidable = true;
 
-                level.OnEndOfFrame += delegate {
-//    Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_position.Y}");
-                    level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
-                    player.Position = starting_position;
-                    level.Camera.Position = player.CameraTarget;
-                    level.Session.HitCheckpoint = true;
-                    level.Session.RespawnPoint = starting_position;
-                    };
+                if(starting_room != null)
+                {
+                    level.OnEndOfFrame += delegate {
+    //    Logger.Log(LogLevel.Info, "eow", $"going home, {starting_position.X}, {starting_position.Y}");
+                        level.TeleportTo(player, starting_room, Player.IntroTypes.Transition, starting_position);
+                        player.Position = starting_position;
+                        level.Camera.Position = player.CameraTarget;
+                        level.Session.HitCheckpoint = true;
+                        level.Session.RespawnPoint = starting_position;
+                        };
+                }
             }
             if(level.InCutscene)
             {
