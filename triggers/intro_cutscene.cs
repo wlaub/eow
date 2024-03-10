@@ -187,6 +187,15 @@ namespace Celeste.Mod.ErrandOfWednesday
             player.Sprite.Visible = (player.Hair.Visible = false);
             player.Collidable = false;
 
+            //Prevents them from disappearing
+            foreach (Follower follower in player.Leader.Followers)
+            {
+                if(follower.Entity != null)
+                {
+                    follower.Entity.AddTag(Tags.Global);
+                }
+            }
+
             if(next_room == "")
             {
 //Logger.Log(LogLevel.Info, "eow", $"attempting to go home, {starting_position.X}, {starting_position.Y}");
@@ -239,6 +248,17 @@ namespace Celeste.Mod.ErrandOfWednesday
                         level.Camera.Position = player.CameraTarget;
                         level.Session.HitCheckpoint = true;
                         level.Session.RespawnPoint = starting_position;
+                        // 
+                        foreach (Follower follower in player.Leader.Followers)
+                        {
+                            if(follower.Entity != null)
+                            {
+                                follower.Entity.RemoveTag(Tags.Global);
+                            }
+                        }
+
+
+
                         };
                 }
             }

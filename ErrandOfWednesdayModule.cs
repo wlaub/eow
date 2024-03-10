@@ -112,6 +112,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             {
                 fully_lookout = lookout_value == 1;
             }
+
         }
     }
 }
