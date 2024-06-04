@@ -6,13 +6,17 @@ dyno.placements = {
     {
         name = "dyno",
         data = {
-
-        yboost_threshold = 40,
+        single_use = false,
+        radius = 8,
+        idle_sprite = "dyno",
+        active_sprite = "",
+        used_sprite = "",
+        yboost_threshold = 80,
         yboost = 180,
-        yboost_dash = 80,
-        xboost = 60,
+        yboost_dash = 120,
+        xboost = 80,
         xboost_dash = 100,
-        xboost_diag = 160,
+        xboost_diag = 180,
         }
     }
 }

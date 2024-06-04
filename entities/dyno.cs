@@ -21,12 +21,21 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public bool activated = false;
 
+        public bool single_use;
+        public float radius;
+
         public float yboost_threshold;
         public float base_yboost;
         public float dash_yboost;
         public float base_xboost;
         public float dash_xboost;
         public float diag_xboost;
+        public string idle_sprite;
+        public string active_sprite;
+        public string used_sprite;
+        public bool remove_sprite = false;
+
+        public int base_depth = 8999;
 
         public EntityID eid;
         
@@ -38,21 +47,74 @@ namespace Celeste.Mod.ErrandOfWednesday
             base_xboost = data.Float("xboost");
             dash_xboost = data.Float("xboost_dash");
             diag_xboost = data.Float("xboost_diag");
+            single_use = data.Bool("single_use");
+            radius = data.Float("radius");
 
-            Add(sprite = GFX.SpriteBank.Create("booster"));
-            base.Collider = new Circle(10f, 0f, 0f);
-            Add(Hold = new Holdable(0.3f));
-            Hold.PickupCollider = new Circle(10f, 0f, 0f);
+            idle_sprite = data.Attr("idle_sprite");
+            active_sprite = data.Attr("active_sprite");
+            used_sprite = data.Attr("used_sprite");
+
+            if(GFX.SpriteBank.Has(idle_sprite))
+            {
+                Add(sprite = GFX.SpriteBank.Create(idle_sprite));
+            }
+            else
+            {
+                Add(sprite = new Sprite(GFX.Game, ""));
+                sprite.AddLoop("idle", idle_sprite, 0.08f);
+
+                sprite.AddLoop("used", used_sprite, 0.08f);
+                if(used_sprite == "")
+                {
+                    remove_sprite = true;
+                }
+
+                sprite.Add("active_single", active_sprite, 0.08f, "used");
+                sprite.Add("active_multi", active_sprite, 0.08f, "idle");
+ 
+                sprite.CenterOrigin();
+            }
+            sprite.Play("idle");
+
+            base.Collider = new Circle(radius, 0f, 0f);
+            Add(Hold = new Holdable(1.0f));
+            Hold.PickupCollider = new Circle(radius, 0f, 0f);
             Hold.SlowFall = false;
             Hold.SlowRun = false;
             Hold.OnPickup = OnPickup;
+            Hold.OnCarry = OnCarry;
             home_position = Position;
-            base.Depth = 8999;
+            base.Depth = base_depth;
         }
 
-        private void OnPickup()
+	    public void OnCarry(Vector2 position)
+    	{
+        }
+
+        public void OnPickup()
         {
             activated = true;
+            if(single_use)
+            {
+                sprite.Play("active_single");
+                if(remove_sprite)
+                {
+                    sprite.OnLastFrame = delegate(string anim)
+                    {
+                        if (anim == "active_single")
+                        {
+                            RemoveSelf();
+                            Visible = false;
+                        }
+                    };
+                }
+            }
+            else
+            {
+                sprite.Play("active_multi");
+            }
+
+
             Player player = Hold.Holder;
             float yboost = 0;
             float xboost = base_xboost;
@@ -92,6 +154,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 player.Speed.X -= xboost;
             }
+            base.Depth = base_depth;
         }
 
         
@@ -103,7 +166,6 @@ public override void Awake(Scene scene)
         public override void Update()
         {
             base.Update();
-            Position = home_position;
             Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
 
             if(activated)
@@ -114,6 +176,10 @@ public override void Awake(Scene scene)
                     if(Hold.IsHeld)
                     {
                         Hold.Holder.Drop();
+                        if(single_use)
+                        {
+                            Remove(Hold);
+                        }
                     }
                 }
             }
