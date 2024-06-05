@@ -21,6 +21,15 @@ dyno.placements = {
     }
 }
 
+dyno.fieldOrder = {
+"x", "y",
+"idle_sprite", "active_sprite", 
+"used_sprite","radius",
+"xboost", "yboost",
+"xboost_dash", "yboost_dash",
+"xboost_diag", "yboost_threshold"
+}
+
 dyno.depth = -5
 dyno.texture = "objects/booster/booster00"
 

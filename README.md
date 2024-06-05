@@ -46,6 +46,27 @@ It's like a lock block, but I needed it to have a different depth a mirror effec
 
 It's exactly the same thing as a regular Dash Block, but it tracks as a Fake Wall, which causes certain UI elements to (NPC interaction indicators) to be hidden "behind" it. It's a dash block that can hide NPCs and hopefully won't break anything.
 
+### Dyno Hold
+
+It's sort of like a glider you can't pick up. If you grab while intersecting it, then you get a little boost depending on how you're moving. Grabbing while moving upward (or not falling too fast) gives a little upward hop, and grabbing while dashing gives a larger boost (actually it's smaller, but you still go further than if you weren't dashing). Grabbing while dashing horizontally gives a slightly larger horizontal boost, and grabbing while dashing diagonally down gives a much larger horizontal boost.
+
+#### Sprite
+If using Sprites.xml, the sprint needs an `idle` loop, an `active_single` that goes to `used`, an `active_multi` that goes to `idle`, and a `used` loop. `active_single` plays when using a single-use dyno, and `active_multi` plays for a multi-use dyno. `idle` is the default state for an unused dyno. `used` is the loop for a single-use dyno that has been used.
+
+```xml
+  <dyno path="objects/waldmo/booster/" start="idle">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="idle" path="booster" delay="0.1" frames="0-4"/>
+    <Anim id="active_single" path="boosterRed" delay="0.08" frames="9-17,35" goto="used"/>
+    <Anim id="active_multi" path="booster" delay="0.08" frames="0,2,0,2,0,2,0,2,3,4" goto="idle"/>
+    <Loop id="used" path="boosterRed" delay="0.08" frames="35"/>
+  </dyno>
+```
+
+### TODO: Plaid Block
+
+It's like a dream block but with custom textures and also if you fast fall into it then you'll dream dash and also maybe gravity could reverse when you do it that way? idk yet.
+
 ## Triggers
 
 ### Entity Remover

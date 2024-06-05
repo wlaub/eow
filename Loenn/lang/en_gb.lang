@@ -40,6 +40,22 @@ entities.eow/FakeWallDashBlock.placements.name.eow_dash_block=Fake Wall Dash Blo
 entities.eow/FakeWallDashBlock.placements.description.eow_dash_block=A dash block that tracks as a fake wall so that e.g. NPC ui elements will be hidden "behind" it.
 
 
+entities.eow/Dyno.placements.name.dyno=Dyno Hold
+entities.eow/Dyno.placements.description.dyno=You can press grab to do a dyno. It's like a glider you can't pick up.
+entities.eow/Dyno.attributes.description.single_use=Can only be used once
+entities.eow/Dyno.attributes.description.idle_sprite=Path to idle sprite or Sprites.xml name. See readme for example.
+entities.eow/Dyno.attributes.description.active_sprite=Path to sprite for activation animation when not using Sprites.xml
+entities.eow/Dyno.attributes.description.used_sprite=Path to sprite for used up single-use dyno when not using Sprites.xml. Can be left blank to disappear after use.
+entities.eow/Dyno.attributes.description.radius=The hitbox radius
+entities.eow/Dyno.attributes.description.xboost=Default horizontal boost applied when the player is moving horizontally
+entities.eow/Dyno.attributes.description.xboost_dash=Horizontal boost when the player is dashing horizontally
+entities.eow/Dyno.attributes.description.xboost_diag=Horizontal boost when the player is dashing diagonally down
+entities.eow/Dyno.attributes.description.yboost=Default vertical boost when the player is moving upward
+entities.eow/Dyno.attributes.description.yboost_dash=Default vertical boost when the player is dashing vertially, horizontally, or diagonally up
+entities.eow/Dyno.attributes.description.yboost_threshold=The maximum downward speed that the player can have and still get a vertical boost
+
+
+
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated
