@@ -51,6 +51,8 @@ namespace Celeste.Mod.ErrandOfWednesday {
             Everest.Events.Level.OnLoadLevel += on_load_level;
             Everest.Events.Level.OnExit += on_exit_hook;
             Everest.Events.Level.OnTransitionTo += transition_hook;
+
+            VergeBlock.Load();
         }
 
         public override void Unload() {
@@ -61,6 +63,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             Everest.Events.Level.OnExit -= on_exit_hook;
             Everest.Events.Level.OnTransitionTo -= transition_hook;
             SDTimerDisplay.Unload();
+            VergeBlock.Unload();
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)

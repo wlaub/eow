@@ -48,11 +48,16 @@ It's exactly the same thing as a regular Dash Block, but it tracks as a Fake Wal
 
 ### Dyno Hold
 
+TODO: add an optional use sound
+TODO: make a default sprite
+TODO: make lonn plugin handle sprites, draw hitbox
+
 It's sort of like a glider you can't pick up. If you grab while intersecting it, then you get a little boost depending on how you're moving. Grabbing while moving upward (or not falling too fast) gives a little upward hop, and grabbing while dashing gives a larger boost (actually it's smaller, but you still go further than if you weren't dashing). Grabbing while dashing horizontally gives a slightly larger horizontal boost, and grabbing while dashing diagonally down gives a much larger horizontal boost.
 
 #### Sprite
 If using Sprites.xml, the sprint needs an `idle` loop, an `active_single` that goes to `used`, an `active_multi` that goes to `idle`, and a `used` loop. `active_single` plays when using a single-use dyno, and `active_multi` plays for a multi-use dyno. `idle` is the default state for an unused dyno. `used` is the loop for a single-use dyno that has been used.
 
+Example using booster as a placeholder, because it's round:
 ```xml
   <dyno path="objects/waldmo/booster/" start="idle">
     <Justify x="0.5" y="0.5"/>
@@ -63,9 +68,9 @@ If using Sprites.xml, the sprint needs an `idle` loop, an `active_single` that g
   </dyno>
 ```
 
-### TODO: Plaid Block
+### TODO: Verge Block
 
-It's like a dream block but with custom textures and also if you fast fall into it then you'll dream dash and also maybe gravity could reverse when you do it that way? idk yet.
+It's like a dream block but with custom textures and also if you fast fall into it then you'll dream dash and also maybe gravity could reverse when you do it that way like in that other video game "Verge".
 
 ## Triggers
 
