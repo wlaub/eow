@@ -21,6 +21,7 @@ verge_block.placements = {
         width = 8,
         height = 8,
         fall_threshold = 180.1,
+        texture = '',
     }
 }
 
