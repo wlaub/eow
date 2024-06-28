@@ -1,3 +1,9 @@
+/*
+
+<some suitable cosmic horror quote>
+
+*/
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,6 +31,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             On.Celeste.Player.OnCollideV += on_collide_v;
             On.Monocle.Engine.Update += static_update;
+            On.Monocle.EntityList.RenderExcept += outline_render_hook;
+            Everest.Events.Level.OnExit += on_exit_hook;
 
             loaded = true;
         } 
@@ -34,8 +42,21 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             On.Celeste.Player.OnCollideV -= on_collide_v;
             On.Monocle.Engine.Update -= static_update;
+            On.Monocle.EntityList.RenderExcept -= outline_render_hook;
+            Everest.Events.Level.OnExit -= on_exit_hook;
 
             loaded = false;
+        }
+
+        public static void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
+        {
+            Unload();
+        }
+
+        public static void outline_render_hook(On.Monocle.EntityList.orig_RenderExcept orig, EntityList self, int exclude_tags)
+        {
+            orig(self, exclude_tags);
+            render_outline();
         }
 
         public static void static_update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime)
@@ -324,8 +345,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
-        public static HashSet<EntityID> role_call = new();
-        public static HashSet<EntityID> to_render = new();
+//        public static HashSet<EntityID> role_call = new();
+//        public static HashSet<EntityID> to_render = new();
         public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
 
         public int get_case_idx(int [,] tiles, int x, int y)
@@ -355,41 +376,42 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void clear_state()
         {
-            role_call.Clear();
-            to_render.Clear();
+//            role_call.Clear();
+//            to_render.Clear();
             outline_chunks.Clear();
         }
 
         public override void Removed(Scene scene)
         {
             base.Removed(scene);
-            role_call.Remove(id);
-            to_render.Remove(id);
+
+//            role_call.Remove(id);
+//            to_render.Remove(id);
             /*
                 It seems like this happens to the block that would have rendered the outline this frame, but happens before it renders so the outline blinks for a frame when a single-use dream block disappears.
             */
+/*
             if(to_render.Count == 0)
             {
                 to_render.UnionWith(role_call);
             }
+*/
         }
 
 
         public override void Added(Scene scene)
         {
+            Load();
             base.Added(scene);
-            if(role_call.Count != 0)
-            {
-                clear_state();
-            }
+            clear_state();
         }
  
         public override void Awake(Scene scene)
         {
             base.Awake(scene);
 
-            role_call.Add(id);
-            to_render.Add(id);
+//            role_call.Add(id);
+//            to_render.Add(id);
 
             int x,y;
 
@@ -663,18 +685,18 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
             }
             //Border
-
+/*
             to_render.Remove(id);
             if(to_render.Count == 0)
             {
-                render_outline();
+//                render_outline();
             }
-
+*/
         }
 
         public static void render_outline()
         {
-            to_render.UnionWith(role_call);
+//            to_render.UnionWith(role_call);
             foreach(KeyValuePair<int [], OutlineChunk> entry in outline_chunks)
             {
                 int x = entry.Key[0];
@@ -683,7 +705,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 //but i am paranoid that they might not
                 float xpos = x*8;
                 float ypos = y*8;
-                entry.Value.render(xpos, ypos, x, y, animation_index[1]>>1);
+                int aidx = Math.Abs(3*x+7*y)%3;
+                entry.Value.render(xpos, ypos, x, y, animation_index[aidx]>>1);
             }
         }
 
