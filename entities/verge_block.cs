@@ -33,6 +33,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             On.Monocle.Engine.Update += static_update;
             On.Monocle.EntityList.RenderExcept += outline_render_hook;
             Everest.Events.Level.OnExit += on_exit_hook;
+            Everest.Events.Level.OnTransitionTo += transition_hook;
 
             loaded = true;
         } 
@@ -44,8 +45,15 @@ namespace Celeste.Mod.ErrandOfWednesday
             On.Monocle.Engine.Update -= static_update;
             On.Monocle.EntityList.RenderExcept -= outline_render_hook;
             Everest.Events.Level.OnExit -= on_exit_hook;
+            Everest.Events.Level.OnTransitionTo -= transition_hook;
 
             loaded = false;
+        }
+
+        public static void transition_hook(Level level, LevelData next, Vector2 direction)
+        {
+ Logger.Log(LogLevel.Info, "eow", $"transition hook {direction}");
+            //TODO resume dream dash?
         }
 
         public static void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
@@ -345,7 +353,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
-//        public static HashSet<EntityID> role_call = new();
+        public static HashSet<EntityID> role_call = new();
 //        public static HashSet<EntityID> to_render = new();
         public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
 
@@ -376,7 +384,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void clear_state()
         {
-//            role_call.Clear();
+            role_call.Clear();
 //            to_render.Clear();
             outline_chunks.Clear();
         }
@@ -385,17 +393,17 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Removed(scene);
 
-//            role_call.Remove(id);
+            role_call.Remove(id);
 //            to_render.Remove(id);
             /*
                 It seems like this happens to the block that would have rendered the outline this frame, but happens before it renders so the outline blinks for a frame when a single-use dream block disappears.
             */
-/*
-            if(to_render.Count == 0)
+
+            if(role_call.Count == 0)
             {
-                to_render.UnionWith(role_call);
+                clear_state();
             }
-*/
+
         }
 
 
@@ -403,14 +411,14 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             Load();
             base.Added(scene);
-            clear_state();
+//            clear_state();
         }
  
         public override void Awake(Scene scene)
         {
             base.Awake(scene);
 
-//            role_call.Add(id);
+            role_call.Add(id);
 //            to_render.Add(id);
 
             int x,y;
