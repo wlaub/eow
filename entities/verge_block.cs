@@ -367,6 +367,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
 
         public static HashSet<EntityID> role_call = new();
+        //TODO double buffer for smooth room transitions
         public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
 
         public int get_case_idx(int [,] tiles, int x, int y)
@@ -419,9 +420,22 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Added(scene);
         }
  
+        public void resume_dream_dash(Player player)
+        {
+            player.StateMachine.State=Player.StDreamDash;
+            player.dreamBlock = this;
+            player.dashAttackTimer = 0f;
+        }
+
         public override void Awake(Scene scene)
         {
             base.Awake(scene);
+
+            Player player = CollideFirst<Player>(Position);
+            if(player != null)
+            {
+                resume_dream_dash(player);
+            }
 
             role_call.Add(id);
 
@@ -467,6 +481,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             }
 
+            //TODO don't generate outline outside of room
             for(x = 1; x < tilebounds.Width-1; ++x)
             {
                 process_outline_tile(tiles, x, 1, tilebounds.X, tilebounds.Y);
@@ -478,7 +493,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 process_outline_tile(tiles, tilebounds.Width-2, y, tilebounds.X, tilebounds.Y);
             }
 
-/*
+
             Logger.Log(LogLevel.Info, "eow", "------");
 
                 for(y=0; y < tilebounds.Height; ++y)
@@ -505,7 +520,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Logger.Log(LogLevel.Info, "eow", line);
             }
             Logger.Log(LogLevel.Info, "eow", "------");
-*/
+
 
 
         } 
