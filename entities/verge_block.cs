@@ -75,9 +75,17 @@ namespace Celeste.Mod.ErrandOfWednesday
                 animation_timers[i] -= Engine.DeltaTime;
                 if(animation_timers[i] < 0)
                 {
-                    animation_timers[i] += .2f;
+                    animation_timers[i] += fill_animation_rate;
                     ++animation_index[i];
                 }
+
+                outline_animation_timers[i] -= Engine.DeltaTime;
+                if(outline_animation_timers[i] < 0)
+                {
+                    outline_animation_timers[i] += outline_animation_rate;
+                    ++outline_animation_index[i];
+                }
+ 
             }
  
         }
@@ -121,8 +129,13 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static int N_layers = 3;
 
+        public static float fill_animation_rate = 0.2f;
+        public static float outline_animation_rate = 0.3f;
         public static int[] animation_index = {0,0,0};
-        public static float[] animation_timers = {0,0.06f,0.13f};
+        public static float[] animation_timers = {0,fill_animation_rate/3,3*fill_animation_rate/3};
+        public static int[] outline_animation_index = {0,0,0};
+        public static float[] outline_animation_timers = {0,outline_animation_rate/3,2*outline_animation_rate/3};
+
 
 
         public struct OutlineChunk 
@@ -134,7 +147,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             public MTexture get_texture(int x, int y, int i)
             {
                 int count = textures.Length;
-                int result = (x*7 + y*17 + i*23)%count;
+                int result = (x*7 + y*17 + i*1999)%count;
                 if(result < 0)
                 {
                     result += count;
@@ -354,7 +367,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
 
         public static HashSet<EntityID> role_call = new();
-//        public static HashSet<EntityID> to_render = new();
         public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
 
         public int get_case_idx(int [,] tiles, int x, int y)
@@ -385,7 +397,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static void clear_state()
         {
             role_call.Clear();
-//            to_render.Clear();
             outline_chunks.Clear();
         }
 
@@ -394,11 +405,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Removed(scene);
 
             role_call.Remove(id);
-//            to_render.Remove(id);
-            /*
-                It seems like this happens to the block that would have rendered the outline this frame, but happens before it renders so the outline blinks for a frame when a single-use dream block disappears.
-            */
-
             if(role_call.Count == 0)
             {
                 clear_state();
@@ -411,7 +417,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             Load();
             base.Added(scene);
-//            clear_state();
         }
  
         public override void Awake(Scene scene)
@@ -419,7 +424,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Awake(scene);
 
             role_call.Add(id);
-//            to_render.Add(id);
 
             int x,y;
 
@@ -537,13 +541,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                     int y_idx_base = (int)(idx_offset.Y/scale);
 
                     idx_offset += offset;
-    /*
-    Logger.Log(LogLevel.Info, "eow", $"{block_offset} {idx_offset}");
-
-
-    texture = textures.fill[0];
-    Draw.SpriteBatch.Draw(texture.Texture.Texture_Safe, block_offset, texture.ClipRect, Color.White);
-     */
 
                     MTexture texture;
                     int x, y;
@@ -692,19 +689,10 @@ namespace Celeste.Mod.ErrandOfWednesday
 
                 }
             }
-            //Border
-/*
-            to_render.Remove(id);
-            if(to_render.Count == 0)
-            {
-//                render_outline();
-            }
-*/
         }
 
         public static void render_outline()
         {
-//            to_render.UnionWith(role_call);
             foreach(KeyValuePair<int [], OutlineChunk> entry in outline_chunks)
             {
                 int x = entry.Key[0];
@@ -713,8 +701,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 //but i am paranoid that they might not
                 float xpos = x*8;
                 float ypos = y*8;
-                int aidx = Math.Abs(3*x+7*y)%3;
-                entry.Value.render(xpos, ypos, x, y, animation_index[aidx]>>1);
+                int aidx = Math.Abs(5*x+7*y)%3;
+                entry.Value.render(xpos, ypos, x, y, outline_animation_index[aidx]);
             }
         }
 
