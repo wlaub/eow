@@ -47,6 +47,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             Everest.Events.Level.OnExit -= on_exit_hook;
             Everest.Events.Level.OnTransitionTo -= transition_hook;
 
+            clear_state();
+
             loaded = false;
         }
 
@@ -70,6 +72,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static void static_update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime)
         {
             orig(self, gameTime);
+            //TODO make it not animate if player doesn't has dream dash
+            //TODO make it not animate when paused
             for(int i = 0; i < N_layers; ++i)
             {
                 animation_timers[i] -= Engine.DeltaTime;
@@ -162,6 +166,60 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
  
         }
+
+        public class Outline
+        {
+            public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
+            public float left;
+            public float right;
+            public float top;
+            public float bot;
+
+            public Outline(float l, float r, float t, float b)
+            {
+                left = l;
+                right = r;
+                top = t;
+                bot = b;
+            }
+
+            public void expand(float l, float r, float t, float b)
+            {
+                if(l < left) left = l;
+                if(r > right) right = r;
+                if(t < top) top = t;
+                if(b > bot) bot = b;
+            }
+
+            public void add_point(int xpos, int ypos, OutlineChunk value)
+            {
+                expand(xpos*8, xpos*8+8, ypos*8, ypos*8+8);
+                outline_chunks.Add(new int[] {xpos, ypos}, value);
+            }
+
+            public void render(Camera camera)
+            {
+                if (right < camera.Left || left > camera.Right || bot < camera.Top || top > camera.Bottom)
+                {
+                    return;
+                }
+ 
+                foreach(KeyValuePair<int [], OutlineChunk> entry in outline_chunks)
+                {
+                    int x = entry.Key[0];
+                    int y = entry.Key[1];
+                    //This is kind of stupid, because x and y both tell you this
+                    //but i am paranoid that they might not
+                    float xpos = x*8;
+                    float ypos = y*8;
+                    int aidx = Math.Abs(5*x+7*y)%3;
+                    entry.Value.render(xpos, ypos, x, y, outline_animation_index[aidx]);
+                }
+            }
+
+
+        }
+
 
 
         public class VergeBlockTexture
@@ -366,9 +424,10 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
-        public static HashSet<EntityID> role_call = new();
-        //TODO double buffer for smooth room transitions
-        public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
+        public static Outline active_outline; 
+
+        public static Dictionary<string, Outline> outline_map = new(); 
+        public static Camera outline_camera;
 
         public int get_case_idx(int [,] tiles, int x, int y)
         {
@@ -381,8 +440,18 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
-        public void process_outline_tile(int[,] tiles, int x, int y, int x_off, int y_off)
+        public void process_outline_tile(Rectangle bounds, int[,] tiles, int x, int y, int x_off, int y_off)
         {
+            int xpos = x+x_off;
+            int ypos = y+y_off;
+
+            if( xpos < bounds.Left || xpos > bounds.Right ||
+                ypos < bounds.Top || ypos > bounds.Bottom)
+            {
+//Logger.Log(LogLevel.Info, "eow", $"exclude tile {xpos},{ypos} because {bounds.Left} {bounds.Right} {bounds.Top} {bounds.Bottom}");
+                return;
+            }
+
             int case_index = 0;
             case_index += tiles[x, y+1];
             case_index += tiles[x+1, y] << 1;
@@ -391,26 +460,18 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(textures.outline_lookup[case_index].textures != null)
             {
-                outline_chunks.Add(new int[] {x+x_off,y+y_off}, textures.outline_lookup[case_index]);
+                active_outline.add_point(xpos, ypos, textures.outline_lookup[case_index]);
             }
         }
 
         public static void clear_state()
         {
-            role_call.Clear();
-            outline_chunks.Clear();
+            outline_map.Clear();
         }
 
         public override void Removed(Scene scene)
         {
             base.Removed(scene);
-
-            role_call.Remove(id);
-            if(role_call.Count == 0)
-            {
-                clear_state();
-            }
-
         }
 
 
@@ -418,6 +479,19 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             Load();
             base.Added(scene);
+
+            Level level = (scene as Level);
+            string room = level.Session.Level;
+            if(!outline_map.ContainsKey(room))
+            {
+                active_outline = new(base.X, base.Y, base.Width, base.Height);
+                outline_map.Add(room, active_outline);
+            }
+            else
+            {
+                active_outline = outline_map[room];
+            }
+
         }
  
         public void resume_dream_dash(Player player)
@@ -431,13 +505,16 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Awake(scene);
 
+            Level level = (scene as Level);
+
+            Rectangle level_bounds = new(level.Bounds.X/8, level.Bounds.Y/8, level.Bounds.Width/8-1, level.Bounds.Height/8);
+
+
             Player player = CollideFirst<Player>(Position);
             if(player != null)
             {
                 resume_dream_dash(player);
             }
-
-            role_call.Add(id);
 
             int x,y;
 
@@ -484,16 +561,16 @@ namespace Celeste.Mod.ErrandOfWednesday
             //TODO don't generate outline outside of room
             for(x = 1; x < tilebounds.Width-1; ++x)
             {
-                process_outline_tile(tiles, x, 1, tilebounds.X, tilebounds.Y);
-                process_outline_tile(tiles, x, tilebounds.Height-2, tilebounds.X, tilebounds.Y);
+                process_outline_tile(level_bounds, tiles, x, 1, tilebounds.X, tilebounds.Y);
+                process_outline_tile(level_bounds, tiles, x, tilebounds.Height-2, tilebounds.X, tilebounds.Y);
             }
             for(y = 1; y < tilebounds.Height-1; ++y)
             {
-                process_outline_tile(tiles, 1, y, tilebounds.X, tilebounds.Y);
-                process_outline_tile(tiles, tilebounds.Width-2, y, tilebounds.X, tilebounds.Y);
+                process_outline_tile(level_bounds, tiles, 1, y, tilebounds.X, tilebounds.Y);
+                process_outline_tile(level_bounds, tiles, tilebounds.Width-2, y, tilebounds.X, tilebounds.Y);
             }
 
-
+/*
             Logger.Log(LogLevel.Info, "eow", "------");
 
                 for(y=0; y < tilebounds.Height; ++y)
@@ -520,7 +597,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Logger.Log(LogLevel.Info, "eow", line);
             }
             Logger.Log(LogLevel.Info, "eow", "------");
-
+*/
 
 
         } 
@@ -529,6 +606,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
 
             Camera camera = SceneAs<Level>().Camera;
+            outline_camera = camera;
             if (!(base.Right < camera.Left || base.Left > camera.Right || base.Bottom < camera.Top || base.Top > camera.Bottom))
             {
 
@@ -706,18 +784,18 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
         }
 
+        //TODO stretch goal: override footstepripple to use a collider that covers all blocks?
+
+        //TODO outline colors
         public static void render_outline()
         {
-            foreach(KeyValuePair<int [], OutlineChunk> entry in outline_chunks)
+            if(outline_camera is null)
             {
-                int x = entry.Key[0];
-                int y = entry.Key[1];
-                //This is kind of stupid, because x and y both tell you this
-                //but i am paranoid that they might not
-                float xpos = x*8;
-                float ypos = y*8;
-                int aidx = Math.Abs(5*x+7*y)%3;
-                entry.Value.render(xpos, ypos, x, y, outline_animation_index[aidx]);
+                return;
+            }
+            foreach(KeyValuePair<string, Outline> sub_entry in outline_map)
+            {
+                sub_entry.Value.render(outline_camera);
             }
         }
 
