@@ -54,8 +54,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void transition_hook(Level level, LevelData next, Vector2 direction)
         {
- Logger.Log(LogLevel.Info, "eow", $"transition hook {direction}");
-            //TODO resume dream dash?
+// Logger.Log(LogLevel.Info, "eow", $"transition hook {direction}");
+            transition_dir = direction;
         }
 
         public static void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
@@ -424,6 +424,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
+        public static Vector2 transition_dir = Vector2.Zero;
         public static Outline active_outline; 
 
         public static Dictionary<string, Outline> outline_map = new(); 
@@ -496,9 +497,14 @@ namespace Celeste.Mod.ErrandOfWednesday
  
         public void resume_dream_dash(Player player)
         {
-            player.StateMachine.State=Player.StDreamDash;
             player.dreamBlock = this;
             player.dashAttackTimer = 0f;
+            player.DashDir = transition_dir;
+            if(player.DashDir == Vector2.Zero)
+            {
+                player.DashDir = new Vector2((float)player.Facing,0);
+            }
+            player.StateMachine.State=Player.StDreamDash;
         }
 
         public override void Awake(Scene scene)
