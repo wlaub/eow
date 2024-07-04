@@ -104,7 +104,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 //Logger.Log(LogLevel.Info, "eow", $"hit, {data.Hit.GetType().Name}");
                     VergeBlock block = (VergeBlock)data.Hit;
 //Logger.Log(LogLevel.Info, "eow", $"{player.Speed.Y} {dir}");
-                    if(block != null && Math.Abs(player.Speed.Y) > block.fall_threshold)
+                    if(block != null && block.fall_enter_enable && Math.Abs(player.Speed.Y) > block.fall_threshold)
                     {
                         player.StateMachine.State=Player.StDreamDash;
                         player.dreamBlock = block;
@@ -129,7 +129,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
 
         public static Dictionary<string, MTexture[]> texture_registry = new();
-        public static Dictionary<string, MTexture[]> outline_registry = new();
 
         public static int N_layers = 3;
 
@@ -169,7 +168,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public class Outline
         {
-            public static Dictionary<int[],OutlineChunk> outline_chunks = new(); 
+            public Dictionary<int[],OutlineChunk> outline_chunks = new(); 
             public float left;
             public float right;
             public float top;
@@ -373,10 +372,20 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool activated = false;
 
         public float fall_threshold = 200f;
+        public bool fall_enter_enable = true;
+
+        public bool vanilla_render = false;
+        public int active_layers = 3;
+        public bool animate_fill = true;
+
+        public int trigger_mode;
+        public int node_mode;
 
         public string texture_name;
 
         public Color[] fill_colors;
+        public Color[] flag_fill_colors;
+        public string[] layer_flags;
 
         public VergeBlockTexture textures; 
 
@@ -387,32 +396,57 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             this.id = id;
 
+            //TODO support !playerHasDreamDash
+
+
             fall_threshold = data.Float("fall_threshold");
+            fall_enter_enable = data.Bool("fall_enter");
 
             texture_name = data.Attr("texture", "objects/eow/VergeBlock");
             textures = new(texture_name);
 
-            //TODO jumpthrough enable
-            //TODO trigger mode (on dash, on jumpthrough, on exit)
-            //TODO original render mode
-            //TODO Color options (flags?)
-            //TODO layer enable (flags?)
-            //TODO animation enable
-            //TODO extend dream dash on transition
+            active_layers = data.Int("layer_count");
+            if(active_layers < 0)
+                active_layers = 0;
+            if(active_layers > 3)
+                active_layers = 3;
+
+            vanilla_render = data.Bool("vanilla_render");
+
+            animate_fill = data.Bool("animate_fill");
 
             fill_colors = new Color[N_layers];
-            fill_colors[0] = Calc.HexToColor("00ff00");
-            fill_colors[2] = Calc.HexToColor("ff8800");
-            fill_colors[1] = Calc.HexToColor("0000ff");
+            flag_fill_colors = new Color[N_layers];
+            layer_flags = new string[N_layers];
+            fill_colors[0] = Calc.HexToColor(data.Attr("layer_0_color"));
+            fill_colors[1] = Calc.HexToColor(data.Attr("layer_1_color"));
+            fill_colors[2] = Calc.HexToColor(data.Attr("layer_2_color"));
+            flag_fill_colors[0] = Calc.HexToColor(data.Attr("layer_0_flag_color"));
+            flag_fill_colors[1] = Calc.HexToColor(data.Attr("layer_1_flag_color"));
+            flag_fill_colors[2] = Calc.HexToColor(data.Attr("layer_2_flag_color"));
+            layer_flags[0] = data.Attr("layer_0_flag");
+            layer_flags[1] = data.Attr("layer_1_flag");
+            layer_flags[2] = data.Attr("layer_2_flag");
+//            fill_colors[0] = Calc.HexToColor("00ff00");
+//            fill_colors[2] = Calc.HexToColor("ff8800");
+//            fill_colors[1] = Calc.HexToColor("0000ff");
 
-            //TODO node modes
-            targets = new Vector2[data.Nodes.Length];
-            for(int i = 0; i < targets.Length; ++i)
+            //TODO trigger_mode (on dash, on jumpthrough, on exit)
+            // 0 - on fall enter, 1 - on dash enter, 2 - on enter
+            // 3 - on fall exit, 4 - on dash exit, 5 - on exit
+            trigger_mode = data.Int("trigger_mode");
+
+            node_mode = data.Int("node_mode");
+            if(node_mode == 0)
             {
-                targets[i] = data.Nodes[i]+offset;
-            }
+                targets = new Vector2[data.Nodes.Length];
+                for(int i = 0; i < targets.Length; ++i)
+                {
+                    targets[i] = data.Nodes[i]+offset;
+                }
 
-            base.node = null;
+                base.node = null;
+            }
 
             int x_start = (int)Position.X/8;
             int y_start = (int)Position.Y/8;
@@ -459,15 +493,18 @@ namespace Celeste.Mod.ErrandOfWednesday
             case_index += tiles[x, y-1] << 2;
             case_index += tiles[x-1, y] << 3;
 
-            if(textures.outline_lookup[case_index].textures != null)
+            OutlineChunk selection = textures.outline_lookup[case_index];
+
+            if(selection.textures != null && selection.textures.Length > 0)
             {
-                active_outline.add_point(xpos, ypos, textures.outline_lookup[case_index]);
+                active_outline.add_point(xpos, ypos, selection);
             }
         }
 
         public static void clear_state()
         {
             outline_map.Clear();
+            active_outline = null;
         }
 
         public override void Removed(Scene scene)
@@ -513,14 +550,18 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             Level level = (scene as Level);
 
-            Rectangle level_bounds = new(level.Bounds.X/8, level.Bounds.Y/8, level.Bounds.Width/8-1, level.Bounds.Height/8);
-
-
             Player player = CollideFirst<Player>(Position);
             if(player != null)
             {
                 resume_dream_dash(player);
             }
+
+            if(vanilla_render)
+            {
+                return;
+            }
+
+            Rectangle level_bounds = new(level.Bounds.X/8, level.Bounds.Y/8, level.Bounds.Width/8-1, level.Bounds.Height/8);
 
             int x,y;
 
@@ -546,7 +587,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             foreach(VergeBlock block in scene.Tracker.GetEntities<VergeBlock>())
             {
-                if(block == this)
+                if(block == this || block.vanilla_render)
                 {
                     continue;
                 }
@@ -610,8 +651,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public override void Render()
         {
+            if(vanilla_render)
+            {
+                base.Render();
+                return;
+            }
+            Level level = SceneAs<Level>();
 
-            Camera camera = SceneAs<Level>().Camera;
+            Camera camera = level.Camera;
             outline_camera = camera;
             if (!(base.Right < camera.Left || base.Left > camera.Right || base.Bottom < camera.Top || base.Top > camera.Bottom))
             {
@@ -624,12 +671,28 @@ namespace Celeste.Mod.ErrandOfWednesday
                 int scale;
                 int aidx;
      
-                for(int layer = 0; layer < N_layers; ++layer)
+                for(int layer = 0; layer < active_layers; ++layer)
                 {
     //                scale = 4*(2-layer);
                     scale = 8;
-                    aidx = animation_index[layer];
-                    Color color = fill_colors[layer];
+                    if(animate_fill)
+                    {
+                        aidx = animation_index[layer];
+                    }
+                    else
+                    {
+                        aidx = 0;
+                    }
+
+                    Color color;
+                    if(layer_flags[layer] == "" || !level.Session.GetFlag(layer_flags[layer]))
+                    {
+                        color = fill_colors[layer];
+                    }
+                    else
+                    {
+                        color = flag_fill_colors[layer];
+                    }
 
                     Vector2 offset = camera_position * (0.3f+0.25f*layer);
                     //The upper left corner of the upper left tile that is complete inside this block
@@ -807,7 +870,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public void activate(Player player)
         {
-            if(activated) return;
+            if(activated || node_mode != 0) return;
 
             foreach(Trigger trigger in Scene.Tracker.GetEntities<Trigger>())
             {

@@ -122,14 +122,10 @@ Once the countdown ends, the player is frozen, the game timer stops, the death s
 
 The Cancel trigger cancels the self-destruct sequence as long as it's entered before the countdown ends.
 
-### Trigger Sequence
+### My State Machine
 
 TODO
 
-A sequence of triggers that will do something if the player passes through them in the correct order. This is a noded trigger with the options:
+The trigger has a state machine name, a list of input states and a single output state. When activated if, the current state is in the input states, transition to the output state and activate at nodes. Maybe also have flags of the form `eow_msm_<state_machine_name>_<state_machine_state>`.
 
-* start active (for first trigger)
-* activate triggers (for last trigger)
-
-If the trigger is active when the player enters it, then it will set all the triggers at its nodes to active and set itself to inactive. If it's configured to activate triggers, then it will activate the triggers at its nodes instead
-
+Option to clear on death (default). Option to clear on leave room (default). Maybe allow saving state machines in session. Maybe option to clear on exit, end session.
