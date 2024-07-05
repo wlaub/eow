@@ -32,6 +32,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             On.Celeste.Player.OnCollideV += on_collide_v;
             On.Celeste.DreamBlock.ActivateNoRoutine += activate_node_routine;
             On.Celeste.DreamBlock.DeactivateNoRoutine += deactivate_node_routine;
+            On.Celeste.Level.LoadLevel += load_level_hook;
             On.Monocle.Engine.Update += static_update;
             On.Monocle.EntityList.RenderExcept += outline_render_hook;
             Everest.Events.Level.OnExit += on_exit_hook;
@@ -47,6 +48,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             On.Celeste.Player.OnCollideV -= on_collide_v;
             On.Celeste.DreamBlock.ActivateNoRoutine -= activate_node_routine;
             On.Celeste.DreamBlock.DeactivateNoRoutine -= deactivate_node_routine;
+            On.Celeste.Level.LoadLevel -= load_level_hook;
             On.Monocle.Engine.Update -= static_update;
             On.Monocle.EntityList.RenderExcept -= outline_render_hook;
             Everest.Events.Level.OnEnter -= on_enter_hook;
@@ -75,6 +77,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             clear_state();
         }
 
+        public static void load_level_hook(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader)
+        {
+            clear_state();
+            orig(self, playerIntro, isFromLoader) ;
+        }
+
+
         public static void outline_render_hook(On.Monocle.EntityList.orig_RenderExcept orig, EntityList self, int exclude_tags)
         {
             orig(self, exclude_tags);
@@ -91,10 +100,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 return;
             }
 
-            //TODO make it not animate if player doesn't has dream dash
             //everyone loves
             bool active2 = has_dream_dash && white_fill<=0f;
-            //TODO set outline_color
             
             outline_color = (active2) ? activeLineColor :  disabledLineColor;
             if (white_fill > 0f)
@@ -102,7 +109,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                 outline_color = Color.Lerp(disabledLineColor, activeLineColor, white_fill);
             }
 
-            //TODO make it not animate when paused
             if(active2 && !level.Paused)
             {
                 for(int i = 0; i < N_layers; ++i)
@@ -407,9 +413,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public EntityID id;
 
         public Tween move_tween;
-        public float tween_ease = 0;
         public Vector2[] targets;
-        public Vector2 start_position;
         public bool activated = false;
 
         public float fall_threshold = 200f;
@@ -436,9 +440,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public VergeBlock(EntityData data, Vector2 offset, EntityID id) : base(data, offset)
         {
             this.id = id;
-            start_position = Position;
 
-            //TODO support !playerHasDreamDash
             //TODO no_outline option?
             //TODO clear state on refresh?
             //TODO better default assets
@@ -562,15 +564,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             ///Pulled from the original source and modified to permit starting and stopping
             if(move_tween != null)
             {
-Logger.Log(LogLevel.Info, "eow", $"don't start move");
                 move_tween.Active = true;
                 return;
             }
 
             if (node.HasValue)
             {
-Logger.Log(LogLevel.Info, "eow", $"start move");
-                Vector2 start = start_position;
+                Vector2 start = Position;
                 Vector2 end = node.Value;
                 float num = Vector2.Distance(start, end) / 12f;
                 if (fastMoving)
@@ -603,20 +603,11 @@ Logger.Log(LogLevel.Info, "eow", $"start move");
 
         public void stop_move()
         {
-            Tween t = Get<Tween>();
-            if(t != null)
-            {
-Logger.Log(LogLevel.Info, "eow", $"got tween");
-            }
-
             if(move_tween == null)
             {
-Logger.Log(LogLevel.Info, "eow", $"don't stop");
                 return;
             }
             move_tween.Active = false;
-//            Remove(move_tween);
-Logger.Log(LogLevel.Info, "eow", $"do stop");
         }
 
         public void orig_added(Scene scene)
@@ -745,7 +736,6 @@ Logger.Log(LogLevel.Info, "eow", $"do stop");
 
             }
 
-            //TODO don't generate outline outside of room
             for(x = 1; x < tilebounds.Width-1; ++x)
             {
                 process_outline_tile(level_bounds, tiles, x, 1, tilebounds.X, tilebounds.Y);
@@ -1018,7 +1008,6 @@ Logger.Log(LogLevel.Info, "eow", $"do stop");
 
         //TODO stretch goal: override footstepripple to use a collider that covers all blocks?
 
-        //TODO outline colors
         public static void render_outline()
         {
             if(outline_camera is null)
@@ -1056,7 +1045,6 @@ Logger.Log(LogLevel.Info, "eow", $"do stop");
             if(self is VergeBlock)
             {
                 (self as VergeBlock).prime_end_of_activate = true;
-Logger.Log(LogLevel.Info, "eow", $"activate no routing");
             }
         }        
 
