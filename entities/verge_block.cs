@@ -79,7 +79,6 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void load_level_hook(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader)
         {
-            // oops this clears on transition too
             if(isFromLoader)
             {
                 clear_state();
@@ -216,7 +215,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public class Outline
         {
-            public Dictionary<int[],OutlineChunk> outline_chunks = new(); 
+            public Dictionary<Tuple<int,int>,OutlineChunk> outline_chunks = new();
             public float left;
             public float right;
             public float top;
@@ -241,7 +240,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             public void add_point(int xpos, int ypos, OutlineChunk value)
             {
                 expand(xpos*8, xpos*8+8, ypos*8, ypos*8+8);
-                outline_chunks.Add(new int[] {xpos, ypos}, value);
+                Tuple<int,int> key = Tuple.Create(xpos, ypos);
+                if(!outline_chunks.ContainsKey(key))
+                {
+                    outline_chunks.Add(key, value);
+                }
             }
 
             public void render(Camera camera)
@@ -250,11 +253,10 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {
                     return;
                 }
- 
-                foreach(KeyValuePair<int [], OutlineChunk> entry in outline_chunks)
+                foreach(KeyValuePair<Tuple<int, int>, OutlineChunk> entry in outline_chunks)
                 {
-                    int x = entry.Key[0];
-                    int y = entry.Key[1];
+                    int x = entry.Key.Item1;
+                    int y = entry.Key.Item2;
                     //This is kind of stupid, because x and y both tell you this
                     //but i am paranoid that they might not
                     float xpos = x*8;
@@ -1019,6 +1021,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             foreach(KeyValuePair<string, Outline> sub_entry in outline_map)
             {
                 sub_entry.Value.render(outline_camera);
+
             }
         }
 
