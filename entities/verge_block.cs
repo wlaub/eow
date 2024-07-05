@@ -169,6 +169,48 @@ namespace Celeste.Mod.ErrandOfWednesday
             return a+"/"+b;
         }
 
+        public static EntityData get_trigger(Session session, int id)
+        {
+            if(trigger_registry.ContainsKey(id))
+            {
+                return trigger_registry[id];
+            }
+            foreach(LevelData level_data in session.MapData.Levels)
+            {
+                foreach(EntityData entity_data in level_data.Triggers)
+                {
+                    if(id == entity_data.ID)
+                    {
+                        trigger_registry.Add(id, entity_data);
+                        return entity_data;
+                    }
+                }
+            }
+Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
+            return null;
+        }
+
+        public Entity make_trigger(int id)
+        {
+            Level level= SceneAs<Level>();
+            EntityData entity_data = get_trigger(level.Session, id);
+            if(entity_data == null)
+            {
+                return null;
+            }
+
+    		LevelData level_data = level.Session.LevelData;
+	    	Vector2 offset = new Vector2(level_data.Bounds.Left, level_data.Bounds.Top);
+            if (Level.EntityLoaders.TryGetValue(entity_data.Name, out var value))
+            {
+                Entity entity = value(level, level.Session.LevelData, offset, entity_data);
+                return entity;
+            }                       
+            return null; 
+        }
+
+        public static Dictionary<int, EntityData> trigger_registry = new();
+
         public static Dictionary<string, MTexture[]> texture_registry = new();
 
         public static int N_layers = 3;
@@ -420,6 +462,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public Tween move_tween;
         public Vector2[] targets;
+        public Trigger[] triggers;
         public bool activated = false;
 
         public float fall_threshold = 200f;
@@ -431,6 +474,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public int trigger_mode;
         public int node_mode;
+        public int[] trigger_ids;
 
         public string texture_name;
 
@@ -448,6 +492,20 @@ namespace Celeste.Mod.ErrandOfWednesday
             this.id = id;
 
             //TODO no_outline option?
+            string trigger_names = data.Attr("trigger_ids");
+            if(trigger_names != "")
+            {
+                string[] trigger_parts = trigger_names.Split(',');
+                trigger_ids = new int[trigger_parts.Length];
+                triggers = new Trigger[trigger_parts.Length];
+                for(int i = 0; i < trigger_parts.Length; ++i)
+                {
+                    if(!Int32.TryParse(trigger_parts[i], out trigger_ids[i]))
+                    {
+    Logger.Log(LogLevel.Error, "eow", $"failed to parse trigger id {trigger_parts[i]}");
+                    }
+                }
+            }
 
             fall_threshold = data.Float("fall_threshold");
             fall_enter_enable = data.Bool("fall_enter");
@@ -555,6 +613,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             outline_map.Clear();
             active_outline = null;
+            trigger_registry.Clear();
         }
 
         public override void Removed(Scene scene)
@@ -648,6 +707,23 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             orig_added(scene);
 
+            if(trigger_ids != null)
+            {
+                for(int i = 0; i < trigger_ids.Length; ++i)
+                {
+                    Trigger result = (Trigger)make_trigger(trigger_ids[i]);
+                    if(result == null)
+                    {
+Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i]}");
+                    }
+                    else
+                    {
+                        result.Scene = scene;
+                        triggers[i] = result;
+                    }
+                }
+            }
+
             Level level = (scene as Level);
             string room = level.Session.Level;
             if(!outline_map.ContainsKey(room))
@@ -683,6 +759,19 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Awake(scene);
 
             Level level = (scene as Level);
+
+
+            if(triggers != null)
+            {
+                foreach(Trigger trigger in triggers)
+                {
+                    if(trigger != null)
+                    {
+                        trigger.Awake(scene);
+
+                    }
+                }
+            }
 
             Player player = CollideFirst<Player>(Position);
             if(player != null)
@@ -1026,18 +1115,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public void activate(Player player)
         {
-            if(activated || node_mode != 0) return;
+            if(activated || triggers == null) return;
 
-            foreach(Trigger trigger in Scene.Tracker.GetEntities<Trigger>())
+            foreach(Trigger trigger in triggers)
             {
-                for(int i = 0; i < targets.Length; ++i)
+                if(trigger != null)
                 {
-                    Vector2 target = targets[i];
-                    if(trigger.CollidePoint(target))
-                    {
-                        trigger.OnEnter(player);
-                        trigger.OnStay(player);
-                    }
+                    trigger.OnEnter(player);
+                    trigger.OnStay(player);
                 }
             }
 //            activated = true;

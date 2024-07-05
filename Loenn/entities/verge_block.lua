@@ -37,6 +37,7 @@ verge_block.placements = {
         layer_0_flag = '',
         layer_1_flag = '',
         layer_2_flag = '',
+        trigger_ids = '',
     }
 }
 
