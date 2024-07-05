@@ -30,9 +30,12 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(loaded) return;
 
             On.Celeste.Player.OnCollideV += on_collide_v;
+            On.Celeste.DreamBlock.ActivateNoRoutine += activate_node_routine;
+            On.Celeste.DreamBlock.DeactivateNoRoutine += deactivate_node_routine;
             On.Monocle.Engine.Update += static_update;
             On.Monocle.EntityList.RenderExcept += outline_render_hook;
             Everest.Events.Level.OnExit += on_exit_hook;
+            Everest.Events.Level.OnEnter += on_enter_hook;
             Everest.Events.Level.OnTransitionTo += transition_hook;
 
             loaded = true;
@@ -42,8 +45,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(!loaded) return;
 
             On.Celeste.Player.OnCollideV -= on_collide_v;
+            On.Celeste.DreamBlock.ActivateNoRoutine -= activate_node_routine;
+            On.Celeste.DreamBlock.DeactivateNoRoutine -= deactivate_node_routine;
             On.Monocle.Engine.Update -= static_update;
             On.Monocle.EntityList.RenderExcept -= outline_render_hook;
+            Everest.Events.Level.OnEnter -= on_enter_hook;
             Everest.Events.Level.OnExit -= on_exit_hook;
             Everest.Events.Level.OnTransitionTo -= transition_hook;
 
@@ -56,11 +62,17 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
 // Logger.Log(LogLevel.Info, "eow", $"transition hook {direction}");
             transition_dir = direction;
+            disabled_position = level.Camera.Position;
         }
 
         public static void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
         {
             Unload();
+        }
+
+        public static void on_enter_hook(Session session, bool fromSaveData)
+        {
+            clear_state();
         }
 
         public static void outline_render_hook(On.Monocle.EntityList.orig_RenderExcept orig, EntityList self, int exclude_tags)
@@ -72,24 +84,44 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static void static_update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime)
         {
             orig(self, gameTime);
-            //TODO make it not animate if player doesn't has dream dash
-            //TODO make it not animate when paused
-            for(int i = 0; i < N_layers; ++i)
-            {
-                animation_timers[i] -= Engine.DeltaTime;
-                if(animation_timers[i] < 0)
-                {
-                    animation_timers[i] += fill_animation_rate;
-                    ++animation_index[i];
-                }
 
-                outline_animation_timers[i] -= Engine.DeltaTime;
-                if(outline_animation_timers[i] < 0)
+            Level level = self.scene as Level;
+            if(level ==  null)
+            {
+                return;
+            }
+
+            //TODO make it not animate if player doesn't has dream dash
+            //everyone loves
+            bool active2 = has_dream_dash && white_fill<=0f;
+            //TODO set outline_color
+            
+            outline_color = (active2) ? activeLineColor :  disabledLineColor;
+            if (white_fill > 0f)
+            {
+                outline_color = Color.Lerp(disabledLineColor, activeLineColor, white_fill);
+            }
+
+            //TODO make it not animate when paused
+            if(active2 && !level.Paused)
+            {
+                for(int i = 0; i < N_layers; ++i)
                 {
-                    outline_animation_timers[i] += outline_animation_rate;
-                    ++outline_animation_index[i];
+                    animation_timers[i] -= Engine.DeltaTime;
+                    if(animation_timers[i] < 0)
+                    {
+                        animation_timers[i] += fill_animation_rate;
+                        ++animation_index[i];
+                    }
+
+                    outline_animation_timers[i] -= Engine.DeltaTime;
+                    if(outline_animation_timers[i] < 0)
+                    {
+                        outline_animation_timers[i] += outline_animation_rate;
+                        ++outline_animation_index[i];
+                    }
+     
                 }
- 
             }
  
         }
@@ -104,7 +136,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 //Logger.Log(LogLevel.Info, "eow", $"hit, {data.Hit.GetType().Name}");
                     VergeBlock block = (VergeBlock)data.Hit;
 //Logger.Log(LogLevel.Info, "eow", $"{player.Speed.Y} {dir}");
-                    if(block != null && block.fall_enter_enable && Math.Abs(player.Speed.Y) > block.fall_threshold)
+                    if(block != null && block.fall_enter_enable && block.playerHasDreamDash && Math.Abs(player.Speed.Y) > block.fall_threshold)
                     {
                         player.StateMachine.State=Player.StDreamDash;
                         player.dreamBlock = block;
@@ -139,7 +171,13 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static int[] outline_animation_index = {0,0,0};
         public static float[] outline_animation_timers = {0,outline_animation_rate/3,2*outline_animation_rate/3};
 
-
+        public static Color outline_color = Color.White;
+        public static Vector2 disabled_position = Vector2.Zero;
+//        public static bool active;
+        public static float white_fill;
+        public static bool has_dream_dash;
+        public bool prime_end_of_activate = false;
+        public static Vector2 global_shake;
 
         public struct OutlineChunk 
         {
@@ -161,7 +199,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             public void render(float xpos, float ypos, int x, int y, int i)
             {
-                get_texture(x,y,i).Draw(new Vector2(xpos+x_off, ypos+y_off), Vector2.Zero);
+                get_texture(x,y,i).Draw(new Vector2(xpos+x_off, ypos+y_off), Vector2.Zero, outline_color);
             }
  
         }
@@ -368,7 +406,10 @@ namespace Celeste.Mod.ErrandOfWednesday
        
         public EntityID id;
 
+        public Tween move_tween;
+        public float tween_ease = 0;
         public Vector2[] targets;
+        public Vector2 start_position;
         public bool activated = false;
 
         public float fall_threshold = 200f;
@@ -395,8 +436,12 @@ namespace Celeste.Mod.ErrandOfWednesday
         public VergeBlock(EntityData data, Vector2 offset, EntityID id) : base(data, offset)
         {
             this.id = id;
+            start_position = Position;
 
             //TODO support !playerHasDreamDash
+            //TODO no_outline option?
+            //TODO clear state on refresh?
+            //TODO better default assets
 
 
             fall_threshold = data.Float("fall_threshold");
@@ -512,11 +557,102 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.Removed(scene);
         }
 
+        public void start_move(Scene scene)
+        {
+            ///Pulled from the original source and modified to permit starting and stopping
+            if(move_tween != null)
+            {
+Logger.Log(LogLevel.Info, "eow", $"don't start move");
+                move_tween.Active = true;
+                return;
+            }
+
+            if (node.HasValue)
+            {
+Logger.Log(LogLevel.Info, "eow", $"start move");
+                Vector2 start = start_position;
+                Vector2 end = node.Value;
+                float num = Vector2.Distance(start, end) / 12f;
+                if (fastMoving)
+                {
+                    num /= 3f;
+                }
+                move_tween = Tween.Create(Tween.TweenMode.YoyoLooping, Ease.SineInOut, num, start: true);
+
+                move_tween.OnUpdate = delegate(Tween t)
+                {
+                    double num2 = (double)start.X + ((double)end.X - (double)start.X) * (double)t.Eased;
+                    double num3 = (double)start.Y + ((double)end.Y - (double)start.Y) * (double)t.Eased;
+                    float moveH = (float)(num2 - (double)Position.X - (double)_movementCounter.X);
+                    float moveV = (float)(num3 - (double)Position.Y - (double)_movementCounter.Y);
+                    if (Collidable)
+                    {
+                        MoveH(moveH);
+                        MoveV(moveV);
+                    }
+                    else
+                    {
+                        MoveHNaive(moveH);
+                        MoveVNaive(moveV);
+                    }
+                };
+                Add(move_tween);
+            }
+ 
+        }
+
+        public void stop_move()
+        {
+            Tween t = Get<Tween>();
+            if(t != null)
+            {
+Logger.Log(LogLevel.Info, "eow", $"got tween");
+            }
+
+            if(move_tween == null)
+            {
+Logger.Log(LogLevel.Info, "eow", $"don't stop");
+                return;
+            }
+            move_tween.Active = false;
+//            Remove(move_tween);
+Logger.Log(LogLevel.Info, "eow", $"do stop");
+        }
+
+        public void orig_added(Scene scene)
+        {
+            playerHasDreamDash = SceneAs<Level>().Session.Inventory.DreamDash;
+
+            if(playerHasDreamDash)
+            {
+                start_move(scene);
+            }
+            else
+            {
+                Add(occlude = new LightOcclude());
+            }
+            Setup();
+        }
+
+        public void entity_added(Scene scene)
+        {
+            Scene = scene;
+            if (Components != null)
+            {
+                foreach (Component component in Components)
+                {
+                    component.EntityAdded(scene);
+                }
+            }
+            Scene.SetActualDepth(this);
+        }
 
         public override void Added(Scene scene)
         {
             Load();
-            base.Added(scene);
+            entity_added(scene);
+
+            orig_added(scene);
 
             Level level = (scene as Level);
             string room = level.Session.Level;
@@ -534,6 +670,10 @@ namespace Celeste.Mod.ErrandOfWednesday
  
         public void resume_dream_dash(Player player)
         {
+            if(!playerHasDreamDash)
+            {
+                return;
+            }
             player.dreamBlock = this;
             player.dashAttackTimer = 0f;
             player.DashDir = transition_dir;
@@ -656,6 +796,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 base.Render();
                 return;
             }
+
             Level level = SceneAs<Level>();
 
             Camera camera = level.Camera;
@@ -663,14 +804,31 @@ namespace Celeste.Mod.ErrandOfWednesday
             if (!(base.Right < camera.Left || base.Left > camera.Right || base.Bottom < camera.Top || base.Top > camera.Bottom))
             {
 
-                Vector2 block_offset = base.Position + shake;
+                Vector2 block_offset = base.Position + global_shake;
 
                 //background
                 Draw.Rect(block_offset.X, block_offset.Y, base.Width, base.Height, playerHasDreamDash ? activeBackColor : disabledBackColor);
-                Vector2 camera_position = SceneAs<Level>().Camera.Position;            
+                Vector2 camera_position;
+
+                if(playerHasDreamDash)
+                {
+                    camera_position = camera.Position;
+                }
+                else
+                {
+                    if(whiteFill > 0f)
+                    {
+                        camera_position = Vector2.Lerp(disabled_position, camera.Position, whiteFill);
+                    }
+                    else
+                    {
+                        camera_position = disabled_position;
+                    }
+                }
                 int scale;
                 int aidx;
-     
+    
+                //Infill 
                 for(int layer = 0; layer < active_layers; ++layer)
                 {
     //                scale = 4*(2-layer);
@@ -850,6 +1008,11 @@ namespace Celeste.Mod.ErrandOfWednesday
                     }
 
                 }
+                if (whiteFill > 0f)
+                {
+                    Draw.Rect(block_offset.X, block_offset.Y, base.Width, base.Height * whiteHeight, Color.White * whiteFill);
+                }
+
             }
         }
 
@@ -887,9 +1050,48 @@ namespace Celeste.Mod.ErrandOfWednesday
 //            activated = true;
         }
 
+        public static void activate_node_routine(On.Celeste.DreamBlock.orig_ActivateNoRoutine orig, DreamBlock self)
+        {
+            orig(self);
+            if(self is VergeBlock)
+            {
+                (self as VergeBlock).prime_end_of_activate = true;
+Logger.Log(LogLevel.Info, "eow", $"activate no routing");
+            }
+        }        
+
+        public static void deactivate_node_routine(On.Celeste.DreamBlock.orig_DeactivateNoRoutine orig, DreamBlock self)
+        {
+            orig(self);
+            if(self is VergeBlock)
+            {
+                (self as VergeBlock).stop_move();
+            }
+        }        
+
+
+
+        public void switch_on()
+        {
+            prime_end_of_activate = false;
+            start_move(Scene);
+        }
+        
+        public void switch_off()
+        {
+        }
+
         public override void Update()
         {
             base.Update();
+            has_dream_dash = playerHasDreamDash;
+            white_fill = whiteFill;
+            global_shake = shake;
+            if(prime_end_of_activate && white_fill <= 0f)
+            {
+                switch_on();
+
+            }
         }
     }
 }
