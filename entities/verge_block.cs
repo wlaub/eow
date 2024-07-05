@@ -79,7 +79,11 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void load_level_hook(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader)
         {
-            clear_state();
+            // oops this clears on transition too
+            if(isFromLoader)
+            {
+                clear_state();
+            }
             orig(self, playerIntro, isFromLoader) ;
         }
 
@@ -178,7 +182,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static float[] outline_animation_timers = {0,outline_animation_rate/3,2*outline_animation_rate/3};
 
         public static Color outline_color = Color.White;
-        public static Vector2 disabled_position = Vector2.Zero;
+        public static Vector2 disabled_position = new Vector2(420, 69);
 //        public static bool active;
         public static float white_fill;
         public static bool has_dream_dash;
@@ -442,9 +446,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             this.id = id;
 
             //TODO no_outline option?
-            //TODO clear state on refresh?
             //TODO better default assets
-
 
             fall_threshold = data.Float("fall_threshold");
             fall_enter_enable = data.Bool("fall_enter");
