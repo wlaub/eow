@@ -70,7 +70,9 @@ Example using booster as a placeholder, because it's round:
 
 ### TODO: Verge Block
 
-It's like a dream block but with custom textures and also if you fast fall into it then you'll dream dash and also maybe gravity could reverse when you do it that way like in that other video game "Verge".
+Modified dream block. You can fastfall into it to enter without dashing, and then use that to trigger, for example, a gravityhelper trigger so that when you fall through it gravity flips kind of like in that video game "Verge".
+
+Also custom textures.
 
 ## Triggers
 

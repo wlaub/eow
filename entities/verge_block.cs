@@ -448,7 +448,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             this.id = id;
 
             //TODO no_outline option?
-            //TODO better default assets
 
             fall_threshold = data.Float("fall_threshold");
             fall_enter_enable = data.Bool("fall_enter");
