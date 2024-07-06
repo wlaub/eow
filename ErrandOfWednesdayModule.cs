@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 
@@ -10,6 +11,57 @@ using Monocle;
 using Celeste;
 
 namespace Celeste.Mod.ErrandOfWednesday {
+
+    public class TriggerManager 
+    {
+        public static Dictionary<int, EntityData> data_registry = new();
+
+        public static void clear()
+        {
+            data_registry.Clear();
+        }
+        
+        public static EntityData get_trigger(Session session, int id)
+        {
+            if(data_registry.ContainsKey(id))
+            {
+                return data_registry[id];
+            }
+            foreach(LevelData level_data in session.MapData.Levels)
+            {
+                foreach(EntityData entity_data in level_data.Triggers)
+                {
+                    if(id == entity_data.ID)
+                    {
+                        data_registry.Add(id, entity_data);
+                        return entity_data;
+                    }
+                }
+            }
+            Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
+            return null;
+        }
+
+        public static Trigger make_trigger(Level level, int id)
+        {
+            EntityData entity_data = get_trigger(level.Session, id);
+            if(entity_data == null)
+            {
+                return null;
+            }
+
+            LevelData level_data = level.Session.LevelData;
+            Vector2 offset = new Vector2(level_data.Bounds.Left, level_data.Bounds.Top);
+            if (Level.EntityLoaders.TryGetValue(entity_data.Name, out var value))
+            {
+                Entity entity = value(level, level.Session.LevelData, offset, entity_data);
+                return (Trigger)entity;
+            }                       
+            return null; 
+        }
+       
+    }
+
     public class ErrandOfWednesdayModule : EverestModule {
         public static ErrandOfWednesdayModule Instance { get; private set; }
 
@@ -19,6 +71,9 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public override Type SessionType => typeof(ErrandOfWednesdayModuleSession);
         public static ErrandOfWednesdayModuleSession Session => (ErrandOfWednesdayModuleSession) Instance._Session;
 
+        /****************************/
+
+        /****************************/
 
         public static bool lookout = false;
         public static float lookout_value = 0;
@@ -68,6 +123,10 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
         {
+            if(isFromLoader)
+            {
+                TriggerManager.clear();
+            }
             if(Session.sd_active)
             {
                 SDTimerDisplay timer = SDTimerDisplay.create();
@@ -78,6 +137,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         private void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
         {
+            TriggerManager.clear();
             if(Session.sd_active)
             {
                 SDTimerDisplay.save_session();

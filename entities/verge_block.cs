@@ -169,48 +169,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             return a+"/"+b;
         }
 
-        public static EntityData get_trigger(Session session, int id)
-        {
-            if(trigger_registry.ContainsKey(id))
-            {
-                return trigger_registry[id];
-            }
-            foreach(LevelData level_data in session.MapData.Levels)
-            {
-                foreach(EntityData entity_data in level_data.Triggers)
-                {
-                    if(id == entity_data.ID)
-                    {
-                        trigger_registry.Add(id, entity_data);
-                        return entity_data;
-                    }
-                }
-            }
-Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
-            return null;
-        }
-
-        public Entity make_trigger(int id)
-        {
-            Level level= SceneAs<Level>();
-            EntityData entity_data = get_trigger(level.Session, id);
-            if(entity_data == null)
-            {
-                return null;
-            }
-
-    		LevelData level_data = level.Session.LevelData;
-	    	Vector2 offset = new Vector2(level_data.Bounds.Left, level_data.Bounds.Top);
-            if (Level.EntityLoaders.TryGetValue(entity_data.Name, out var value))
-            {
-                Entity entity = value(level, level.Session.LevelData, offset, entity_data);
-                return entity;
-            }                       
-            return null; 
-        }
-
-        public static Dictionary<int, EntityData> trigger_registry = new();
-
         public static Dictionary<string, MTexture[]> texture_registry = new();
 
         public static int N_layers = 3;
@@ -603,7 +561,6 @@ Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
         {
             outline_map.Clear();
             active_outline = null;
-            trigger_registry.Clear();
         }
 
         public override void Removed(Scene scene)
@@ -701,7 +658,7 @@ Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
             {
                 for(int i = 0; i < trigger_ids.Length; ++i)
                 {
-                    Trigger result = (Trigger)make_trigger(trigger_ids[i]);
+                    Trigger result = TriggerManager.make_trigger((scene as Level), trigger_ids[i]);
                     if(result == null)
                     {
 Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i]}");
@@ -817,6 +774,33 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
 // Logger.Log(LogLevel.Info, "eow", $"{isect.X} {isect.Y} {isect.Width} {isect.Height}");
 
             }
+
+/* 
+//This includes adjacent tiles in the grid so that the outline
+//won't go through them, but due it looks bad
+//would be better to be able to render outline chunks at a specific layer instead of on top of everything
+            if(this.below)
+            {
+                Grid grid = level.SolidTiles.Grid;
+                int gx = (int)(level.SolidTiles.Position.X/8);
+                int gy = (int)(level.SolidTiles.Position.Y/8);
+                int dx, dy;
+                for(x = 0; x < tilebounds.Width; ++x)
+                {
+                    dx = tilebounds.X + x - gx;
+                    dy = tilebounds.Y - gy;
+                    {
+                        tiles[x,0] = 0;
+                    }
+                    dy = tilebounds.Bottom - gy;
+                    if(level.SolidTiles.Grid[dx, dy])
+                    {
+                        tiles[x,tilebounds.Height-1] = 0;
+                    }
+
+                }
+            }
+*/
 
             for(x = 1; x < tilebounds.Width-1; ++x)
             {
