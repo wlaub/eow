@@ -461,9 +461,10 @@ Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
         public EntityID id;
 
         public Tween move_tween;
-        public Vector2[] targets;
         public Trigger[] triggers;
         public bool activated = false;
+
+        public bool below;
 
         public float fall_threshold = 200f;
         public bool fall_enter_enable = true;
@@ -473,7 +474,6 @@ Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
         public bool animate_fill = true;
 
         public int trigger_mode;
-        public int node_mode;
         public int[] trigger_ids;
 
         public string texture_name;
@@ -490,6 +490,8 @@ Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
         public VergeBlock(EntityData data, Vector2 offset, EntityID id) : base(data, offset)
         {
             this.id = id;
+
+            below = data.Bool("below");
 
             //TODO no_outline option?
             string trigger_names = data.Attr("trigger_ids");
@@ -543,18 +545,6 @@ Logger.Log(LogLevel.Error, "eow", $"Did not find trigger {id}");
             // 0 - on fall enter, 1 - on dash enter, 2 - on enter
             // 3 - on fall exit, 4 - on dash exit, 5 - on exit
             trigger_mode = data.Int("trigger_mode");
-
-            node_mode = data.Int("node_mode");
-            if(node_mode == 0)
-            {
-                targets = new Vector2[data.Nodes.Length];
-                for(int i = 0; i < targets.Length; ++i)
-                {
-                    targets[i] = data.Nodes[i]+offset;
-                }
-
-                base.node = null;
-            }
 
             int x_start = (int)Position.X/8;
             int y_start = (int)Position.Y/8;
@@ -810,7 +800,7 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
 
             foreach(VergeBlock block in scene.Tracker.GetEntities<VergeBlock>())
             {
-                if(block == this || block.vanilla_render)
+                if(block == this || block.vanilla_render || (block.below && !this.below))
                 {
                     continue;
                 }
