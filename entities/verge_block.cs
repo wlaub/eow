@@ -494,6 +494,7 @@ Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {depth}");
         public bool activated = false;
 
         public bool below;
+        public float depth_offset_factor;
 
         public float fall_threshold = 200f;
         public bool fall_enter_enable = true;
@@ -521,6 +522,8 @@ Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {depth}");
         public VergeBlock(EntityData data, Vector2 offset, EntityID id) : base(data, offset)
         {
             this.id = id;
+
+            depth_offset_factor = data.Float("depth_offset_factor", 1);
 
             base.Depth = data.Int("depth", -11000);
             below = data.Bool("below");
@@ -976,7 +979,8 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
                         color = flag_fill_colors[layer];
                     }
 
-                    Vector2 offset = camera_position * (0.3f+0.25f*layer);
+                    float depth_offset = 1f-Math.Max(0,(base.Depth+11000)*0.55f/16000f)*depth_offset_factor;
+                    Vector2 offset = camera_position * (0.3f+0.25f*layer)*depth_offset;
                     //The upper left corner of the upper left tile that is complete inside this block
                     Vector2 idx_offset = (block_offset-offset)/scale;
                     idx_offset.X = (float)Math.Ceiling(idx_offset.X)*scale;

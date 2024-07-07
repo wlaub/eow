@@ -19,6 +19,7 @@ verge_block.placements = {
         below = false,
         oneUse = false,
         depth = -11000,
+        depth_offset_factor = 1;
         width = 8,
         height = 8,
         fall_threshold = 180.1,
@@ -51,8 +52,8 @@ verge_block.fieldOrder = {
 "layer_2_color", "layer_2_flag_color",
 "layer_0_flag", "layer_1_flag", 
 "layer_2_flag", "fall_threshold",
-"depth", "below",
-"vanilla_render", "oneUse", "fastMoving",
+"depth", "depth_offset_factor",
+"below","vanilla_render", "oneUse", "fastMoving",
 "animate_fill", "fall_enter"
 
 }
