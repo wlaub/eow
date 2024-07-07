@@ -18,6 +18,7 @@ verge_block.placements = {
         fastMoving = false,
         below = false,
         oneUse = false,
+        depth = -11000,
         width = 8,
         height = 8,
         fall_threshold = 180.1,
@@ -50,7 +51,8 @@ verge_block.fieldOrder = {
 "layer_2_color", "layer_2_flag_color",
 "layer_0_flag", "layer_1_flag", 
 "layer_2_flag", "fall_threshold",
-"vanilla_render", "below", "oneUse", "fastMoving",
+"depth", "below",
+"vanilla_render", "oneUse", "fastMoving",
 "animate_fill", "fall_enter"
 
 }
@@ -73,7 +75,8 @@ verge_block.fieldInformation = {
 }
 
 function verge_block.depth(room, entity)
-    return entity.below and 5000 or -11000
+    
+    return entity.below and entity.depth+16000 or entity.depth
 end
 
 return verge_block

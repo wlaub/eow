@@ -34,7 +34,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             On.Celeste.DreamBlock.DeactivateNoRoutine += deactivate_node_routine;
             On.Celeste.Level.LoadLevel += load_level_hook;
             On.Monocle.Engine.Update += static_update;
-            On.Monocle.EntityList.RenderExcept += outline_render_hook;
             Everest.Events.Level.OnExit += on_exit_hook;
             Everest.Events.Level.OnEnter += on_enter_hook;
             Everest.Events.Level.OnTransitionTo += transition_hook;
@@ -50,7 +49,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             On.Celeste.DreamBlock.DeactivateNoRoutine -= deactivate_node_routine;
             On.Celeste.Level.LoadLevel -= load_level_hook;
             On.Monocle.Engine.Update -= static_update;
-            On.Monocle.EntityList.RenderExcept -= outline_render_hook;
             Everest.Events.Level.OnEnter -= on_enter_hook;
             Everest.Events.Level.OnExit -= on_exit_hook;
             Everest.Events.Level.OnTransitionTo -= transition_hook;
@@ -84,13 +82,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                 clear_state();
             }
             orig(self, playerIntro, isFromLoader) ;
-        }
-
-
-        public static void outline_render_hook(On.Monocle.EntityList.orig_RenderExcept orig, EntityList self, int exclude_tags)
-        {
-            orig(self, exclude_tags);
-            render_outline();
         }
 
         public static void static_update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime)
@@ -265,10 +256,90 @@ namespace Celeste.Mod.ErrandOfWednesday
                     entry.Value.render(xpos, ypos, x, y, outline_animation_index[aidx]);
                 }
             }
-
-
         }
 
+        public class OutlineEntity : Entity
+        {
+            public static Dictionary<Tuple<string, int>, OutlineEntity> entity_registry = new();
+             public static Dictionary<Tuple<string, int>, Outline> outline_registry = new();
+           
+            public string room; 
+            public Outline outline;
+
+            public static void clear()
+            {
+                outline_registry.Clear();
+                foreach(KeyValuePair<Tuple<string, int>, OutlineEntity> entry in entity_registry)
+                {
+                    entry.Value.RemoveSelf();
+                }
+                entity_registry.Clear();
+ 
+            }
+
+            public static OutlineEntity get_outline(VergeBlock block)
+            {
+                Level level = block.SceneAs<Level>();
+                string room = level.Session.Level;
+                int depth = block.Depth-1;
+                Tuple<string, int> key = Tuple.Create(room, depth);
+
+                if(entity_registry.ContainsKey(key))
+                {
+                    return entity_registry[key];
+                }
+
+                Outline _outline;
+                if(!outline_registry.ContainsKey(key))
+                {
+                    _outline = new(block.X, block.Y, block.Width, block.Height);
+                    outline_registry.Add(key, _outline);
+                }
+                else
+                {
+                    _outline = outline_registry[key];
+                }
+
+                OutlineEntity result = new(room, depth, _outline);
+
+                level.Add(result);
+                entity_registry.Add(key, result);
+                return result;
+               
+            }
+
+            public OutlineEntity(string room, int depth, Outline o)
+            {
+                this.room =room;
+                base.Depth = depth;
+                outline = o;
+            }
+
+            public override void Removed(Scene scene)
+            {
+                base.Removed(scene);
+                Tuple<string, int> key = Tuple.Create(room, base.Depth);
+
+                if(entity_registry.ContainsKey(key))
+                {
+                    entity_registry.Remove(key);
+                }
+                else
+                {
+Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {depth}");
+                }
+            }
+
+            public override void Render()
+            {
+                base.Render();
+                Level level = SceneAs<Level>();
+                Camera camera = level.Camera;
+ 
+                outline.render(camera);
+            }
+
+        }
 
 
         public class VergeBlockTexture
@@ -444,12 +515,21 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public Rectangle tilebounds;
         public Rectangle real_tilebounds;
+
+        public OutlineEntity outline_entity;
         
         public VergeBlock(EntityData data, Vector2 offset, EntityID id) : base(data, offset)
         {
             this.id = id;
 
+            base.Depth = data.Int("depth", -11000);
             below = data.Bool("below");
+            if(below)
+            {
+                //Default = -11000
+                //Below = 5000
+                base.Depth += 16000;
+            }
 
             //TODO no_outline option?
             string trigger_names = data.Attr("trigger_ids");
@@ -515,10 +595,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
 
         public static Vector2 transition_dir = Vector2.Zero;
-        public static Outline active_outline; 
-
-        public static Dictionary<string, Outline> outline_map = new(); 
-        public static Camera outline_camera;
 
         public int get_case_idx(int [,] tiles, int x, int y)
         {
@@ -553,14 +629,13 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(selection.textures != null && selection.textures.Length > 0)
             {
-                active_outline.add_point(xpos, ypos, selection);
+                outline_entity.outline.add_point(xpos, ypos, selection);
             }
         }
 
         public static void clear_state()
         {
-            outline_map.Clear();
-            active_outline = null;
+            OutlineEntity.clear();
         }
 
         public override void Removed(Scene scene)
@@ -671,18 +746,7 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
                 }
             }
 
-            Level level = (scene as Level);
-            string room = level.Session.Level;
-            if(!outline_map.ContainsKey(room))
-            {
-                active_outline = new(base.X, base.Y, base.Width, base.Height);
-                outline_map.Add(room, active_outline);
-            }
-            else
-            {
-                active_outline = outline_map[room];
-            }
-
+            outline_entity = OutlineEntity.get_outline(this);
         }
  
         public void resume_dream_dash(Player player)
@@ -731,6 +795,11 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
                 return;
             }
 
+            if(outline_entity == null)
+            {
+                Logger.Log(LogLevel.Error, "eow", $"verge block has no outline entity at awake!");
+            }
+
             Rectangle level_bounds = new(level.Bounds.X/8, level.Bounds.Y/8, level.Bounds.Width/8-1, level.Bounds.Height/8);
 
             int x,y;
@@ -757,7 +826,7 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
 
             foreach(VergeBlock block in scene.Tracker.GetEntities<VergeBlock>())
             {
-                if(block == this || block.vanilla_render || (block.below && !this.below))
+                if(block == this || block.vanilla_render || block.Depth > this.Depth)
                 {
                     continue;
                 }
@@ -856,7 +925,6 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
             Level level = SceneAs<Level>();
 
             Camera camera = level.Camera;
-            outline_camera = camera;
             if (!(base.Right < camera.Left || base.Left > camera.Right || base.Bottom < camera.Top || base.Top > camera.Bottom))
             {
 
@@ -1068,21 +1136,6 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
                 {
                     Draw.Rect(block_offset.X, block_offset.Y, base.Width, base.Height * whiteHeight, Color.White * whiteFill);
                 }
-
-            }
-        }
-
-        //TODO stretch goal: override footstepripple to use a collider that covers all blocks?
-
-        public static void render_outline()
-        {
-            if(outline_camera is null)
-            {
-                return;
-            }
-            foreach(KeyValuePair<string, Outline> sub_entry in outline_map)
-            {
-                sub_entry.Value.render(outline_camera);
 
             }
         }
