@@ -96,12 +96,11 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             //everyone loves
             bool active2 = has_dream_dash && white_fill<=0f;
-            
-            outline_color = (active2) ? activeLineColor :  disabledLineColor;
-            if (white_fill > 0f)
-            {
-                outline_color = Color.Lerp(disabledLineColor, activeLineColor, white_fill);
-            }
+           
+            //who put verilog in my c#?
+            outline_color = active2 ? activeLineColor : 
+                            has_dream_dash ? activeLineColor : 
+                            Color.Lerp(disabledLineColor, activeLineColor, white_fill);
 
             if(active2 && !level.Paused)
             {
@@ -199,7 +198,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             public void render(float xpos, float ypos, int x, int y, int i)
             {
-                get_texture(x,y,i).Draw(new Vector2(xpos+x_off, ypos+y_off), Vector2.Zero, outline_color);
+                get_texture(x,y,i).Draw(new Vector2(xpos+x_off, ypos+y_off)+global_shake, Vector2.Zero, outline_color);
             }
  
         }
@@ -292,7 +291,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Outline _outline;
                 if(!outline_registry.ContainsKey(key))
                 {
-                    _outline = new(block.X, block.Y, block.Width, block.Height);
+                    _outline = new(block.X, block.Y, block.X+block.Width, block.Y+block.Height);
                     outline_registry.Add(key, _outline);
                 }
                 else
@@ -1138,7 +1137,19 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
                 }
                 if (whiteFill > 0f)
                 {
-                    Draw.Rect(block_offset.X, block_offset.Y, base.Width, base.Height * whiteHeight, Color.White * whiteFill);
+                    float magic_height = base.Height * whiteHeight;
+                    if(outline_entity != null)
+                    {
+                        magic_height = whiteHeight * (outline_entity.outline.bot - outline_entity.outline.top) + outline_entity.outline.top - block_offset.Y;
+                        if(magic_height > base.Height)
+                        {
+                            magic_height = base.Height;
+                        }
+                    }
+                    if(magic_height > 0)
+                    {
+                        Draw.Rect(block_offset.X, block_offset.Y, base.Width, magic_height, Color.White * whiteFill);
+                    }
                 }
 
             }
