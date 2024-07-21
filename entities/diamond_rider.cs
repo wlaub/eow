@@ -21,6 +21,100 @@ namespace Celeste.Mod.ErrandOfWednesday
         //9 cyan
         //others black
         //this is gonna be a huge pain in the ass isn't it?
+
+        public static Color[] color_lookup = {
+            Color.Black,
+            Color.Green, Color.Black,
+            Color.Red, Color.Black,
+            Color.Yellow, Color.Black,
+            Color.Blue, Color.Black,
+            Color.Cyan
+        };
+
+        public int show_score;
+        public float size;
+        public Func<int> get_score;
+        public Action render_func;
+
+        public DiamondRiderScoreDisplay(EntityData data, Vector2 offset, EntityID id) : base(data.Position+ offset)
+        {
+            size = data.Float("size", 16)/32f;
+            show_score = data.Int("score_to_show", 0);
+
+            switch(show_score)
+            { 
+                case 0: render_func = _render_score; break;
+                case 1: render_func = _render_hscore; break;
+                case 2: render_func = _render_dscore; break;
+                default: render_func = _render_score; break;
+            }
+
+        }
+
+        public void _render_score()
+        {
+            int score = RideableDiamond.score;
+            string text = $"{score}";
+            Vector2 pos = Position;
+            for(int i = 0; i < text.Length; ++i)
+            {
+                ActiveFont.Draw(text[i], 
+                    pos,
+                    new Vector2(0.5f, 0.5f), Vector2.One*size,
+                    color_lookup[(char)(text[i])-0x30]
+                    );
+                Vector2 dims = ActiveFont.Measure(text[i]+"");
+                pos.X += dims.X*size;
+            }
+
+           
+        }
+
+        public void _render_hscore()
+        {
+            int score =  RideableDiamond.high_score;
+            string text = $"{score}";
+            Vector2 pos = Position;
+            for(int i = 0; i < text.Length; ++i)
+            {
+                ActiveFont.Draw(text[i], 
+                    pos,
+                    new Vector2(0.5f, 0.5f), Vector2.One*size,
+                    color_lookup[(char)(text[i])-0x30]
+                    );
+                Vector2 dims = ActiveFont.Measure(text[i]+"");
+                pos.X += dims.X*size;
+            }
+
+
+        }
+ 
+        public void _render_dscore()
+        {
+            int score = Derek.score;
+            string text = $"{score}";
+            Vector2 pos = Position;
+            for(int i = 0; i < text.Length; ++i)
+            {
+                ActiveFont.Draw(text[i], 
+                    pos,
+                    new Vector2(0.5f, 0.5f), Vector2.One*size,
+                    Color.Black
+                    );
+                Vector2 dims = ActiveFont.Measure(text[i]+"");
+                pos.X += dims.X*size;
+            }
+
+
+        }
+        
+        public override void Render()
+        {
+            render_func();
+
+        }
+ 
+
     } 
 
     [Tracked]
@@ -202,7 +296,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 do_collide(player, base_offset - c.TopRight, c.Height);
 
             }
-Logger.Log(LogLevel.Info, "eow", $"{score}, {high_score}");
+//Logger.Log(LogLevel.Info, "eow", $"{score}, {high_score}");
         }
 
         public void do_collide(Player player, Vector2 offset, float extra = 0)
