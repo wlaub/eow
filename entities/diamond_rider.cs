@@ -144,8 +144,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public Derek(EntityData data, Vector2 offset, EntityID id) : base(data.Position+ offset)
         {
-            //TODO if speed isn't set use random
-            speed = data.Float("initial_speed", -1f);
+            if(data.Has("initial_speed"))
+            {
+                speed = data.Float("initial_speed", -1f);
+            }
+            else
+            {
+                speed = -get_speed();
+            }
             max_speed = data.Float("max_speed", 10f);
             min_speed = data.Float("min_speed", 0.1f);
             var_speed = max_speed-min_speed;
@@ -238,7 +244,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public Sprite sprite;
         public Vector2 center;
-        public float phase = 0;
+        public float phase = (float)Math.PI*.5f;
 
         //attrs
         public float radius;
@@ -253,7 +259,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             speed = data.Float("speed");
             sprite_path = data.Attr("sprite");
 
-            center = Position - new Vector2(radius, 0);
+            center = Position - new Vector2(0, radius);
 
             sprite = new Sprite(GFX.Game, "");
             sprite.AddLoop("idle", sprite_path, 0.08f);
@@ -304,7 +310,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(Math.Abs(offset.X) + Math.Abs(offset.Y) < 12f)
             {
                 float dy = offset.Y+1 - Math.Abs(offset.X);
-                player.Position.Y -= dy+8f+extra;
+                player.Position.Y -= dy+16f+extra;
                 score += 1;
                 if(score > high_score)
                 {

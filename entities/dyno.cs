@@ -41,6 +41,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         
         public Dyno(EntityData data, Vector2 offset, EntityID eid) : base(data.Position+ offset)
         {
+            //TODO hover sprite and hitbox?
             yboost_threshold = data.Float("yboost_threshold");
             base_yboost = data.Float("yboost");
             dash_yboost = data.Float("yboost_dash");
