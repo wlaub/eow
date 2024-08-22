@@ -62,6 +62,38 @@ namespace Celeste.Mod.ErrandOfWednesday {
        
     }
 
+    public class MyLevelInspect
+    {
+    public static bool entity_in_map(Session session, string name)
+    {
+        foreach(LevelData level_data in session.MapData.Levels)
+        {
+            foreach(EntityData entity_data in level_data.Entities)
+            {
+                if(entity_data.Name == name)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public static bool trigger_in_map(Session session, string name)
+    {
+        foreach(LevelData level_data in session.MapData.Levels)
+        {
+            foreach(EntityData entity_data in level_data.Triggers)
+            {
+                if(entity_data.Name == name)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    }
+
     public class ErrandOfWednesdayModule : EverestModule {
         public static ErrandOfWednesdayModule Instance { get; private set; }
 
@@ -70,6 +102,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         public override Type SessionType => typeof(ErrandOfWednesdayModuleSession);
         public static ErrandOfWednesdayModuleSession Session => (ErrandOfWednesdayModuleSession) Instance._Session;
+
 
         /****************************/
 
@@ -108,6 +141,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             Everest.Events.Level.OnTransitionTo += transition_hook;
 
 //            VergeBlock.Load();
+
         }
 
         public override void Unload() {
@@ -126,6 +160,10 @@ namespace Celeste.Mod.ErrandOfWednesday {
             if(isFromLoader)
             {
                 TriggerManager.clear();
+                if(level.Session != null)
+                {
+                    VergeBlock.try_load(level.Session);
+                }
             }
             if(Session.sd_active)
             {
@@ -143,6 +181,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 SDTimerDisplay.save_session();
             }
             SDTimerDisplay.Unload();
+            VergeBlock.Unload();
             MyAudioTrigger.on_exit(level);
             AreaIntroCutscene.on_exit(level);
         }

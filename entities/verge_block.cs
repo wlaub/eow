@@ -25,6 +25,15 @@ namespace Celeste.Mod.ErrandOfWednesday
     {
         public static bool loaded = false;
 
+        public static void try_load(Session session)
+        {
+            if(!MyLevelInspect.entity_in_map(session, "eow/VergeBlock"))
+            {
+                return;
+            }
+            Load();
+        }
+    
         public static void Load()
         {
             if(loaded) return;
