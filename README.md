@@ -68,11 +68,15 @@ Example using booster as a placeholder, because it's round:
   </dyno>
 ```
 
-### TODO: Verge Block
+### Verge Block
 
 Modified dream block. You can fastfall into it to enter without dashing, and then use that to trigger, for example, a gravityhelper trigger so that when you fall through it gravity flips kind of like in that video game "Verge".
 
 Also custom textures.
+
+### Invisible Spinner
+
+An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
 
 ## Triggers
 
