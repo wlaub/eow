@@ -510,6 +510,7 @@ Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {depth}");
         public bool vanilla_render = false;
         public int active_layers = 3;
         public bool animate_fill = true;
+        public bool player_parallax = true;
 
         public int trigger_mode;
         public int[] trigger_ids;
@@ -532,6 +533,7 @@ Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {depth}");
             this.id = id;
 
             depth_offset_factor = data.Float("depth_offset_factor", 1);
+            player_parallax = data.Bool("player_parallax", true);
 
             base.Depth = data.Int("depth", -11000);
             below = data.Bool("below");
@@ -945,15 +947,26 @@ Logger.Log(LogLevel.Error, "eow", $"Failed to instantiate trigger {trigger_ids[i
                 Draw.Rect(block_offset.X, block_offset.Y, base.Width, base.Height, playerHasDreamDash ? activeBackColor : disabledBackColor);
                 Vector2 camera_position;
 
+                Vector2 parallax_position = camera.Position;
+                if(player_parallax)
+                {
+                    Player player = level.Tracker.GetEntity<Player>();
+                    if(player != null)
+                    {
+                        parallax_position = player.Position;
+                    }
+
+                }
+
                 if(playerHasDreamDash)
                 {
-                    camera_position = camera.Position;
+                    camera_position = parallax_position;
                 }
                 else
                 {
                     if(whiteFill > 0f)
                     {
-                        camera_position = Vector2.Lerp(disabled_position, camera.Position, whiteFill);
+                        camera_position = Vector2.Lerp(disabled_position, parallax_position, whiteFill);
                     }
                     else
                     {

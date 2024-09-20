@@ -39,6 +39,7 @@ verge_block.placements = {
         layer_1_flag = '',
         layer_2_flag = '',
         trigger_ids = '',
+        player_parallax = true,
     }
 }
 
@@ -54,7 +55,7 @@ verge_block.fieldOrder = {
 "layer_2_flag", "fall_threshold",
 "depth", "depth_offset_factor",
 "below","vanilla_render", "oneUse", "fastMoving",
-"animate_fill", "fall_enter"
+"animate_fill", "player_parallax", "fall_enter"
 
 }
 
