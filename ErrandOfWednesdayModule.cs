@@ -78,6 +78,22 @@ namespace Celeste.Mod.ErrandOfWednesday {
         }
         return false;
     }
+    public static List<EntityData> get_all_entity_data(Session session, string name)
+    {
+        List<EntityData> result = new();
+        foreach(LevelData level_data in session.MapData.Levels)
+        {
+            foreach(EntityData entity_data in level_data.Entities)
+            {
+                if(entity_data.Name == name)
+                {
+                    result.Add(entity_data);
+                }
+            }
+        }
+        return result;
+        
+    }
     public static bool trigger_in_map(Session session, string name)
     {
         foreach(LevelData level_data in session.MapData.Levels)
@@ -153,6 +169,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             Everest.Events.Level.OnTransitionTo -= transition_hook;
             SDTimerDisplay.Unload();
             VergeBlock.Unload();
+            MusicLayerSource.Unload();
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
@@ -163,6 +180,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 if(level.Session != null)
                 {
                     VergeBlock.try_load(level.Session);
+                    MusicLayerSource.try_load(level);
                 }
             }
             if(Session.sd_active)
@@ -182,6 +200,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             }
             SDTimerDisplay.Unload();
             VergeBlock.Unload();
+            MusicLayerSource.Unload();
             MyAudioTrigger.on_exit(level);
             AreaIntroCutscene.on_exit(level);
         }

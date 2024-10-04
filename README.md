@@ -78,6 +78,10 @@ Also custom textures.
 
 An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
 
+### Music Layer Source
+
+Fade a layer (or other music parameter) in and out based on player or camera distance.
+
 ## Triggers
 
 ### Entity Remover
