@@ -64,6 +64,19 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
     public class MyLevelInspect
     {
+    public static Entity make_entity(EntityData entity_data, LevelData level_data, Level level)
+    {
+         Vector2 offset = new Vector2(level_data.Bounds.Left, level_data.Bounds.Top);
+
+        if (Level.EntityLoaders.TryGetValue(entity_data.Name, out var value))
+        {
+            Entity entity = value(level, level.Session.LevelData, offset, entity_data);
+            return (Entity)entity;
+        }                       
+        return null; 
+    
+    }
+
     public static bool entity_in_map(Session session, string name)
     {
         foreach(LevelData level_data in session.MapData.Levels)
@@ -94,6 +107,29 @@ namespace Celeste.Mod.ErrandOfWednesday {
         return result;
         
     }
+    public static List<Entity> create_all_entity(Level level, string name)
+    {
+        List<Entity> result = new();
+        foreach(LevelData level_data in level.Session.MapData.Levels)
+        {
+            Vector2 offset = new Vector2(level_data.Bounds.Left, level_data.Bounds.Top);
+            foreach(EntityData entity_data in level_data.Entities)
+            {
+                if(entity_data.Name == name)
+                {
+
+                    if (Level.EntityLoaders.TryGetValue(entity_data.Name, out var value))
+                    {
+                        Entity entity = value(level, level.Session.LevelData, offset, entity_data);
+                        result.Add((Entity)entity);
+                    }                       
+                }
+            }
+        }
+        return result;
+ 
+    }
+
     public static bool trigger_in_map(Session session, string name)
     {
         foreach(LevelData level_data in session.MapData.Levels)
@@ -179,8 +215,9 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 TriggerManager.clear();
                 if(level.Session != null)
                 {
-                    VergeBlock.try_load(level.Session);
-                    MusicLayerSource.try_load(level);
+                    EyeOfTheWednesday.try_load(level);
+//                    VergeBlock.try_load(level.Session);
+//                    MusicLayerSource.try_load(level);
                 }
             }
             if(Session.sd_active)

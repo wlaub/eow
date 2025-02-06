@@ -55,6 +55,17 @@ entities.eow/Dyno.attributes.description.yboost_dash=Default vertical boost when
 entities.eow/Dyno.attributes.description.yboost_threshold=The maximum downward speed that the player can have and still get a vertical boost
 
 
+entities.eow/GlobalDecal.placements.name.global_decal=Global Decal (!!Requires EotW!!)
+entities.eow/GlobalDecal.placements.description.global_decal=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
+entities.eow/VergeBlock.placements.name.verge_block=Verge Block (!!Requires EotW!!)
+entities.eow/VergeBlock.placements.description.verge_block=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
+entities.eow/MusicLayerSource.placements.name.music_layer_source=Music Layer Source (!!Requires EotW!!)
+entities.eow/MusicLayerSource.placements.description.music_layer_source=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
+
+
 
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover

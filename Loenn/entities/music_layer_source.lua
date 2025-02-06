@@ -10,14 +10,16 @@ entity.placements = {
         data = {
             track_player = true, 
             z_distance = 0, 
-            min_distance = 16,
-            max_distance = 80, 
+            min_distance = 40,
+            max_distance = 240, 
             convert_distance = true,
             layers = "",
 
         }
     }
 }
+
+entity.depth=10000
 
 function entity.draw(room, entity, viewport)
 

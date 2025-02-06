@@ -68,19 +68,36 @@ Example using booster as a placeholder, because it's round:
   </dyno>
 ```
 
-### Verge Block
+### Invisible Spinner
+
+An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
+
+### Eye Of The Wednesday
+
+This is a controller entity palced in a room called  either !eow (top of list) or ~eow (bottom of list) in order to indicate that certain entities are used in the map and should be loaded. Without it, the following entities/triggers will not work and might break something. The entity has a set of enable flags that must be enabled when using the corresponding entity. The log will show whether the entity has been found or not at the debug log level.
+
+#### Verge Block
+
+Must be enabled by Eye Of The Wednesday:
+When the level loads, this entity does a bunch of preprocessing to make outlines render correctly and connect across rooms.
 
 Modified dream block. You can fastfall into it to enter without dashing, and then use that to trigger, for example, a gravityhelper trigger so that when you fall through it gravity flips kind of like in that video game "Verge".
 
 Also custom textures.
 
-### Invisible Spinner
+#### Music Layer Source
 
-An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
+Must be enabled by Eye Of The Wednesday:
+When the level loads, this entity scans the map of instances of itself and creates instances of them to use internally for updating music parameters, including layers.
 
-### Music Layer Source
+Fade a layer (or other music parameter) in and out based on player or camera distance. The sound sources are global so that they can be heard across rooms.
 
-Fade a layer (or other music parameter) in and out based on player or camera distance.
+#### Global Decal
+
+Must be enabled by Eye Of The Wednesday
+When the map is loaded, the mod scans every room for instances of this entity and instantiates them.
+
+This is a decal entity that has its global tag set so that it always renders no matter where you are in the map. 
 
 ## Triggers
 
