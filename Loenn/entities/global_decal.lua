@@ -25,6 +25,9 @@ lookout_decal.fieldOrder = {
 "flag",
 }
 
+function lookout_decal.depth(room, entity)
+    return tonumber(entity.depth or -1000)
+end
 
 
 function lookout_decal.texture(room, entity)

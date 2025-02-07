@@ -8,6 +8,9 @@ using Monocle;
 using Celeste;
 using Celeste.Mod.Entities;
 
+using System.Text.RegularExpressions;
+using System.IO;
+
 namespace Celeste.Mod.ErrandOfWednesday
 {
 
@@ -23,7 +26,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool actual = false;
 
         public GlobalDecal(EntityData data, Vector2 offset, EntityID eid) : base(
-                data.Attr("sprite"), 
+                data.Attr("sprite")+".png", 
                 data.Position + offset, 
                 new Vector2(data.Float("scaleX", 1f), data.Float("scaleY", 1f)),
                 data.Int("depth", 9000),
@@ -31,6 +34,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 data.Attr("color", "ffffffff")
                 )
         {
+
             this.eid = eid;
 
             flag = data.Attr("flag");
@@ -40,23 +44,25 @@ namespace Celeste.Mod.ErrandOfWednesday
                 flag = flag.Substring(1);
             }
             base.Tag = Tags.Global;
-        /*
-            Depth = data.Int("depth");
 
-            string sprite_name = "";
-            if(data.Has("sprite"))
-            {
-                sprite_name = data.Attr("sprite");
-            }
-            float delay = 1f/12;
-            sprite = new Sprite(GFX.Game, "decals/");
-            sprite.AddLoop("enabled", sprite_name, delay);
-            sprite.CenterOrigin();
-
-            sprite.Scale = new Vector2(data.Float("scaleX", 1f), data.Float("scaleY", 1f));
-            sprite.Rotation = (float) (data.Float("rotation", 0f) * Math.PI / 180f);
-            Add(sprite);
+/*
+        string texture = data.Attr("sprite");
+Logger.Log(LogLevel.Debug, "eow", $"start: {texture}");
+		if (string.IsNullOrEmpty(Path.GetExtension(texture)))
+		{
+			texture += ".png";
+Logger.Log(LogLevel.Debug, "eow", $"add ext: {texture}");
+		}
+		string extension = Path.GetExtension(texture);
+Logger.Log(LogLevel.Debug, "eow", $"ext: {extension}");
+		string input = Path.Combine("decals", texture.Replace(extension, "")).Replace('\\', '/');
+Logger.Log(LogLevel.Debug, "eow", $"input: {input}");
+		Name = Regex.Replace(input, "\\d+$", string.Empty);
+Logger.Log(LogLevel.Debug, "eow", $"name: {Name}");
 */
+
+
+
         }
 
         public static void try_load(Level level)
