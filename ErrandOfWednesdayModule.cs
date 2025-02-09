@@ -206,6 +206,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             SDTimerDisplay.Unload();
             VergeBlock.Unload();
             MusicLayerSource.Unload();
+            CannotTransitionTo.unload();
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)

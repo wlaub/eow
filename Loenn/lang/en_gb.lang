@@ -66,6 +66,9 @@ entities.eow/MusicLayerSource.placements.description.music_layer_source=See the 
 
 
 
+triggers.eow/CannotTransitionTo.placements.name.cannot_transition_to=Cannot Transition To (!!Requires EotW!!)
+triggers.eow/CannotTransitionTo.placements.description.cannot_transition_to=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
 
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover

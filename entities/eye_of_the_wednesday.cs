@@ -67,6 +67,11 @@ Logger.Log(LogLevel.Debug, "eow", "Deep space anomaly matching all known criteri
             {
                 GlobalDecal.try_load(level);
             }
+            if(data.Bool("cannot_transition_to_enable", false))
+            {
+                CannotTransitionTo.try_load();
+            }
+
 
 
 

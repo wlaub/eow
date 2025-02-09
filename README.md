@@ -99,6 +99,16 @@ When the map is loaded, the mod scans every room for instances of this entity an
 
 This is a decal entity that has its global tag set so that it always renders no matter where you are in the map. 
 
+#### Cannot Transition To Trigger
+
+Must be enabled by Eye Of The Wednesdays to minimize side effects when not in use.
+
+When the player is inside this trigger (and applicable flag conditions are met), MapData.CanTransitionTo returns false, preventing transitions even when gravity is inverted.
+
+This is an alternative to the bits & bolts Block Screen Transitions trigger (https://codeberg.org/micycle/libbitsbolts/src/branch/main/Docs/index.md#user-content-block-screen-transitions), which only works when gravity is normal, but can block transitions in multiple directions. The bits & bolts trigger IL hooks Level.EnforceBounds, but gravity helper completely replaces Level.EnforceBounds when gravity is inverted, which prevents the bits & bolts trigger from working. Since both versions of Level.EnforceBounds use MapData.CanTransitionTo to determine whether to allow a transition, this issue can be bypassed by overriding that function, but such a transition block cannot readily determine direction (except maybe by checking the player's coordinates relative to the room bounds?) and so cannot block conditionally block transition based on direction.
+
+Although the result from the original CanTransitionTo is not used when the player is still inside the trigger, it's always called in order to ensure other hooks can run.
+
 ## Triggers
 
 ### Entity Remover
