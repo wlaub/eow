@@ -99,6 +99,13 @@ When the map is loaded, the mod scans every room for instances of this entity an
 
 This is a decal entity that has its global tag set so that it always renders no matter where you are in the map. 
 
+#### Refill Bubbler
+
+Must be enabled by Eye Of The Wednesday
+This entity hooks Player.UseRefill to detect refills in an entity agnostic way.
+
+When the player collects a refill while inside the entity's area, bubble the player and set/clear the use flag if specified.
+
 #### Cannot Transition To Trigger
 
 Must be enabled by Eye Of The Wednesdays to minimize side effects when not in use.

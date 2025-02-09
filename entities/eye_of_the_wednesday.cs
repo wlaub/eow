@@ -71,6 +71,11 @@ Logger.Log(LogLevel.Debug, "eow", "Deep space anomaly matching all known criteri
             {
                 CannotTransitionTo.try_load();
             }
+            if(data.Bool("refill_bubbler_enable", false))
+            {
+                RefillBubbler.try_load();
+            }
+
 
 
 

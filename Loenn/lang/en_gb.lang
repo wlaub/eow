@@ -64,6 +64,9 @@ entities.eow/VergeBlock.placements.description.verge_block=See the readme on git
 entities.eow/MusicLayerSource.placements.name.music_layer_source=Music Layer Source (!!Requires EotW!!)
 entities.eow/MusicLayerSource.placements.description.music_layer_source=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
 
+entities.eow/RefillBubbler.placements.name.refill_bubbler=Refill Bubbler (!!Requires EotW!!)
+entities.eow/RefillBubbler.placements.description.refill_bubbler=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
 
 
 triggers.eow/CannotTransitionTo.placements.name.cannot_transition_to=Cannot Transition To (!!Requires EotW!!)

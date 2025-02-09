@@ -146,6 +146,8 @@ namespace Celeste.Mod.ErrandOfWednesday {
     }
     }
 
+
+
     public class ErrandOfWednesdayModule : EverestModule {
         public static ErrandOfWednesdayModule Instance { get; private set; }
 
@@ -207,6 +209,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             VergeBlock.Unload();
             MusicLayerSource.Unload();
             CannotTransitionTo.unload();
+            RefillBubbler.unload();
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
