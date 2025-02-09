@@ -54,6 +54,9 @@ entities.eow/Dyno.attributes.description.yboost=Default vertical boost when the 
 entities.eow/Dyno.attributes.description.yboost_dash=Default vertical boost when the player is dashing vertially, horizontally, or diagonally up
 entities.eow/Dyno.attributes.description.yboost_threshold=The maximum downward speed that the player can have and still get a vertical boost
 
+entities.eow/EyeOfTheWednesday.placements.name.eye_of_the_wednesday=Eye of the Wednesday (EotW)
+entities.eow/EyeOfTheWednesday.placements.description.eye_of_the_wednesday=Enables certain Errand of Wednesday features. See the readme on github.
+
 
 entities.eow/GlobalDecal.placements.name.global_decal=Global Decal (!!Requires EotW!!)
 entities.eow/GlobalDecal.placements.description.global_decal=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
@@ -67,11 +70,12 @@ entities.eow/MusicLayerSource.placements.description.music_layer_source=See the 
 entities.eow/RefillBubbler.placements.name.refill_bubbler=Refill Bubbler (!!Requires EotW!!)
 entities.eow/RefillBubbler.placements.description.refill_bubbler=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
 
+entities.eow/FlagInitializer.placements.name.flag_initializer=Flag Initializer
+entities.eow/FlagInitializer.placements.description.flag_initializer=Sets flags true when the map is first initialized or reset. Must be placed in a room called !eow or ~eow.
 
 
 triggers.eow/CannotTransitionTo.placements.name.cannot_transition_to=Cannot Transition To (!!Requires EotW!!)
 triggers.eow/CannotTransitionTo.placements.description.cannot_transition_to=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
-
 
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover

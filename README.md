@@ -4,6 +4,8 @@ Disclaimer: I have no idea what I'm doing.
 
 ## Entities
 
+Some entities must be placed in a room called !eow or ~eow to work. This allows the mod to locate these entities quickly when loading without scanning the entire map. !eow will be sorted to the top of the rooms list, and ~eow will be sorted to the bottom.
+
 ### Unique Jellyfish
 
 When the player enters a room or otherwise respawns, only the unique jellyfish closest to the player will spawn. If the player is holding a jellyfish when entering a room, then none of the other jellyfish will spawn unless the one closest to the player has 'confiscate' enabled, in which case the player's held jellyfish will be removed.
@@ -71,6 +73,10 @@ Example using booster as a placeholder, because it's round:
 ### Invisible Spinner
 
 An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
+
+### Flag Initializer
+
+Must place in !eow/~eow. Can place multiple. The listed non-empty flags will be set true when the chapter is started or restarted (Session.JustStarted = True). This allows flags to be consistently initialized when starting a map even when using ctrl+click to teleport.
 
 ### Eye Of The Wednesday
 

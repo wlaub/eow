@@ -36,10 +36,10 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             if(level_data == null)
             {
-Logger.Log(LogLevel.Debug, "eow", "Didn't find they eye.");
+Logger.Log(LogLevel.Debug, "eow", "Didn't find the eye.");
                 return;
             }
-Logger.Log(LogLevel.Debug, "eow", "Deep space anomaly matching all known criteria for the Eye of the Wednesday found by probe 9,318,054."); 
+Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated."); 
 
             //Find the controller
             EntityData data = null;
@@ -49,7 +49,22 @@ Logger.Log(LogLevel.Debug, "eow", "Deep space anomaly matching all known criteri
                 {
                     data = entity_data;
                 }
+                else if(entity_data.Name == "eow/FlagInitializer")
+                {
+                    if(level.Session.JustStarted)
+                    {
+                        for(int i = 1; i < 7; ++i)
+                        {
+                            string flag_name = entity_data.Attr($"flag{i}", "");
+                            if(!string.IsNullOrWhiteSpace(flag_name))
+                            {
+                                level.Session.SetFlag(flag_name, true);
+                            }
+                        }
+                    }
+                }
             }
+
             if (data == null)
             {
                 return;
