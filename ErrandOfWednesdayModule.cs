@@ -12,6 +12,25 @@ using Celeste;
 
 namespace Celeste.Mod.ErrandOfWednesday {
 
+    public class Flagic
+    {
+        public static bool process_flag(string flag, out string flag_out)
+        {
+
+            if(!string.IsNullOrWhiteSpace(flag) && flag[0] == '!')
+            {
+                flag_out = flag.Substring(1);
+                return true;
+            }
+            else
+            {
+                flag_out = flag;
+                return false;
+            }
+        }
+    }
+
+
     public class TriggerManager 
     {
         public static Dictionary<int, EntityData> data_registry = new();

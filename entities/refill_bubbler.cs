@@ -65,7 +65,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
         }
 
-        private IEnumerator node_poutine(Player player) {
+        public IEnumerator node_poutine(Player player) {
             if (!player.Dead) {
                 Audio.Play("event:/game/general/cassette_bubblereturn", SceneAs<Level>().Camera.Position + new Vector2(160f, 90f));
                 player.StartCassetteFly(nodes[1], nodes[0]);

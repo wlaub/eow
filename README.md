@@ -2,11 +2,23 @@
 
 Disclaimer: I have no idea what I'm doing.
 
+Many of these entities were created to server specific purposes in specific maps. Those maps can also serve as examples of their intended applications.
+
 ## Entities
 
 Some entities must be placed in a room called !eow or ~eow to work. This allows the mod to locate these entities quickly when loading without scanning the entire map. !eow will be sorted to the top of the rooms list, and ~eow will be sorted to the bottom.
 
-### Unique Jellyfish
+### Eye Of The Wednesday
+
+This is a controller entity palced in a room called  either !eow (top of list) or ~eow (bottom of list) in order to indicate that certain entities are used in the map and should be loaded. Without it, the following entities/triggers will not work and might break something. The entity has a set of enable flags that must be enabled when using the corresponding entity. The log will show whether the entity has been found or not at the debug log level.
+
+While I want the functionality provided by this mod to be available for use by others, I also want to minimize side effects in other maps that don't use this mod. Eye Of The Wednesday is a compromise that makes the mod less accessible, but guarantees that some functionality won't be enabled unless a map explicitly needs it. I also considered not publishing Loenn plugins for some of these entities, which would require other users to either develop from a local git repo instead of using gamebanana or manually supplement their gamebanana download with plugins from the source. That sounds like a pain in the ass compared to just looking up and reading the readme, so I didn't do that.
+
+### The Wednesday On The Edge Of Forever
+
+These entities were made for https://gamebanana.com/mods/492702
+
+#### Unique Jellyfish
 
 When the player enters a room or otherwise respawns, only the unique jellyfish closest to the player will spawn. If the player is holding a jellyfish when entering a room, then none of the other jellyfish will spawn unless the one closest to the player has 'confiscate' enabled, in which case the player's held jellyfish will be removed.
 
@@ -14,13 +26,13 @@ The effect is that a player can seemlessly carry a jellyfish between rooms witho
 
 Currently doesn't interact with other jellyfish.
 
-### Watchtower decal
+#### Watchtower decal
 
 Because of the way watchtowers are implemented, this only works with vanilla watchtowers.
 
 A decal that can be configured to appear depending on whether the player is using a watchtower. If the decal is configured to appear when using a watchtower, it will appeari instally after the start animation finishes.
 
-### Liftboost Block
+#### Liftboost Block
 
 Sort of like a swap block that doesn't move. 
 
@@ -34,21 +46,25 @@ With always on enabled (disabled by default), the usual timers are bypassed and 
 
 If specified, the flag determines whether the block will be enabled on loading the room.
 
-### Yet another collectable
+#### Yet another collectable
 
 Problem: there are 15 competing standards.
 
 A custom collectable created for the wednesday on the edge of forever. It can do the heartbeat thing, it can do the wiggle thing, it can require that the player dash toward it to collect, it can pull the player to its center, it can play a sound, it can do a little animation, it can show a poem (without the heart background), it can activate triggers at its nodes, it can refill or unfill the player's dashes, it can set a flag, and (as with all other custom collectables), it's probably not quite what you're looking for.
 
-### Mirror Block
+#### Mirror Block
 
 It's like a lock block, but I needed it to have a different depth a mirror effect for The Wednesday On The Edge Of Forever. I also wanted to be able to start the animation at the start of the unlock routine, but I couldn't do that without copypasting 100% of the code for the base object (private members are fascism).
 
-### Fake Wall Dash Block
+#### Fake Wall Dash Block
 
 It's exactly the same thing as a regular Dash Block, but it tracks as a Fake Wall, which causes certain UI elements to (NPC interaction indicators) to be hidden "behind" it. It's a dash block that can hide NPCs and hopefully won't break anything.
 
-### Dyno Hold
+### Reasons
+
+These entities were made for reasons
+
+#### Dyno Hold
 
 TODO: add an optional use sound
 TODO: make a default sprite
@@ -56,7 +72,7 @@ TODO: make lonn plugin handle sprites, draw hitbox
 
 It's sort of like a glider you can't pick up. If you grab while intersecting it, then you get a little boost depending on how you're moving. Grabbing while moving upward (or not falling too fast) gives a little upward hop, and grabbing while dashing gives a larger boost (actually it's smaller, but you still go further than if you weren't dashing). Grabbing while dashing horizontally gives a slightly larger horizontal boost, and grabbing while dashing diagonally down gives a much larger horizontal boost.
 
-#### Sprite
+##### Sprite
 If using Sprites.xml, the sprint needs an `idle` loop, an `active_single` that goes to `used`, an `active_multi` that goes to `idle`, and a `used` loop. `active_single` plays when using a single-use dyno, and `active_multi` plays for a multi-use dyno. `idle` is the default state for an unused dyno. `used` is the loop for a single-use dyno that has been used.
 
 Example using booster as a placeholder, because it's round:
@@ -70,19 +86,9 @@ Example using booster as a placeholder, because it's round:
   </dyno>
 ```
 
-### Invisible Spinner
-
-An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
-
-### Flag Initializer
-
-Must place in !eow/~eow. Can place multiple. The listed non-empty flags will be set true when the chapter is started or restarted (Session.JustStarted = True). This allows flags to be consistently initialized when starting a map even when using ctrl+click to teleport.
-
-### Eye Of The Wednesday
-
-This is a controller entity palced in a room called  either !eow (top of list) or ~eow (bottom of list) in order to indicate that certain entities are used in the map and should be loaded. Without it, the following entities/triggers will not work and might break something. The entity has a set of enable flags that must be enabled when using the corresponding entity. The log will show whether the entity has been found or not at the debug log level.
-
 #### Verge Block
+
+Previously descoped from The Wednesday on the Edge of Forever.
 
 Must be enabled by Eye Of The Wednesday:
 When the level loads, this entity does a bunch of preprocessing to make outlines render correctly and connect across rooms.
@@ -90,6 +96,17 @@ When the level loads, this entity does a bunch of preprocessing to make outlines
 Modified dream block. You can fastfall into it to enter without dashing, and then use that to trigger, for example, a gravityhelper trigger so that when you fall through it gravity flips kind of like in that video game "Verge".
 
 Also custom textures.
+
+
+### EDGE (a game by) Mirrors
+
+#### Invisible Spinner
+
+An invisible spinner that can render its hitbox in Loenn and has options for locking and showing if it's off-grid. For building larger hazards with custom graphics using a familiar hitbox geometry.
+
+#### Flag Initializer
+
+Must place in !eow/~eow. Can place multiple. The listed non-empty flags will be set true when the chapter is started or restarted (Session.JustStarted = True). This allows flags to be consistently initialized when starting a map even when using ctrl+click to teleport.
 
 #### Music Layer Source
 
@@ -112,6 +129,10 @@ This entity hooks Player.UseRefill to detect refills in an entity agnostic way.
 
 When the player collects a refill while inside the entity's area, bubble the player and set/clear the use flag if specified.
 
+#### Popping Mirror
+
+A mirror that plays and animation and changes to a different sprite (e.g. breaks or unbreaks) when touched and/or when a flag is set. See source map/assets for sprite structure.
+
 #### Cannot Transition To Trigger
 
 Must be enabled by Eye Of The Wednesdays to minimize side effects when not in use.
@@ -124,7 +145,9 @@ Although the result from the original CanTransitionTo is not used when the playe
 
 ## Triggers
 
-### Entity Remover
+### The Wednesday on the Edge of Forever
+
+#### Entity Remover
 
 A bigger hammer to make any entity a flag entity.
 
@@ -134,7 +157,7 @@ Only works on entities that implement point or rect collision. Should fail silen
 
 When activated, removes the entity nearest each of its nodes. Can be configured to active on entering a room and/or only if a flag is set.
 
-### Area Introduction Cutscene
+#### Area Introduction Cutscene
 
 A trigger that pans the camera across a series of nodes and displays some text. 
 
@@ -152,11 +175,11 @@ Note: there's no validation on the `next_room` field. Be careful.
 
 Note: the intended usage of this is to have an initial cutscene trigger at the entrance to a room, jump through a sequence of rooms each containing a cutscene trigger with the trigger outside the bounds of the room and nodes denoting the camera path. The penultimate trigger has the initial room as its `next_room`. The final camera trigger is in the intial room and specifies a path that ends on the player. I am assuming there will be two camera triggers in the room where the cutscene starts, and one in each room it traverses. This is not enforced. Deviations are possible but may lead to undefined behavior. It may be possible to end in a room other than the initial room and then simply teleport back to the start. For an example of the intended usage, see https://github.com/wlaub/twoteof.
 
-### Self-Destruct Triggers
+#### Self-Destruct Triggers
 
 These triggers are intended to create a timed self-destruct sequence that ends in the player escaping (by activating a cancel trigger) or dying in the mine (ending the map).
 
-#### Self-Destruct Activate Trigger
+##### Self-Destruct Activate Trigger
 
 The Activate trigger sets a timer, plays the start sound, and sets the `eow_sd_active` flag.
 
@@ -168,11 +191,13 @@ The countdown sound, if provided, is played so that it ends at the same time as 
 
 Once the countdown ends, the player is frozen, the game timer stops, the death sound plays, and the screen shakes while fading to white. After the screen fade and death sound both end, the maps is ended with no fanfare, and the player returned to chapter select.
 
-#### Self-Destruct Cancel Trigger
+##### Self-Destruct Cancel Trigger
 
 The Cancel trigger cancels the self-destruct sequence as long as it's entered before the countdown ends.
 
-### My State Machine
+### Future
+
+#### My State Machine
 
 TODO
 
