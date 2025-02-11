@@ -156,6 +156,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool on_contact;
         public bool at_least_once;
         public bool only_this;
+        public bool only_on_contact;
 
         public string shatter_sound;
         public string trigger_sound;
@@ -200,6 +201,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             on_contact = data.Bool("on_contact", false); 
             at_least_once = data.Bool("at_least_once", true); 
             only_this = data.Bool("only_this", true);
+            only_on_contact = data.Bool("only_on_contact", true);
+        
 
             rotation = (float) ((data.Float("rotation", 0f)) * Math.PI / 180f);
 //                 idle_sprite.Scale = new Vector2(data.Float("scaleX", 1f), data.Float("scaleY", 1f));
@@ -427,14 +430,19 @@ namespace Celeste.Mod.ErrandOfWednesday
                     lockout = true;
                 }
                 Flagic.set_flag(SceneAs<Level>().Session, contact_flag, contact_flag_inverted);
-                activate();
+                activate(true);
                 lockout = false;
             }
         }
 
-        public float activate()
+        public float activate(bool is_contact = false)
         {
             if(activated){return -1;}
+
+            if(only_on_contact && !is_contact)
+            {
+                return -1;
+            }
 
             activated = true;
 

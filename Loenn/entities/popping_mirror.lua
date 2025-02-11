@@ -30,6 +30,7 @@ my_entity.placements = {
         on_contact = false,
         at_least_once = true,
         only_this = true,
+        only_on_contact = true,
     }
 }
 
