@@ -96,9 +96,15 @@ namespace Celeste.Mod.ErrandOfWednesday
 
 
 
+        public static bool lockout = false;
         public static void set_flag(On.Celeste.Session.orig_SetFlag orig, Session self, string flag, bool val)
         {
             orig(self, flag, val);
+
+            if(lockout)
+            {
+                return;
+            }
 
             PoppingMirror nearest = null;
             float min_delay = 10000f;
@@ -149,6 +155,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public bool on_contact;
         public bool at_least_once;
+        public bool only_this;
 
         public string shatter_sound;
         public string trigger_sound;
@@ -190,8 +197,9 @@ namespace Celeste.Mod.ErrandOfWednesday
             control_flag_inverted = Flagic.process_flag(data.Attr("control_flag", ""), out control_flag);
             contact_flag_inverted = Flagic.process_flag(data.Attr("on_contact_flag", ""), out contact_flag);
  
-            on_contact = data.Bool("on_contact"); 
-            at_least_once = data.Bool("at_least_once"); 
+            on_contact = data.Bool("on_contact", false); 
+            at_least_once = data.Bool("at_least_once", true); 
+            only_this = data.Bool("only_this", true);
 
             rotation = (float) ((data.Float("rotation", 0f)) * Math.PI / 180f);
 //                 idle_sprite.Scale = new Vector2(data.Float("scaleX", 1f), data.Float("scaleY", 1f));
@@ -414,9 +422,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.OnEnter(player);
             if(on_contact && !activated) 
             {
+                if(only_this && !string.IsNullOrWhiteSpace(contact_flag))
+                {
+                    lockout = true;
+                }
                 Flagic.set_flag(SceneAs<Level>().Session, contact_flag, contact_flag_inverted);
                 activate();
-                
+                lockout = false;
             }
         }
 

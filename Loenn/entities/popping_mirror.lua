@@ -29,6 +29,7 @@ my_entity.placements = {
         on_contact_flag = "",
         on_contact = false,
         at_least_once = true,
+        only_this = true,
     }
 }
 
