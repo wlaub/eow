@@ -131,7 +131,11 @@ When the player collects a refill while inside the entity's area, bubble the pla
 
 #### Popping Mirror
 
-A mirror that plays and animation and changes to a different sprite (e.g. breaks or unbreaks) when touched and/or when a flag is set. See source map/assets for sprite structure.
+Must be enabled by Eye Of The Wednesday
+Hooks Session.SetFlag to detect flag changes.
+
+A mirror that plays and animation and changes to a different sprite (e.g. breaks or unbreaks) when touched and/or when a flag is set. See 
+`Graphics/Atlases/Gameplay/objects/eow/popping_mirror/default` for sprite structure.
 
 #### Cannot Transition To Trigger
 

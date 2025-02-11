@@ -28,6 +28,18 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 return false;
             }
         }
+        public static bool test_flag(Session session, string flag, bool flag_inverted)
+        {
+            return string.IsNullOrWhiteSpace(flag) || session.GetFlag(flag) != flag_inverted;
+ 
+        }
+        public static void set_flag(Session session, string flag, bool flag_inverted)
+        {
+            if(!string.IsNullOrWhiteSpace(flag))
+            {
+                session.SetFlag(flag, !flag_inverted);
+            } 
+        }
     }
 
 
@@ -229,6 +241,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             MusicLayerSource.Unload();
             CannotTransitionTo.unload();
             RefillBubbler.unload();
+            PoppingMirror.unload();
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
@@ -239,8 +252,6 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 if(level.Session != null)
                 {
                     EyeOfTheWednesday.try_load(level);
-//                    VergeBlock.try_load(level.Session);
-//                    MusicLayerSource.try_load(level);
                 }
             }
             if(Session.sd_active)

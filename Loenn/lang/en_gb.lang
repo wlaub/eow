@@ -73,6 +73,9 @@ entities.eow/RefillBubbler.placements.description.refill_bubbler=See the readme 
 entities.eow/FlagInitializer.placements.name.flag_initializer=Flag Initializer
 entities.eow/FlagInitializer.placements.description.flag_initializer=Sets flags true when the map is first initialized or reset. Must be placed in a room called !eow or ~eow.
 
+entities.eow/PoppingMirror.placements.name.popping_mirror=Popping Mirror (!!Requires EotW!!)
+entities.eow/PoppingMirror.placements.description.popping_mirror=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
 
 triggers.eow/CannotTransitionTo.placements.name.cannot_transition_to=Cannot Transition To (!!Requires EotW!!)
 triggers.eow/CannotTransitionTo.placements.description.cannot_transition_to=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.

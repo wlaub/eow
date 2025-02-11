@@ -90,7 +90,10 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 RefillBubbler.try_load();
             }
-
+            if(data.Bool("popping_mirror_enable", false))
+            {
+                PoppingMirror.try_load();
+            }
 
 
 

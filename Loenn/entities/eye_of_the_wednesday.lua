@@ -11,6 +11,7 @@ dyno.placements = {
             global_decal_enable = false,
             cannot_transition_to_enable = false,
             refill_bubbler_enable = false,
+            popping_mirror_enable = false,
         }
     }
 }

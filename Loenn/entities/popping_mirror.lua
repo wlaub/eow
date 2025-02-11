@@ -4,11 +4,13 @@ local drawableNinePatch = require("structs.drawable_nine_patch")
 local drawableRectangle = require("structs.drawable_rectangle")
 local utils = require("utils")
 local rectangle = require("structs.rectangle")
+local drawing = require("utils.drawing")
 
 local my_entity = {}
 
 my_entity.name = "eow/PoppingMirror"
 my_entity.minimumSize = {8, 8}
+my_entity.maximumSize = {40, 40}
 
 my_entity.placements = {
     name = "popping_mirror",
@@ -17,7 +19,12 @@ my_entity.placements = {
         height = 16,
         depth = 9999,
         rate = 4, --tiles per frame
-        sprite_directory = "objects/waldmo/popping_mirror/base/",
+        sprite_directory = "objects/eow/popping_mirror/default/",
+        frame_delay = 0.2,
+        break_frame_delay = 0.2,
+        shrink = 4,
+        trigger_sound = "",
+        shatter_sound = "",
         control_flag = "",
         on_contact_flag = "",
         on_contact = false,
@@ -27,7 +34,10 @@ my_entity.placements = {
 
 my_entity.fieldOrder = {
 "x", "y", "width", "height",
-"spriteDirectory", "depth", "rate",
+"rate", "shrink",
+"sprite_directory", "depth", 
+"frame_delay", "break_frame_delay",
+"trigger_sound", "shatter_sound",
 "control_flag", "on_contact_flag",
 }
 
@@ -48,6 +58,9 @@ function my_entity.sprite(room, entity)
 
 
     local sprite = drawableSprite.fromTexture(texture, entity)
+    if sprite == nil then
+        sprite = drawableSprite.fromTexture(texture .. '00', entity)
+    end
 
     sprite:addPosition(width/2, height/2)
 
@@ -55,9 +68,25 @@ function my_entity.sprite(room, entity)
         sprite.rotation = 3.14/2
     end
 
-    return sprite
+    local sprites = {}
+    table.insert(sprites, sprite)
+
+    if entity.on_contact then
+        local shrink = entity.shrink or 0
+        local hitbox = drawableRectangle.fromRectangle("line", x+shrink, y+shrink, width-shrink*2, height-shrink*2, {1,1,1, 0.25})
+
+        table.insert(sprites, hitbox)
+    else
+        local hitbox = drawableRectangle.fromRectangle("line", x, y, width, height, {1,1,1, 0.125})
+
+        table.insert(sprites, hitbox)
+    end
+
+    return sprites
 
 end
+
+
 
 return my_entity
 
