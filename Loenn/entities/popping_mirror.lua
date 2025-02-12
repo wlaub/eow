@@ -31,6 +31,7 @@ my_entity.placements = {
         at_least_once = true,
         only_this = true,
         only_on_contact = true,
+        shatter_group = "",
     }
 }
 
@@ -41,6 +42,7 @@ my_entity.fieldOrder = {
 "frame_delay", "break_frame_delay",
 "trigger_sound", "shatter_sound",
 "control_flag", "on_contact_flag",
+"shatter_group",
 }
 
 function my_entity.sprite(room, entity)

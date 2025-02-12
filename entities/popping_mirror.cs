@@ -153,6 +153,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public string contact_flag;
         public bool contact_flag_inverted;
 
+        public string shatter_group;
+
         public bool on_contact;
         public bool at_least_once;
         public bool only_this;
@@ -202,7 +204,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             at_least_once = data.Bool("at_least_once", true); 
             only_this = data.Bool("only_this", true);
             only_on_contact = data.Bool("only_on_contact", true);
-        
+
+            shatter_group = data.Attr("shatter_group");
 
             rotation = (float) ((data.Float("rotation", 0f)) * Math.PI / 180f);
 //                 idle_sprite.Scale = new Vector2(data.Float("scaleX", 1f), data.Float("scaleY", 1f));
@@ -421,6 +424,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 do_pop(new Vector2(0,0), true);
             }
+
+            if(!string.IsNullOrWhiteSpace(shatter_group))
+            {
+                control_flag += "_"+shatter_group;
+            }
         }
 
         public override void OnEnter(Player player)
@@ -433,6 +441,10 @@ namespace Celeste.Mod.ErrandOfWednesday
                     lockout = true;
                 }
                 Flagic.set_flag(SceneAs<Level>().Session, contact_flag, contact_flag_inverted);
+                if(!string.IsNullOrWhiteSpace(shatter_group))
+                {
+                 Flagic.set_flag(SceneAs<Level>().Session, control_flag, control_flag_inverted);
+                }
                 activate(true);
                 lockout = false;
             }
