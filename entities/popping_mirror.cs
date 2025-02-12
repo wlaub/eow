@@ -191,7 +191,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             shatter_sound = data.Attr("shatter_sound", "") ;
 
             float rate = data.Float("rate");
-            rate_sq = rate*rate*60*60;
+            rate_sq = rate*rate*60*60*4;
             frame_delay = data.Float("frame_delay", 0.2f);
             break_frame_delay = data.Float("break_frame_delay", 0.2f);
 
@@ -455,6 +455,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 float dist = Vector2.DistanceSquared(Center, player.Center);
                 float delay = dist/rate_sq;
+                delay = (float)Math.Sqrt(delay);
                 Add(new Coroutine(pop_routine(player, delay)));
                 return delay;
             }
