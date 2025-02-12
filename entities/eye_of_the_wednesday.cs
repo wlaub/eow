@@ -27,12 +27,12 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static bool loaded = false;
 
-        public static void try_load(Level level)
+        public static void try_load(Session session)
         {
-            LevelData level_data = level.Session.MapData.Get("!eow");
+            LevelData level_data = session.MapData.Get("!eow");
             if(level_data == null)
             {
-                level_data = level.Session.MapData.Get("~eow");
+                level_data = session.MapData.Get("~eow");
             }
             if(level_data == null)
             {
@@ -51,14 +51,14 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 }
                 else if(entity_data.Name == "eow/FlagInitializer")
                 {
-                    if(level.Session.JustStarted)
+                    if(session.JustStarted)
                     {
                         for(int i = 1; i < 7; ++i)
                         {
                             string flag_name = entity_data.Attr($"flag{i}", "");
                             if(!string.IsNullOrWhiteSpace(flag_name))
                             {
-                                level.Session.SetFlag(flag_name, true);
+                                session.SetFlag(flag_name, true);
                             }
                         }
                     }
@@ -72,15 +72,15 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 
             if(data.Bool("verge_block_enable", false))
             {
-               VergeBlock.try_load(level.Session);
+               VergeBlock.try_load(session);
             }
             if(data.Bool("music_layer_source_enable", false))
             {
-                MusicLayerSource.try_load(level);
+                MusicLayerSource.try_load(session);
             }
             if(data.Bool("global_decal_enable", false))
             {
-                GlobalDecal.try_load(level);
+                GlobalDecal.try_load();
             }
             if(data.Bool("cannot_transition_to_enable", false))
             {
@@ -94,7 +94,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 PoppingMirror.try_load();
             }
-
+                Logger.Log(LogLevel.Warn, "eow", $"Finished loading everything");
 
 
 

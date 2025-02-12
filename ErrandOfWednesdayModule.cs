@@ -221,6 +221,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             On.Celeste.Lookout.Update += lookout_stop;
             On.Monocle.Engine.Update += Update;
 
+            On.Celeste.LevelLoader.ctor += level_loader_constructor;
             Everest.Events.Level.OnLoadLevel += on_load_level;
             Everest.Events.Level.OnExit += on_exit_hook;
             Everest.Events.Level.OnTransitionTo += transition_hook;
@@ -233,6 +234,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             On.Celeste.Lookout.Update -= lookout_stop;
             On.Monocle.Engine.Update -= Update;
 
+            On.Celeste.LevelLoader.ctor -= level_loader_constructor;
             Everest.Events.Level.OnLoadLevel -= on_load_level;
             Everest.Events.Level.OnExit -= on_exit_hook;
             Everest.Events.Level.OnTransitionTo -= transition_hook;
@@ -244,6 +246,13 @@ namespace Celeste.Mod.ErrandOfWednesday {
             PoppingMirror.unload();
         }
 
+        public void level_loader_constructor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startposition)
+        {
+            orig(self, session, startposition);
+            EyeOfTheWednesday.try_load(session);
+        
+        }
+
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
         {
             if(isFromLoader)
@@ -251,7 +260,9 @@ namespace Celeste.Mod.ErrandOfWednesday {
                 TriggerManager.clear();
                 if(level.Session != null)
                 {
-                    EyeOfTheWednesday.try_load(level);
+//                    EyeOfTheWednesday.try_load(level);
+                    MusicLayerSource.level_load(level);
+                    GlobalDecal.level_load(level);
                 }
             }
             if(Session.sd_active)
@@ -272,6 +283,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             SDTimerDisplay.Unload();
             VergeBlock.Unload();
             MusicLayerSource.Unload();
+            GlobalDecal.unload();
             MyAudioTrigger.on_exit(level);
             AreaIntroCutscene.on_exit(level);
         }

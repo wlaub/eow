@@ -123,16 +123,24 @@ namespace Celeste.Mod.ErrandOfWednesday
             loaded = false;
         }
 
-        public static void try_load(Level level)
+        public static void try_load(Session session)
         {
-            if(!MyLevelInspect.entity_in_map(level.Session, "eow/MusicLayerSource"))
+            if(!MyLevelInspect.entity_in_map(session, "eow/MusicLayerSource"))
             {
                 return;
             }
 
             clear_state();
-            gather_sources(level);
+//            gather_sources(level);
             Load();
+        }
+
+        public static void level_load(Level level)
+        {
+            if(loaded)
+            {
+                gather_sources(level);
+            }
         }
 
         public static void update_hook(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gameTime)

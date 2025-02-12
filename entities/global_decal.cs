@@ -65,14 +65,27 @@ Logger.Log(LogLevel.Debug, "eow", $"name: {Name}");
 
         }
 
-        public static void try_load(Level level)
+        public static bool loaded = false;
+
+        public static void try_load()
         {
+            loaded = true;
+        }
+
+        public static void level_load(Level level)
+        {
+            if(!loaded){return;}
 Logger.Log(LogLevel.Debug, "eow", "Loading global decals.");
             foreach(Entity entity in MyLevelInspect.create_all_entity(level, "eow/GlobalDecal"))
             {
                 ((GlobalDecal)entity).actual = true;
                 level.Add(entity);
             }
+        }
+
+        public static void unload()
+        {
+            loaded = false;
         }
 
         public override void Awake(Scene scene)

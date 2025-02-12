@@ -268,10 +268,10 @@ namespace Celeste.Mod.ErrandOfWednesday
                 mirror_mask = GFX.Game.GetAtlasSubtexturesAt(mirror_sprite_name, CurrentAnimationFrame);
 
                 mirror_surface = new MirrorSurface();
-                mirror_surface.ReflectionOffset = new Vector2(Calc.Random.Range(5, 14) * Calc.Random.Choose(1, -1), Calc.Random.Range(2, 6) * Calc.Random.Choose(1, -1));;
+//                mirror_surface.ReflectionOffset = new Vector2(Calc.Random.Range(5, 14) * Calc.Random.Choose(1, -1), Calc.Random.Range(2, 6) * Calc.Random.Choose(1, -1));;
                 mirror_surface.OnRender = delegate
                 {
-                    mirror_mask.DrawCentered(Entity.Position+Position, mirror_surface.ReflectionColor, 1, Rotation);
+                    mirror_mask.DrawCentered(Entity.Position+Position, Color.White, 1, Rotation);
                 };
             }
 
@@ -382,10 +382,13 @@ namespace Celeste.Mod.ErrandOfWednesday
                 mirror_mask = GFX.Game.GetAtlasSubtexturesAt(mirror_sprite_name, idle_sprite.CurrentAnimationFrame);
 
                 mirror_surface = new MirrorSurface();
-                mirror_surface.ReflectionOffset = new Vector2(Calc.Random.Range(5, 14) * Calc.Random.Choose(1, -1), Calc.Random.Range(2, 6) * Calc.Random.Choose(1, -1));;
+//                mirror_surface.ReflectionOffset = new Vector2(Calc.Random.Range(5, 14) * Calc.Random.Choose(1, -1), Calc.Random.Range(2, 6) * Calc.Random.Choose(1, -1));;
+
+//                mirror_surface.ReflectionOffset = Vector2.Zero;
+//   Logger.Log(LogLevel.Info, "eow", $"{mirror_surface.ReflectionColor}");
                 mirror_surface.OnRender = delegate
                 {
-                    mirror_mask.DrawCentered(Center, mirror_surface.ReflectionColor, 1, idle_sprite.Rotation);
+                    mirror_mask.DrawCentered(Center, Color.White, 1, idle_sprite.Rotation);
                 };
                 Add(mirror_surface);
             }
