@@ -8,6 +8,9 @@ using Microsoft.Xna.Framework;
 
 using Monocle;
 
+using FMOD;
+using FMOD.Studio;
+
 using Celeste;
 using Celeste.Mod.Entities;
 
@@ -144,7 +147,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public EntityID eid;
 
         public string sprite_directory;
-        public float rate_sq;
+        public float rate;
 
         public float frame_delay;
         public float break_frame_delay;
@@ -171,6 +174,11 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public float width, height;
 
+        public EventInstance audio_event;
+    
+        public Vector2 last_player_position;
+
+
         public Sprite idle_sprite;
         public MirrorSurface mirror_surface;
         public string mirror_sprite_name;
@@ -192,8 +200,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             trigger_sound = data.Attr("trigger_sound", "");
             shatter_sound = data.Attr("shatter_sound", "") ;
 
-            float rate = data.Float("rate");
-            rate_sq = rate*rate*60*60*4;
+            rate = data.Float("rate", 4)*60*2;
+
             frame_delay = data.Float("frame_delay", 0.2f);
             break_frame_delay = data.Float("break_frame_delay", 0.2f);
 
@@ -422,7 +430,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                Flagic.test_flag(level.Session, control_flag, control_flag_inverted)
               ))
             {
-                do_pop(new Vector2(0,0), true);
+                do_pop(new Vector2(0,0), 0, true);
             }
 
             if(!string.IsNullOrWhiteSpace(shatter_group))
@@ -465,10 +473,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             Player player = level.Tracker.GetEntity<Player>();
             if(player != null)
             {
-                float dist = Vector2.DistanceSquared(Center, player.Center);
-                float delay = dist/rate_sq;
-                delay = (float)Math.Sqrt(delay);
-                Add(new Coroutine(pop_routine(player, delay)));
+                float delay = 0;
+                float dist = Vector2.Distance(Center, player.Center);
+                dist = Math.Max(dist-16, 0);
+                delay = dist/rate;
+                Add(new Coroutine(pop_routine(player, delay, dist)));
                 return delay;
             }
 
@@ -476,7 +485,34 @@ namespace Celeste.Mod.ErrandOfWednesday
             return 0f;
         }
 
-        public void do_pop(Vector2 speed, bool skip = false)
+        public override void Update()
+        {
+            base.Update();
+            Level level = SceneAs<Level>();
+            if(level != null) 
+            {
+                Player player = level.Tracker.GetEntity<Player>();
+                if(player != null)
+                {
+                    last_player_position = player.Center;
+                }
+
+            }
+
+            if(audio_event != null && last_player_position != null)
+            {
+                 Vector2 offset = level.Camera.Position+ new Vector2(320f, 180f) / 2f - last_player_position;
+                Audio.Position(audio_event, Center+offset);
+                audio_event.getPlaybackState(out var state);
+                if (state == PLAYBACK_STATE.STOPPED)
+                {
+                    audio_event.release();
+                    audio_event = null;
+                }
+            }
+        }
+
+        public void do_pop(Vector2 speed, float dist, bool skip = false)
         {
             Remove(idle_sprite);
             Remove(mirror_surface);
@@ -484,18 +520,19 @@ namespace Celeste.Mod.ErrandOfWednesday
             activated = true;
             if(!skip && !string.IsNullOrWhiteSpace(shatter_sound))
             {
-                Audio.Play(shatter_sound, Center);
+                audio_event = Audio.Play(shatter_sound);
             }
         }
 
-        public IEnumerator pop_routine(Player player, float delay)
+        public IEnumerator pop_routine(Player player, float delay, float dist)
         {
 
             yield return delay;
 
             Vector2 speed = Center-player.Center;
-            speed.Normalize();
-            do_pop(speed);
+            dist = speed.Length();
+            speed /= dist;
+            do_pop(speed, dist);
 
             yield break;
         }
