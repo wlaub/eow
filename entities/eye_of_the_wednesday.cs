@@ -171,6 +171,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         public static void bird_down(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
+            //The value of the Y component of the tutorial arrow vector
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdcR4(-1)) )
             {
                 cursor.EmitDelegate<Func<float>>(get_gravity_multiplier);
@@ -182,7 +183,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 return;
             }
 
-
+            //The value of the Y component of the aim vector, use to test for a dash in the tutorial direction
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld<Vector2>(nameof(Vector2.Y))) )
             {
                 cursor.EmitDelegate<Func<float>>(get_gravity_multiplier);
