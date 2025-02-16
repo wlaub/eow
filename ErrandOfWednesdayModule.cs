@@ -1,16 +1,29 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 
 using Microsoft.Xna.Framework;
 
 using MonoMod.Utils;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using MonoMod.ModInterop;
+using Mono.Cecil.Cil;
 
 using Monocle;
 
 using Celeste;
 
 namespace Celeste.Mod.ErrandOfWednesday {
+
+    [ModImportName("GravityHelper")]
+    public static class GravityHelperImports 
+    {
+            public static Func<int> GetPlayerGravity;
+    }
+
+
 
     public class Flagic
     {
@@ -206,6 +219,8 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public static float sd_timer = 0f;
         public static float sd_checkpoint_time = 0f;
 
+        public ILHook bird_hook;
+
         public ErrandOfWednesdayModule() {
             Instance = this;
 #if DEBUG
@@ -226,11 +241,13 @@ namespace Celeste.Mod.ErrandOfWednesday {
             Everest.Events.Level.OnExit += on_exit_hook;
             Everest.Events.Level.OnTransitionTo += transition_hook;
 
-//            VergeBlock.Load();
+            typeof(GravityHelperImports).ModInterop();
 
+//            VergeBlock.Load();
         }
 
-        public override void Unload() {
+
+       public override void Unload() {
             On.Celeste.Lookout.Update -= lookout_stop;
             On.Monocle.Engine.Update -= Update;
 
@@ -255,6 +272,10 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
         {
+            if(Session == null)
+            {
+   Logger.Log(LogLevel.Warn, "eow", $"Tragedy");
+            }
             if(isFromLoader)
             {
                 TriggerManager.clear();
@@ -265,7 +286,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
                     GlobalDecal.level_load(level);
                 }
             }
-            if(Session.sd_active)
+            if(Session!= null && Session.sd_active)
             {
                 SDTimerDisplay timer = SDTimerDisplay.create();
                 SDTimerDisplay.load_session();
@@ -276,7 +297,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
         private void on_exit_hook(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
         {
             TriggerManager.clear();
-            if(Session.sd_active)
+            if(Session!= null && Session.sd_active)
             {
                 SDTimerDisplay.save_session();
             }
@@ -286,6 +307,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             GlobalDecal.unload();
             MyAudioTrigger.on_exit(level);
             AreaIntroCutscene.on_exit(level);
+            EyeOfTheWednesday.unload();
         }
 
 

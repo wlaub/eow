@@ -190,8 +190,18 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Depth=data.Int("depth", 9500);
 
+            on_contact = data.Bool("on_contact", false); 
+            at_least_once = data.Bool("at_least_once", true); 
+            only_this = data.Bool("only_this", true);
+            only_on_contact = data.Bool("only_on_contact", true);
+
             shrink = data.Int("shrink", 4);
+            //TODO don't do this if not on_contact
             base.Collider = new Hitbox(Width-shrink*2, Height-shrink*2, shrink, shrink);
+            if(!on_contact)
+            {
+                Collidable = false;
+            }
             Visible = true;
 
             width = data.Width;
@@ -208,11 +218,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             control_flag_inverted = Flagic.process_flag(data.Attr("control_flag", ""), out control_flag);
             contact_flag_inverted = Flagic.process_flag(data.Attr("on_contact_flag", ""), out contact_flag);
  
-            on_contact = data.Bool("on_contact", false); 
-            at_least_once = data.Bool("at_least_once", true); 
-            only_this = data.Bool("only_this", true);
-            only_on_contact = data.Bool("only_on_contact", true);
-
             shatter_group = data.Attr("shatter_group");
 
             rotation = (float) ((data.Float("rotation", 0f)) * Math.PI / 180f);
@@ -488,6 +493,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public override void Update()
         {
             base.Update();
+
+            //TODO: move this to the coroutine?
             Level level = SceneAs<Level>();
             if(level != null) 
             {

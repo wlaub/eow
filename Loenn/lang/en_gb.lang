@@ -77,8 +77,12 @@ entities.eow/PoppingMirror.placements.name.popping_mirror=Popping Mirror (!!Requ
 entities.eow/PoppingMirror.placements.description.popping_mirror=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
 
 
+
 triggers.eow/CannotTransitionTo.placements.name.cannot_transition_to=Cannot Transition To (!!Requires EotW!!)
 triggers.eow/CannotTransitionTo.placements.description.cannot_transition_to=See the readme on github. This must be enabled using an appropriately configured Eye of the Wednesday.
+
+triggers.eow/AbortCutscene.placements.name.abort_cutscene=Abort Cutscene (Jank)
+triggers.eow/AbortCutscene.placements.description.abort_cutscene=This was meant to cancel a couple specific vanilla cutscenes under specific conditions.
 
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover

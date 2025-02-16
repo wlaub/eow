@@ -149,6 +149,18 @@ This is an alternative to the bits & bolts Block Screen Transitions trigger (htt
 
 Although the result from the original CanTransitionTo is not used when the player is still inside the trigger, it's always called in order to ensure other hooks can run.
 
+#### Abort Cutscene Trigger (jank)
+
+If there is a cutscene or the player is dead, then this trigger:
+```c#
+    level.CancelCutscene();
+    level.Completed = false;
+    level.Session.InArea = true;
+    player.StateMachine.State = 0;
+```
+
+This trigger was created to abort the bird dash tutorial cutscene by room transition and to abort the chapter 1 end cutscene by death and respawn in another room. I'm pretty sure it won't completely cancel a cutscene without a room transition to Remove the cutscene.
+
 ## Triggers
 
 ### The Wednesday on the Edge of Forever
