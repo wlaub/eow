@@ -28,11 +28,12 @@ my_entity.placements = {
         shatter_sound = "",
         control_flag = "",
         on_contact_flag = "",
+        enable_flag = "",
         on_contact = false,
         at_least_once = true,
         only_this = true,
         only_on_contact = true,
-        change_spawn = false,
+        change_spawn_normal = false,
         shatter_group = "",
     }
 }
@@ -44,7 +45,7 @@ my_entity.fieldOrder = {
 "frame_delay", "break_frame_delay",
 "trigger_sound", "shatter_sound",
 "control_flag", "on_contact_flag",
-"shatter_group",
+"shatter_group", "enable_flag" 
 }
 
 function my_entity.sprite(room, entity)
@@ -105,7 +106,6 @@ function my_entity.nodeRectangle(room, entity, node)
     local result = rectangle.create(cx+node.x-2, cy+node.y-2, 4,4) 
     return result
 end
-
 
 
 return my_entity

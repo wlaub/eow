@@ -156,6 +156,9 @@ namespace Celeste.Mod.ErrandOfWednesday
         public string contact_flag;
         public bool contact_flag_inverted;
 
+        public string enable_flag;
+        public bool enable_flag_inverted;
+
         public string shatter_group;
 
         public bool on_contact;
@@ -228,6 +231,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             control_flag_inverted = Flagic.process_flag(data.Attr("control_flag", ""), out control_flag);
             contact_flag_inverted = Flagic.process_flag(data.Attr("on_contact_flag", ""), out contact_flag);
+            enable_flag_inverted = Flagic.process_flag(data.Attr("enable_flag", ""), out enable_flag);
  
             shatter_group = data.Attr("shatter_group");
 
@@ -442,6 +446,12 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
 
             Level level = scene as Level;
+
+            if(!Flagic.test_flag(level.Session, enable_flag, enable_flag_inverted))
+            {
+                RemoveSelf();
+                return;
+            } 
 
             if(change_spawn)
             {

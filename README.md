@@ -165,6 +165,10 @@ If there is a cutscene or the player is dead, then this trigger:
 
 This trigger was created to abort the bird dash tutorial cutscene by room transition and to abort the chapter 1 end cutscene by death and respawn in another room. I'm pretty sure it won't completely cancel a cutscene without a room transition to Remove the cutscene.
 
+#### Respawn Target If Gravity
+
+Like respawn target, but only if gravity is normal/inverted.
+
 ## Triggers
 
 ### The Wednesday on the Edge of Forever

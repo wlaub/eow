@@ -84,6 +84,13 @@ triggers.eow/CannotTransitionTo.placements.description.cannot_transition_to=See 
 triggers.eow/AbortCutscene.placements.name.abort_cutscene=Abort Cutscene (Jank)
 triggers.eow/AbortCutscene.placements.description.abort_cutscene=This was meant to cancel a couple specific vanilla cutscenes under specific conditions.
 
+triggers.eow/RespawnTargetIfGravity.placements.name.gravity_spawn_norm=Respawn Target if Gravity Normal
+triggers.eow/RespawnTargetIfGravity.placements.description.gravity_spawn_norm=Respawn target that only goes off if gravity is normal.
+triggers.eow/RespawnTargetIfGravity.placements.name.gravity_spawn_inv=Respawn Target if Gravity Inverted
+triggers.eow/RespawnTargetIfGravity.placements.description.gravity_spawn_inv=Respawn target that only goes off if gravity is inverted.
+
+
+
 
 triggers.eow/EntityRemover.placements.name.normal=Entity Remover
 triggers.eow/EntityRemover.placements.description.normal=Removes the entities at each node when activated
