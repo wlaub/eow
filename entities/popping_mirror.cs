@@ -162,6 +162,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool at_least_once;
         public bool only_this;
         public bool only_on_contact;
+        public bool change_spawn;
 
         public string shatter_sound;
         public string trigger_sound;
@@ -177,7 +178,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public EventInstance audio_event;
     
         public Vector2 last_player_position;
-
+        public Vector2 target;
 
         public Sprite idle_sprite;
         public MirrorSurface mirror_surface;
@@ -194,6 +195,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             at_least_once = data.Bool("at_least_once", true); 
             only_this = data.Bool("only_this", true);
             only_on_contact = data.Bool("only_on_contact", true);
+            change_spawn = data.Bool("change_spawn", false);
 
             shrink = data.Int("shrink", 4);
             //TODO don't do this if not on_contact
@@ -203,6 +205,15 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Collidable = false;
             }
             Visible = true;
+
+            if(data.Nodes != null && data.Nodes.Length != 0) 
+            {
+                target = data.NodesOffset(offset)[0];
+            }
+            else
+            {
+                target = Center;
+            }
 
             width = data.Width;
             height = data.Height;
@@ -431,9 +442,19 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
 
             Level level = scene as Level;
-            if(!at_least_once && (
-               Flagic.test_flag(level.Session, control_flag, control_flag_inverted)
-              ))
+
+            if(change_spawn)
+            {
+                if(target != null)
+                {
+                   target = level.GetSpawnPoint(target);
+                }
+            }
+
+            if((!at_least_once && 
+               Flagic.test_flag(level.Session, control_flag, control_flag_inverted)) ||
+                (change_spawn && level.Session.RespawnPoint.Value == target)
+              )
             {
                 do_pop(new Vector2(0,0), 0, true);
             }
@@ -449,16 +470,27 @@ namespace Celeste.Mod.ErrandOfWednesday
             base.OnEnter(player);
             if(on_contact && !activated) 
             {
+                Level level = SceneAs<Level>();
+                Session session = level.Session;
+
                 if(only_this && !string.IsNullOrWhiteSpace(contact_flag))
                 {
                     lockout = true;
                 }
-                Flagic.set_flag(SceneAs<Level>().Session, contact_flag, contact_flag_inverted);
+
+                Flagic.set_flag(session, contact_flag, contact_flag_inverted);
                 if(!string.IsNullOrWhiteSpace(shatter_group))
                 {
-                 Flagic.set_flag(SceneAs<Level>().Session, control_flag, control_flag_inverted);
+                 Flagic.set_flag(session, control_flag, control_flag_inverted);
                 }
                 activate(true);
+                if(change_spawn && (!session.RespawnPoint.HasValue || session.RespawnPoint.Value != target))
+                {
+                    session.HitCheckpoint = true;
+                    session.RespawnPoint = target; 
+                    session.UpdateLevelStartDashes();
+                }
+
                 lockout = false;
             }
         }
@@ -494,7 +526,22 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Update();
 
-            //TODO: move this to the coroutine?
+        }
+
+        public void do_pop(Vector2 speed, float dist, bool skip = false)
+        {
+            Remove(idle_sprite);
+            Remove(mirror_surface);
+            activate_break_sprites(speed, skip);
+            activated = true;
+            if(!skip && !string.IsNullOrWhiteSpace(shatter_sound))
+            {
+                audio_event = Audio.Play(shatter_sound);
+            }
+        }
+
+        public void update_audio()
+        {
             Level level = SceneAs<Level>();
             if(level != null) 
             {
@@ -519,18 +566,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
         }
 
-        public void do_pop(Vector2 speed, float dist, bool skip = false)
-        {
-            Remove(idle_sprite);
-            Remove(mirror_surface);
-            activate_break_sprites(speed, skip);
-            activated = true;
-            if(!skip && !string.IsNullOrWhiteSpace(shatter_sound))
-            {
-                audio_event = Audio.Play(shatter_sound);
-            }
-        }
-
         public IEnumerator pop_routine(Player player, float delay, float dist)
         {
 
@@ -540,6 +575,12 @@ namespace Celeste.Mod.ErrandOfWednesday
             dist = speed.Length();
             speed /= dist;
             do_pop(speed, dist);
+
+            while(audio_event != null)
+            {
+                update_audio();
+                yield return null;
+            }
 
             yield break;
         }

@@ -14,6 +14,10 @@ This is a controller entity palced in a room called  either !eow (top of list) o
 
 While I want the functionality provided by this mod to be available for use by others, I also want to minimize side effects in other maps that don't use this mod. Eye Of The Wednesday is a compromise that makes the mod less accessible, but guarantees that some functionality won't be enabled unless a map explicitly needs it. I also considered not publishing Loenn plugins for some of these entities, which would require other users to either develop from a local git repo instead of using gamebanana or manually supplement their gamebanana download with plugins from the source. That sounds like a pain in the ass compared to just looking up and reading the readme, so I didn't do that.
 
+#### bird down
+
+When enabled, this modifies the bird npc dash tutorial so that the vertical component of the dash direction is opposite gravity - that is, it requires the player to dash up-right when gravity is down and down-right when gravity is up.
+
 ### The Wednesday On The Edge Of Forever
 
 These entities were made for https://gamebanana.com/mods/492702

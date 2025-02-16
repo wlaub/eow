@@ -11,6 +11,7 @@ local my_entity = {}
 my_entity.name = "eow/PoppingMirror"
 my_entity.minimumSize = {8, 8}
 my_entity.maximumSize = {40, 40}
+my_entity.nodeLimits = {0, 1}
 
 my_entity.placements = {
     name = "popping_mirror",
@@ -31,6 +32,7 @@ my_entity.placements = {
         at_least_once = true,
         only_this = true,
         only_on_contact = true,
+        change_spawn = false,
         shatter_group = "",
     }
 }
@@ -88,6 +90,20 @@ function my_entity.sprite(room, entity)
 
     return sprites
 
+end
+
+my_entity.nodeLineRenderType = "fan"
+
+my_entity.nodeColor = {0, .5, .5, .5}
+function my_entity.nodeRectangle(room, entity, node)
+    local w = entity.width or 16
+    local h = entity.height or 16
+
+    local cx = w/2
+    local cy = h/2
+
+    local result = rectangle.create(cx+node.x-2, cy+node.y-2, 4,4) 
+    return result
 end
 
 
