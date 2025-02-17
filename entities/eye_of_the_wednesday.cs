@@ -46,6 +46,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 bird_hook.Dispose();
                 bird_hook = null;
+                On.Celeste.CS00_Ending.ctor -= bird_once;
             }
 
 
@@ -146,15 +147,28 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         }
 
 
+        public static void bird_once(On.Celeste.CS00_Ending.orig_ctor orig, CS00_Ending self, Player player, BirdNPC bird, Bridge bridge)
+        {
+            orig(self, player, bird, bridge);
+            if(bird.onlyOnce)
+            {
+                Level level = Engine.Scene as Level;
+                if(level != null)
+                {
+                    level.Session.DoNotLoad.Add(bird.EntityID);
+                }
+            }
+        }
+
         public static void enable_bird()
         {
             if(bird_hook == null)
             {
-            bird_hook = new ILHook(
-                typeof(CS00_Ending).GetMethod("Cutscene", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(),
-                bird_down
-                );
-
+                bird_hook = new ILHook(
+                    typeof(CS00_Ending).GetMethod("Cutscene", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(),
+                    bird_down
+                    );
+                On.Celeste.CS00_Ending.ctor += bird_once;
             }
         }
 
