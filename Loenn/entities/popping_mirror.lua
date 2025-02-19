@@ -34,6 +34,7 @@ my_entity.placements = {
         only_this = true,
         only_on_contact = true,
         change_spawn_normal = false,
+        cull_edges = false,
         shatter_group = "",
     }
 }

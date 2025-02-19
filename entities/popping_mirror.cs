@@ -166,6 +166,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public bool only_this;
         public bool only_on_contact;
         public bool change_spawn;
+        public bool cull_edges;
 
         public string shatter_sound;
         public string trigger_sound;
@@ -199,6 +200,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             only_this = data.Bool("only_this", true);
             only_on_contact = data.Bool("only_on_contact", true);
             change_spawn = data.Bool("change_spawn", false);
+            cull_edges = data.Bool("cull_edges", false);
 
             shrink = data.Int("shrink", 4);
             //TODO don't do this if not on_contact
@@ -313,6 +315,26 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {
                     Position += speed;
                     Rotation += angle_speed;
+
+                    if(((PoppingMirror)Entity).cull_edges)
+                    {
+                        Level level = SceneAs<Level>();
+                        Rectangle bounds = level.Bounds;
+                        Vector2 abs_position = Entity.Position+Position;
+                        float left = abs_position.X - 4;
+                        float right = abs_position.X + 4;
+                        float top = abs_position.Y - 4;
+                        float bot = abs_position.Y + 4;
+                        if (right < (float)bounds.Left || 
+                            bot < (float)bounds.Top || 
+                            left > (float)bounds.Right || 
+                            top > (float)bounds.Bottom)
+                        {
+                            mirror_surface.RemoveSelf();
+                            RemoveSelf();
+                        }
+                    }
+
                     speed *= 0.9f;
                     angle_speed *= 0.9f;
                     if(Math.Abs(speed.X) < 1e-3 && Math.Abs(speed.Y) < 1e-3 )
