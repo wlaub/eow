@@ -241,6 +241,8 @@ namespace Celeste.Mod.ErrandOfWednesday {
             Everest.Events.Level.OnExit += on_exit_hook;
             Everest.Events.Level.OnTransitionTo += transition_hook;
 
+            AxisParallax.load();
+
             typeof(GravityHelperImports).ModInterop();
 
 //            VergeBlock.Load();
