@@ -229,25 +229,27 @@ namespace Celeste.Mod.ErrandOfWednesday
                         distances[layer] += distance;
                     }
                 }
+                AudioState audio = level.Session.Audio;
+
+                foreach(KeyValuePair<string, float> entry in distances)
+                {
+                    float value = entry.Value;
+                    if(value > 1)
+                    {
+                        value = 1;
+                    }
+                    if(value < 0)
+                    {
+                        value = 0;
+                    }
+                    audio.Music.Param(entry.Key, value);
+                }
+
+                audio.Apply(forceSixteenthNoteHack: false);
+
+
             }
 
-            AudioState audio = level.Session.Audio;
-
-            foreach(KeyValuePair<string, float> entry in distances)
-            {
-                float value = entry.Value;
-                if(value > 1)
-                {
-                    value = 1;
-                }
-                if(value < 0)
-                {
-                    value = 0;
-                }
-                audio.Music.Param(entry.Key, value);
-            }
-
-            audio.Apply(forceSixteenthNoteHack: false);
         }
 
         //List of MusicLayerSource entities
