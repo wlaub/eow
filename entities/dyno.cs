@@ -169,7 +169,7 @@ public override void Awake(Scene scene)
             base.Update();
             Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
 
-            if(activated)
+            if(activated && player != null)
             {
                 if(!CollideCheck(player))
                 {

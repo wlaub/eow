@@ -104,7 +104,13 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(data.Bool("music_layer_source_enable", false))
             {
                 MusicLayerSource.try_load(session);
+                MusicLayerSource.light_control_flag_inverted = Flagic.process_flag(
+                    data.Attr("music_source_light_control_flag", ""),
+                    out MusicLayerSource.light_control_flag);
+ 
             }
+               
+ 
             if(data.Bool("global_decal_enable", false))
             {
                 GlobalDecal.try_load();

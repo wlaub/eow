@@ -8,6 +8,7 @@ dyno.placements = {
         data = {
             verge_block_enable = false,
             music_layer_source_enable = false,
+            music_source_light_control_flag="",
             global_decal_enable = false,
             cannot_transition_to_enable = false,
             refill_bubbler_enable = false,

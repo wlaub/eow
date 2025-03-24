@@ -26,6 +26,10 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public float max_dist_sq;
         public float range;
+        public float max_value;
+        
+        public string enable_flag;
+        public bool enable_flag_inverted;
 
         public float unflatten_distance(float pixel_distance)
         {
@@ -41,6 +45,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             min_distance = data.Float("min_distance", 16);
             max_distance = data.Float("max_distance", 120);
             convert_distance = data.Bool("convert_distance", true);
+
+            max_value = data.Float("max_value", 1f);
+
+            enable_flag_inverted = Flagic.process_flag(data.Attr("enable_flag", ""), out enable_flag);
+ 
 
             if(convert_distance)
             {
@@ -85,7 +94,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(dist < min_distance)
             {
-                return 1f;
+                return max_value;
             }
             else if(dist > max_distance)
             {
@@ -93,7 +102,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             else
             {
-                return (max_distance - dist)/range;
+                return max_value*(max_distance - dist)/range;
             }
         }
 
@@ -157,6 +166,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
 
 
+
         public static List<MusicLayerSource> camera_sources = new();
         public static List<MusicLayerSource> player_sources = new();
         public static Dictionary<string, float> distances = new();
@@ -200,6 +210,10 @@ namespace Celeste.Mod.ErrandOfWednesday
             distances.Clear();
         }
 
+        public static string light_control_flag = "";
+        public static bool light_control_flag_inverted = false;
+        public static float light_level = 0;
+
         public static void do_update(Level level)
         {
             Camera camera = level.Camera;           
@@ -224,12 +238,17 @@ namespace Celeste.Mod.ErrandOfWednesday
                 foreach(MusicLayerSource source in player_sources)
                 {
                     float distance = source.get_distance(player.Position);
-                    foreach(string layer in source.layers)
+                    if(distance > 0 &&  Flagic.test_flag(level.Session, source.enable_flag, source.enable_flag_inverted))
                     {
-                        distances[layer] += distance;
+                        foreach(string layer in source.layers)
+                        {
+                            distances[layer] += distance;
+                        }
                     }
                 }
                 AudioState audio = level.Session.Audio;
+
+                int n = 0;
 
                 foreach(KeyValuePair<string, float> entry in distances)
                 {
@@ -242,11 +261,22 @@ namespace Celeste.Mod.ErrandOfWednesday
                     {
                         value = 0;
                     }
+                    if(value > 0)
+                    {
+                        n+=(int)(value*4);
+                    }
                     audio.Music.Param(entry.Key, value);
                 }
 
                 audio.Apply(forceSixteenthNoteHack: false);
 
+                if( !string.IsNullOrWhiteSpace(light_control_flag) && level.Session.GetFlag(light_control_flag) != light_control_flag_inverted)
+                {
+                    float max_value = n/16f;
+                    if(max_value > 1) {max_value = 1;}
+                    light_level = light_level*0.9f+max_value*0.1f;
+                    level.Lighting.Alpha = level.BaseLightingAlpha+(1-light_level)/4;
+                }
 
             }
 
