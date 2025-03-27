@@ -286,6 +286,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 //                    EyeOfTheWednesday.try_load(level);
                     MusicLayerSource.level_load(level);
                     GlobalDecal.level_load(level);
+                    BistableDecal.level_load(level);
                 }
             }
             if(Session!= null && Session.sd_active)
@@ -305,8 +306,10 @@ namespace Celeste.Mod.ErrandOfWednesday {
             }
             SDTimerDisplay.Unload();
             VergeBlock.Unload();
+            MusicLayerSource.kill_audio(level);
             MusicLayerSource.Unload();
             GlobalDecal.unload();
+            BistableDecal.unload();
             MyAudioTrigger.on_exit(level);
             AreaIntroCutscene.on_exit(level);
             EyeOfTheWednesday.unload();

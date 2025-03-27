@@ -131,6 +131,10 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 enable_bird();
             }
+            if(data.Bool("bistable_decal_enable", false))
+            {
+                BistableDecal.try_load();
+            }
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
 
             loaded = true;

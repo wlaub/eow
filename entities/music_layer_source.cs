@@ -132,6 +132,24 @@ namespace Celeste.Mod.ErrandOfWednesday
             loaded = false;
         }
 
+        public static void kill_audio(Level level)
+        {
+            AudioState audio = level.Session.Audio;
+
+            foreach(KeyValuePair<string, float> entry in distances)
+            {
+                float value = entry.Value;
+                if(value > 0)
+                {
+                    audio.Music.Param(entry.Key, 0);
+                }
+
+            }
+
+            audio.Apply(forceSixteenthNoteHack: false);
+        }
+
+
         public static void try_load(Session session)
         {
             if(!MyLevelInspect.entity_in_map(session, "eow/MusicLayerSource"))
