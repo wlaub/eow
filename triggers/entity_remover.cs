@@ -19,6 +19,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public readonly string flag;
         public readonly bool invert;
         public readonly bool on_load;
+        public bool remove_player = false;
         public Vector2[] nodes;
         public List<Entity> targets;
 
@@ -30,6 +31,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             invert = data.Bool("invert");
             on_load = data.Bool("on_load");
             flag = data.Attr("flag");
+            remove_player = data.Bool("remove_player", false);
 
             targets = new();
 
@@ -76,7 +78,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             foreach(Entity e in targets)
             {
-                level.Remove(e);
+                if(remove_player || !(e is Player)){
+                level.Remove(e);}
             }
 
             triggered = true;

@@ -12,6 +12,7 @@ entityRemover.placements = {
             flag = "",
             invert = false,
             on_load = false,
+            remove_player = false,
         },
     },
 } 
