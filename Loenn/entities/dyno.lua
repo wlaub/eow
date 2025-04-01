@@ -26,6 +26,7 @@ dyno.placements = {
         xboost = 80,
         xboost_dash = 100,
         xboost_diag = 180,
+        holdoff_duration = 0.75,
         }
     }
 }

@@ -10,6 +10,7 @@ entityRemover.placements = {
         name = "normal",
         data = {
             flag = "",
+            type_filter = "",
             invert = false,
             on_load = false,
             remove_player = false,

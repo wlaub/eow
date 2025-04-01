@@ -416,7 +416,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             update_alpha();
             Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
 //Logger.Log(LogLevel.Info, "eow", $"{player.Sprite.HasHair} {player.Sprite.HairFrame}");
-            if(player.Sprite.Texture != null)
+            if(player != null && player.Sprite.Texture != null)
             {
 //Logger.Log(LogLevel.Info, "eow", $"{player.Sprite.Texture.AtlasPath}");
             }

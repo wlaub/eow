@@ -23,6 +23,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public Vector2[] nodes;
         public List<Entity> targets;
 
+        public string type_filter;
+
         public bool triggered = false;
 
         public EntityRemover (EntityData data, Vector2 offset) : base(data, offset)
@@ -32,6 +34,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             on_load = data.Bool("on_load");
             flag = data.Attr("flag");
             remove_player = data.Bool("remove_player", false);
+
+            type_filter = data.Attr("type_filter", "");
 
             targets = new();
 
@@ -47,7 +51,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     {
                         if(e.CollidePoint(n))
                         {
-                            targets.Add(e);
+                            add_entity(e);
                             break;
                         }
                     }
@@ -57,7 +61,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                         {
                             if(e.CollideRect(new Rectangle((int)n.X-4, (int)n.Y-4, 8,8)))
                             {
-                                targets.Add(e);
+                                add_entity(e);
                                 break;
                             }
                         }
@@ -67,6 +71,13 @@ namespace Celeste.Mod.ErrandOfWednesday
                         }
                     }
                 }
+            }
+        }
+        public void add_entity(Entity e)
+        {
+            if(String.IsNullOrWhiteSpace(type_filter) || e.GetType().FullName == type_filter)
+            {
+                targets.Add(e);
             }
         }
 

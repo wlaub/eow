@@ -78,7 +78,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             sprite.Play("idle");
 
             base.Collider = new Circle(radius, 0f, 0f);
-            Add(Hold = new Holdable(1.0f));
+            Add(Hold = new Holdable(data.Float("holdoff_duration",0.65f)));
             Hold.PickupCollider = new Circle(radius, 0f, 0f);
             Hold.SlowFall = false;
             Hold.SlowRun = false;
