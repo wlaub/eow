@@ -134,6 +134,10 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void kill_audio(Level level)
         {
+            if(!loaded)
+            {
+                return;
+            }
             AudioState audio = level.Session.Audio;
 
             foreach(KeyValuePair<string, float> entry in distances)
