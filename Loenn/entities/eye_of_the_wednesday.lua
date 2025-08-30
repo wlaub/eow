@@ -15,6 +15,9 @@ dyno.placements = {
             refill_bubbler_enable = false,
             popping_mirror_enable = false,
             bird_down = false,
+            guitar_hands_enable = false,
+            guitar_hands_flag = "",
+            guitar_hands_duration = 0.08,
         }
     }
 }

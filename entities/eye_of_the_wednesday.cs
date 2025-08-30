@@ -34,6 +34,44 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static bool loaded = false;
         public static ILHook bird_hook;
 
+        public static bool guitar_hands_enabled = false;
+        public static float guitar_hands_duration = 0.08f;
+        public static string guitar_hands_flag = "guitar_hands";
+        public static bool guitar_hands_flag_inverted = false;
+        public static Dictionary<int, float> guitar_hands_timers = new();
+
+        public static bool is_riding_hook(On.Celeste.Player.orig_IsRiding_Solid orig, Player self, Solid solid)
+        {
+            if(orig(self, solid)) 
+            {
+
+        		if (self.StateMachine.State == 1 || self.StateMachine.State == 6)
+        		{
+                    if(!Flagic.test_flag(self.SceneAs<Level>().Session, guitar_hands_flag, guitar_hands_flag_inverted))
+                    {
+                        return true;
+                    }
+                    int key = solid.GetHashCode();
+                    float timer;
+                    if(guitar_hands_timers.ContainsKey(key))
+                    {
+                        timer = guitar_hands_timers[key];
+                    }
+                    else
+                    {
+                        timer = guitar_hands_duration;
+                    }
+                    if(timer > 0)
+                    {
+                        timer -= Engine.DeltaTime;
+                        guitar_hands_timers[key] = timer;
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
 
         public static void unload()
         {
@@ -48,6 +86,11 @@ namespace Celeste.Mod.ErrandOfWednesday
                 bird_hook = null;
                 On.Celeste.CS00_Ending.ctor -= bird_once;
             }
+            if(guitar_hands_enabled)
+            {
+                On.Celeste.Player.IsRiding_Solid -= is_riding_hook;
+                guitar_hands_enabled = false;
+            }
 
 
             loaded = false;
@@ -56,6 +99,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void try_load(Session session)
         {
+
             LevelData level_data = session.MapData.Get("!eow");
             if(level_data == null)
             {
@@ -134,6 +178,17 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(data.Bool("bistable_decal_enable", false))
             {
                 BistableDecal.try_load();
+            }
+            if(data.Bool("guitar_hands_enable", false))
+            {
+                if(!guitar_hands_enabled)
+                {
+                    On.Celeste.Player.IsRiding_Solid += is_riding_hook;
+                    guitar_hands_enabled = true;
+                }
+                guitar_hands_duration = data.Float("guitar_hands_duration", 0.08f);
+                guitar_hands_flag_inverted = Flagic.process_flag(data.Attr("guitar_hands_flag", ""), out guitar_hands_flag);
+ 
             }
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
 
