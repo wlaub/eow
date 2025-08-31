@@ -34,11 +34,30 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static bool loaded = false;
         public static ILHook bird_hook;
 
+
         public static bool guitar_hands_enabled = false;
         public static float guitar_hands_duration = 0.08f;
         public static string guitar_hands_flag = "guitar_hands";
         public static bool guitar_hands_flag_inverted = false;
+        //TODO: clear this on room load or something
         public static Dictionary<int, float> guitar_hands_timers = new();
+
+        public static ILHook toe_shoes_hook;
+        public static bool toe_shoes_enabled = false;
+        public static string toe_shoes_flag;
+        public static bool toe_shoes_flag_inverted;
+
+/*
+probably need to il hook? so that in player.orig_Update at 
+		else if (climbHopSolid != null && climbHopSolid.Position != climbHopSolidPosition)
+		{
+			Vector2 vector = climbHopSolid.Position - climbHopSolidPosition;
+			climbHopSolidPosition = climbHopSolid.Position;
+			MoveHExact((int)vector.X);
+			MoveVExact((int)vector.Y);
+		}
+so that when the player is above the climbHopSolid, their position is set to be on top of it.
+*/
 
         public static bool is_riding_hook(On.Celeste.Player.orig_IsRiding_Solid orig, Player self, Solid solid)
         {
@@ -91,7 +110,12 @@ namespace Celeste.Mod.ErrandOfWednesday
                 On.Celeste.Player.IsRiding_Solid -= is_riding_hook;
                 guitar_hands_enabled = false;
             }
-
+            if(toe_shoes_hook != null)
+            {
+                toe_shoes_hook.Dispose();
+                toe_shoes_hook = null;
+                toe_shoes_enabled = false;
+            }
 
             loaded = false;
         }
@@ -190,6 +214,16 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 guitar_hands_flag_inverted = Flagic.process_flag(data.Attr("guitar_hands_flag", ""), out guitar_hands_flag);
  
             }
+            if(data.Bool("toe_shoes_enable", false))
+            {
+                if(!toe_shoes_enabled)
+                {
+                    toe_shoes_flag_inverted = Flagic.process_flag(data.Attr("toe_shoes_flag", ""), out toe_shoes_flag);
+                    toe_shoes_hook = new ILHook(typeof(Player).GetMethod("orig_Update"), toe_shoes);
+                    toe_shoes_enabled = true;
+                }
+            }
+ 
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
 
             loaded = true;
@@ -261,7 +295,6 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 Logger.Log(LogLevel.Warn, "eow", $"Couldn't find opcode to fix bird.");
                 return;
             }
-
             //The value of the Y component of the aim vector, use to test for a dash in the tutorial direction
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld<Vector2>(nameof(Vector2.Y))) )
             {
@@ -271,6 +304,32 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             }
         }
 
- 
+        public static void toe_shoes(ILContext il)
+        {
+             ILCursor cursor = new ILCursor(il);
+
+            //MoveVExact((int)vector.Y); #move the player vertically with the moving solid
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall<Actor>("MoveVExact")) )
+            {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Action<Player>>((self) => {
+                    if(Flagic.test_flag(self.SceneAs<Level>().Session, toe_shoes_flag, toe_shoes_flag_inverted))
+                    {
+     
+                        float delta = self.Position.Y-self.climbHopSolid.Position.Y ;
+                        if(delta < 0)
+                        {
+                            self.Position.Y = self.climbHopSolid.Position.Y;
+                        }
+                    }
+                    });
+                Logger.Log(LogLevel.Warn, "eow", $"toe shoes enabled");
+            }
+             else
+            {
+                Logger.Log(LogLevel.Warn, "eow", $"Couldn't find opcode to toe shoes.");
+                return;
+            }
+        } 
     }
 }

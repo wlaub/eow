@@ -18,6 +18,8 @@ dyno.placements = {
             guitar_hands_enable = false,
             guitar_hands_flag = "",
             guitar_hands_duration = 0.08,
+            toe_shoes_enable = false,
+            toe_shoes_flag = "",
         }
     }
 }
