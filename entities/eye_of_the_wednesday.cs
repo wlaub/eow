@@ -47,17 +47,11 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static string toe_shoes_flag;
         public static bool toe_shoes_flag_inverted;
 
-/*
-probably need to il hook? so that in player.orig_Update at 
-		else if (climbHopSolid != null && climbHopSolid.Position != climbHopSolidPosition)
-		{
-			Vector2 vector = climbHopSolid.Position - climbHopSolidPosition;
-			climbHopSolidPosition = climbHopSolid.Position;
-			MoveHExact((int)vector.X);
-			MoveVExact((int)vector.Y);
-		}
-so that when the player is above the climbHopSolid, their position is set to be on top of it.
-*/
+        public static ILHook forehead_hook;
+        public static bool forehead_enabled = false;
+        public static string forehead_flag;
+        public static bool forehead_flag_inverted;
+        public static int forehead_distance;
 
         public static bool is_riding_hook(On.Celeste.Player.orig_IsRiding_Solid orig, Player self, Solid solid)
         {
@@ -116,6 +110,15 @@ so that when the player is above the climbHopSolid, their position is set to be 
                 toe_shoes_hook = null;
                 toe_shoes_enabled = false;
             }
+            if(forehead_enabled)
+            {
+//                forehead_hook.Dispose();
+//                forehead_hook = null;
+                IL.Celeste.Player.WallJumpCheck -= forehead;
+ 
+                forehead_enabled = false;
+            }
+
 
             loaded = false;
         }
@@ -221,6 +224,16 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                     toe_shoes_flag_inverted = Flagic.process_flag(data.Attr("toe_shoes_flag", ""), out toe_shoes_flag);
                     toe_shoes_hook = new ILHook(typeof(Player).GetMethod("orig_Update"), toe_shoes);
                     toe_shoes_enabled = true;
+                }
+            }
+            if(data.Bool("forehead_enable", false))
+            {
+                if(!forehead_enabled)
+                {
+                    forehead_flag_inverted = Flagic.process_flag(data.Attr("forehead_flag", ""), out forehead_flag);
+                    forehead_distance = data.Int("forehead_distance", 13);
+                    IL.Celeste.Player.WallJumpCheck += forehead;
+                    forehead_enabled = true;
                 }
             }
  
@@ -331,5 +344,48 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 return;
             }
         } 
+
+        public static void forehead(ILContext il)
+        {
+             ILCursor cursor = new ILCursor(il);
+
+            //MoveVExact((int)vector.Y); #move the player vertically with the moving solid
+            if (cursor.TryGotoNext(MoveType.After, 
+                            instr => instr.MatchLdcI4(5)
+//                            instr =>  instr.MatchStloc(0)
+                            ))
+            {
+                //extended variants inserts stuff here. skip past it to override.
+                //extended variants sets both the wall check distance and the 
+                //spike check distance, and this sets only the wall check distance
+                //to facilitate jank
+            }
+            else {
+                Logger.Log(LogLevel.Warn, "eow", $"forehead failed to find first opcode");
+                return;
+            }
+            if (cursor.TryGotoNext(MoveType.After, 
+//                            instr => instr.MatchLdcI4(5)
+                            instr =>  instr.MatchStloc(0)
+                            ))
+            {
+ 
+                cursor.Index--;
+                cursor.EmitDelegate<Func<int, int>>((orig) => {
+                    if(Flagic.test_flag((Engine.Scene as Level).Session, forehead_flag, forehead_flag_inverted))
+                    {
+                        return 13; 
+                    }
+                    return orig;
+                    });
+                Logger.Log(LogLevel.Warn, "eow", $"forehead enabled");
+            }
+             else
+            {
+                Logger.Log(LogLevel.Warn, "eow", $"Couldn't find opcode to forehead.");
+                return;
+            }
+        } 
+ 
     }
 }
