@@ -374,7 +374,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 cursor.EmitDelegate<Func<int, int>>((orig) => {
                     if(Flagic.test_flag((Engine.Scene as Level).Session, forehead_flag, forehead_flag_inverted))
                     {
-                        return 13; 
+                        return forehead_distance; 
                     }
                     return orig;
                     });
