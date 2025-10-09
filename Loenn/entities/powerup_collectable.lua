@@ -12,11 +12,12 @@ powerup_collectable.fieldOrder = {
 "sprite", "flag",
 "collect_sound", "poem_dialog",
 "shatter_color", "heart_index",
-"strength",
+"strength", "jingle_duration",
 "bob_height", "bob_period",
 "show_animation", "show_poem",
+"music_volume",
 "do_pulse", "do_wiggle", "must_dash_toward", "center_player",
-"do_refill", "do_unfill"
+"do_refill", "do_unfill", 
 }
 
 powerup_collectable.placements = {
@@ -37,8 +38,10 @@ powerup_collectable.placements = {
         show_poem = true,
         heart_index = 3,
         strength = 1,
+        jingle_duration = 3,
         bob_height = 0,
         bob_period = 3,
+        music_volume = -1,
     }
 }
 

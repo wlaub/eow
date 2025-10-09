@@ -41,6 +41,12 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public float strength;
 
+        public float jingle_before;
+        public float jingle_after;
+
+        public bool pause_music;
+        public float music_volume;
+
         public bool collected = false;
         public bool activated = false;
 
@@ -80,6 +86,24 @@ namespace Celeste.Mod.ErrandOfWednesday
             flag = data.Attr("flag");
             poem_dialog = data.Attr("poem_dialog");
             sound_name = data.Attr("collect_sound");
+
+            float j = data.Float("jingle_duration", 3f);
+            if(j > 1f)
+            {
+                jingle_before = j-1f;
+                jingle_after = 1f;
+            }
+            else
+            {
+                jingle_before = 0;
+                jingle_after = j;
+            }
+
+            music_volume = data.Float("music_volume", -1);
+            if(music_volume < 0)
+            {
+                pause_music = true;
+            }
 
             bob_height = data.Float("bob_height", 0f);
             bob_period = data.Float("bob_period", 3f);
@@ -248,7 +272,14 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(show_animation || show_poem)
             {
-                Audio.PauseMusic = true;
+                if(pause_music)
+                {
+                    Audio.PauseMusic = true;
+                }
+                else
+                {
+                    Audio.SetMusicParam("fade", music_volume);
+                }
             }
 
             if(show_animation)
@@ -283,11 +314,11 @@ namespace Celeste.Mod.ErrandOfWednesday
                 player.Add(bloom = new BloomPoint(1f, 0f));
 
                 float next = 0f;
-                for(float t = 0f; t < 2f; t+= Engine.RawDeltaTime)
+                for(float t = 0f; t < jingle_before; t+= Engine.RawDeltaTime)
                 {
                     if (t>= next)
                     {
-                        Scene.Add(new AbsorbOrb(Position, player));
+                        Scene.Add(new AbsorbOrb(player.Position+new Vector2(0f, -6f), player));
 
                         bloom.Radius = (t-0.2f)*16;
 
@@ -299,7 +330,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     yield return null;
                 } 
 
-                for(float t = 0f; t < 1f; t+= Engine.RawDeltaTime)
+                for(float t = 0f; t < jingle_after; t+= Engine.RawDeltaTime)
                 {
                     do_center_player(player);
 
@@ -382,7 +413,14 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 sfx.Source.Param("end", 1f);
             }
-            Audio.PauseMusic = false;
+            if(pause_music)
+            {
+                Audio.PauseMusic = false;
+            }
+            else
+            {
+                Audio.SetMusicParam("fade", 1);
+            }
 
             level.CanRetry = true;
             level.Session.DoNotLoad.Add(eid);
