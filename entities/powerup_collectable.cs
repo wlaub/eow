@@ -48,6 +48,10 @@ namespace Celeste.Mod.ErrandOfWednesday
         public Vector2 move_wiggler_dir;
         public float bounce_sound_delay = 0f;
 
+        public Tween bob;
+        public float bob_height;
+        public float bob_period;
+
         public SoundEmitter sfx;
 
         public Poem poem;
@@ -76,6 +80,9 @@ namespace Celeste.Mod.ErrandOfWednesday
             flag = data.Attr("flag");
             poem_dialog = data.Attr("poem_dialog");
             sound_name = data.Attr("collect_sound");
+
+            bob_height = data.Float("bob_height", 0f);
+            bob_period = data.Float("bob_period", 3f);
  
             shatter_color = Calc.HexToColor(data.Attr("shatter_color"));
 
@@ -95,6 +102,19 @@ namespace Celeste.Mod.ErrandOfWednesday
             move_wiggler.StartZero = true;
             Add(move_wiggler);
 
+            if(bob_height != 0)
+            {
+
+                bob = Tween.Create(Tween.TweenMode.Looping, Ease.Linear, bob_period, start:true);
+                bob.OnUpdate = delegate(Tween t)
+                {
+//Logger.Log(LogLevel.Info, "eow", $"hello {t.Eased}");
+                    float dy = (float)Math.Cos(2*Math.PI*t.Eased);
+                    Position.Y = bob_height*dy;
+                };
+
+                Add(bob);
+            }
         } 
 
         public override void Awake(Scene scene)
