@@ -130,13 +130,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
 
                 bob = Tween.Create(Tween.TweenMode.Looping, Ease.Linear, bob_period, start:true);
-                bob.OnUpdate = delegate(Tween t)
-                {
-//Logger.Log(LogLevel.Info, "eow", $"hello {t.Eased}");
-                    float dy = (float)Math.Cos(2*Math.PI*t.Eased);
-                    Position.Y = bob_height*dy;
-                };
-
                 Add(bob);
             }
         } 
@@ -166,6 +159,11 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Update();
             sprite.Position = move_wiggler_dir * move_wiggler.Value * -8f;
+            if(bob != null)
+            {
+                float dy = (float)Math.Cos(2*Math.PI*bob.Eased);
+                sprite.Position.Y += bob_height*dy;
+            }
             bounce_sound_delay -= Engine.DeltaTime;
 
         }
