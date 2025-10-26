@@ -10,12 +10,12 @@ powerup_collectable.nodeLineRenderType = "fan"
 powerup_collectable.fieldOrder = {
 "x", "y", 
 "sprite", "flag",
-"collect_sound", "poem_dialog",
+"collect_sound", "collect_jingle",
+"poem_dialog", "jingle_duration",
+"strength", "music_volume",
 "shatter_color", "heart_index",
-"strength", "jingle_duration",
 "bob_height", "bob_period",
 "show_animation", "show_poem",
-"music_volume",
 "do_pulse", "do_wiggle", "must_dash_toward", "center_player",
 "do_refill", "do_unfill", 
 }
@@ -27,6 +27,7 @@ powerup_collectable.placements = {
         sprite = "",
         poem_dialog = "",
         collect_sound = "event:/game/07_summit/gem_get",
+        collect_jingle = "",
         shatter_color = "ffffff",
         do_pulse = true,
         do_wiggle = true,

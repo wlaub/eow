@@ -36,6 +36,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public string poem_dialog;
         public string flag;
         public string sound_name;
+        public string jingle_sound_name;
 
         public Color shatter_color;
 
@@ -59,6 +60,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public float bob_period;
 
         public SoundEmitter sfx;
+        public SoundEmitter jingle_sfx;
 
         public Poem poem;
         public BloomPoint bloom;
@@ -86,6 +88,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             flag = data.Attr("flag");
             poem_dialog = data.Attr("poem_dialog");
             sound_name = data.Attr("collect_sound");
+            jingle_sound_name = data.Attr("collect_jingle", "");
+
 
             float j = data.Float("jingle_duration", 3f);
             if(j > 1f)
@@ -267,6 +271,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 sfx = SoundEmitter.Play(sound_name, this);
             }
+            if (jingle_sound_name != "")
+            {
+                jingle_sfx = SoundEmitter.Play(jingle_sound_name, this);
+            }
+
 
             if(show_animation || show_poem)
             {
@@ -411,6 +420,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 sfx.Source.Param("end", 1f);
             }
+            if (jingle_sound_name != "")
+            {
+                jingle_sfx.Source.Param("end", 1f);
+            }
+ 
             if(pause_music)
             {
                 Audio.PauseMusic = false;
