@@ -107,7 +107,7 @@ The custom textures rendering is awful, and I'm sure there's gotta be a better w
 its a jump thru but you can't stand on it
 
 #### next to
-its a wall buy you can't collide with it or grab it
+its a wall but you can't collide with it or grab it
 
 ### EDGE (a game by) Mirrors
 

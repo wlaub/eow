@@ -1,5 +1,5 @@
 - Name: Errand Of Wednesday
-  Version: 0.3.0
+  Version: 0.4.0
   DLL: bin/ErrandOfWednesday.dll
   Dependencies:
     - Name: Everest
