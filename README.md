@@ -103,6 +103,11 @@ Also custom textures.
 
 The custom textures rendering is awful, and I'm sure there's gotta be a better way to do it using pre-generated looping backgrounds and masks (i mean reflections do masking), but I have no clue how and no desire to learn.
 
+#### jump off
+its a jump thru but you can't stand on it
+
+#### next to
+its a wall buy you can't collide with it or grab it
 
 ### EDGE (a game by) Mirrors
 

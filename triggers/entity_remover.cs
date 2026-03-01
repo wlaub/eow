@@ -75,8 +75,10 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
         public void add_entity(Entity e)
         {
+// Logger.Log(LogLevel.Debug, "eow", $"{e.GetType().FullName} {type_filter}");
             if(String.IsNullOrWhiteSpace(type_filter) || e.GetType().FullName == type_filter)
             {
+// Logger.Log(LogLevel.Debug, "eow", $"^matched");
                 targets.Add(e);
             }
         }

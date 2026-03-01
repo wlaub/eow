@@ -23,6 +23,14 @@ namespace Celeste.Mod.ErrandOfWednesday {
             public static Func<int> GetPlayerGravity;
     }
 
+    public class InvisibleHitbox : Hitbox
+    {
+        public InvisibleHitbox(float width, float height, float x=0f, float y=0f) : base(width, height, x, y)
+        {
+        }
+        public override void Render(Camera camera, Color color)
+        {}
+    }
 
 
     public class Flagic
@@ -287,6 +295,9 @@ namespace Celeste.Mod.ErrandOfWednesday {
                     MusicLayerSource.level_load(level);
                     GlobalDecal.level_load(level);
                     BistableDecal.level_load(level);
+
+                    EyeOfTheWednesday.hitbox_flag_on_load(level);
+
                 }
             }
             if(Session!= null && Session.sd_active)

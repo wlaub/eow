@@ -53,6 +53,10 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static bool forehead_flag_inverted;
         public static int forehead_distance;
 
+        public static bool hitbox_flag_loaded = false;
+        public static string show_hitbox_flag;
+        public static bool show_hitbox_flag_inverted;
+
         public static bool is_riding_hook(On.Celeste.Player.orig_IsRiding_Solid orig, Player self, Solid solid)
         {
             if(orig(self, solid)) 
@@ -118,7 +122,7 @@ namespace Celeste.Mod.ErrandOfWednesday
  
                 forehead_enabled = false;
             }
-
+            unload_hitbox_flag();
 
             loaded = false;
         }
@@ -236,6 +240,14 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                     forehead_enabled = true;
                 }
             }
+
+            string hitbox_flag = data.Attr("show_hitbox_flag", "");
+            if(!string.IsNullOrWhiteSpace(hitbox_flag))
+            {
+                show_hitbox_flag_inverted = Flagic.process_flag(hitbox_flag, out show_hitbox_flag);
+                try_load_hitbox_flag(session);
+            }
+
  
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
 
@@ -386,6 +398,51 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 return;
             }
         } 
+
+        //
+        // show hitboxes on flag
+        //
+        public static void hitbox_set_flag_callback(On.Celeste.Session.orig_SetFlag orig, Session self, string flag, bool val)
+        {
+            orig(self, flag, val);
+
+            if(flag == show_hitbox_flag)
+            {
+                GameplayRenderer.RenderDebug=(val != show_hitbox_flag_inverted);
+            }
+
+        }
+
+        public static void try_load_hitbox_flag(Session session)
+        {
+            if(hitbox_flag_loaded){return;}
+            On.Celeste.Session.SetFlag += hitbox_set_flag_callback;
+            GameplayRenderer.RenderDebug=Flagic.test_flag(session, show_hitbox_flag, show_hitbox_flag_inverted);
+ 
+            hitbox_flag_loaded = true;
+        }
+
+        public static void hitbox_flag_on_load(Level level)
+        {
+            if(!hitbox_flag_loaded){return;}
+            GameplayRenderer.RenderDebug=Flagic.test_flag(level.Session, show_hitbox_flag, show_hitbox_flag_inverted);
+        }
+
+
+
+        public static void unload_hitbox_flag()
+        {
+            if(!hitbox_flag_loaded){return;}
+
+            On.Celeste.Session.SetFlag -= hitbox_set_flag_callback;
+            GameplayRenderer.RenderDebug = false;
+            hitbox_flag_loaded = false;
+        }
+
+
+
+
+
  
     }
 }

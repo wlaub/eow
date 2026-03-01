@@ -23,6 +23,7 @@ dyno.placements = {
             forehead_enable = false,
             forehead_flag = "",
             forehead_distance = 13,
+            show_hitbox_flag = "",
         }
     }
 }
