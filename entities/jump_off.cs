@@ -22,11 +22,19 @@ namespace Celeste.Mod.ErrandOfWednesday
         public Vector2 left;
         public Vector2 right;
 
+        public bool dash_bump;
+        public bool pass_through;
+
         public bool player_was_above = false;
         public bool active = false;
 
         public JumpOff(EntityData data, Vector2 offset, EntityID eid) : base(data.Position+ offset)
         {
+            //TODO: line sprite
+
+            dash_bump = data.Bool("dash_bump", true);
+            pass_through = data.Bool("pass_through", true);
+
             Collider = new Hitbox(data.Width, 5f, 0, -1);
 
             left = new Vector2(Position.X, Position.Y);
@@ -41,7 +49,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public override void Render()
         {
-            Draw.Line(left, right, Color.White);
+            Draw.Line(left, right, Color.White, 2f);
         }
 
         public override void Update()
@@ -51,24 +59,28 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(player != null)
             {
-                
-                bool player_above = player.Bottom <= Position.Y;
-                if(!player_above && player_was_above && player.Right >= Position.X && player.Left <= Position.X+Width) 
-                {
-                    //after falling through, enable jump while in hitbox
-                    player.jumpGraceTimer=0.02f;
-                    active = true;
-                }
-                if(player_above && !player_was_above && player.Right >= Position.X && player.Left <= Position.X+Width) 
-                {
-                    //after jumping through, enable buffered jump
-                    player.jumpGraceTimer=0.04f;
 
+                if(pass_through)                
+                {
+                    bool player_above = player.Bottom <= Position.Y;
+                    if(!player_above && player_was_above && player.Right >= Position.X && player.Left <= Position.X+Width) 
+                    {
+                        //after falling through, enable jump while in hitbox
+                        player.jumpGraceTimer=0.02f;
+                        active = true;
+                    }
+                    if(player_above && !player_was_above && player.Right >= Position.X && player.Left <= Position.X+Width) 
+                    {
+                        //after jumping through, enable buffered jump
+                        player.jumpGraceTimer=0.04f;
+
+                    }
+                    player_was_above = player_above;
                 }
 
                 if(CollideCheck(player) && player.Bottom <= Bottom)
                 {
-                    if((player.StateMachine.State == Player.StDash || player.StateMachine.State == Player.StRedDash) && player.Speed.Y ==0)
+                    if(dash_bump && (player.StateMachine.State == Player.StDash || player.StateMachine.State == Player.StRedDash) && player.Speed.Y ==0)
                     {
                         //if dashing horizontally inside, give full coyote time and bump to dop
                         player.Position.Y = Position.Y;
@@ -86,8 +98,6 @@ namespace Celeste.Mod.ErrandOfWednesday
                     active = false;
                 }
 
-
-                player_was_above = player_above;
             }
         }
 

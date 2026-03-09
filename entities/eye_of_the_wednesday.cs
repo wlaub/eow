@@ -124,6 +124,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             unload_hitbox_flag();
 
+            ThruWall.unload();
+
             loaded = false;
         }
         
@@ -246,6 +248,12 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 show_hitbox_flag_inverted = Flagic.process_flag(hitbox_flag, out show_hitbox_flag);
                 try_load_hitbox_flag(session);
+            }
+
+            //TODO
+            if(data.Bool("thru_wall_enable", false))
+            {
+                ThruWall.load();
             }
 
  
