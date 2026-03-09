@@ -62,7 +62,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 if(player_above && !player_was_above && player.Right >= Position.X && player.Left <= Position.X+Width) 
                 {
                     //after jumping through, enable buffered jump
-                    player.jumpGraceTimer=0.02f;
+                    player.jumpGraceTimer=0.04f;
 
                 }
 
