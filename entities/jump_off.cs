@@ -32,6 +32,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             //TODO: line sprite
 
+            Position.Y += 1; //easier than figuring out how to center in lonn
+
             dash_bump = data.Bool("dash_bump", true);
             pass_through = data.Bool("pass_through", true);
 
@@ -49,7 +51,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public override void Render()
         {
-            Draw.Line(left, right, Color.White, 2f);
+            Draw.Line(left, right, Color.Black, 2f);
         }
 
         public override void Update()
