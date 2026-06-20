@@ -88,49 +88,64 @@ Logger.Log(LogLevel.Info, "eow", $"->{spawn.X} {spawn.Y}");
 Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
             }
 
-            regenerate_tiles(level);
+            regenerate_tilebounds(level, start_x, start_y, target_x, target_y);
 
         }
 
-        public static void regenerate_tilebounds(MapData map_data)
+        public static void regenerate_tilebounds(Level level, int start_x, int start_y, int target_x, int target_y)
         {
+
+            MapData map_data = level.Session.MapData;
             int left = map_data.Bounds.Left;
             int right = map_data.Bounds.Right;
             int top = map_data.Bounds.Top;
             int bot = map_data.Bounds.Bottom;
 
-            foreach (LevelData level in map_data.Levels)
+            foreach (LevelData _level in map_data.Levels)
             {
-                left = Math.Min(left, level.Bounds.Left);
-                right = Math.Max(right, level.Bounds.Right);
-                top = Math.Min(top, level.Bounds.Top);
-                bot = Math.Max(bot, level.Bounds.Top);
+                left = Math.Min(left, _level.Bounds.Left);
+                right = Math.Max(right, _level.Bounds.Right);
+                top = Math.Min(top, _level.Bounds.Top);
+                bot = Math.Max(bot, _level.Bounds.Top);
             }
 
 
+            Rectangle old_bounds = map_data.Bounds;
             int m = 64;
             map_data.Bounds = new Rectangle(left-m, top-m, right-left+2*m, bot-top + 2*m);
 
+            int dl = -map_data.Bounds.Left+old_bounds.Left;
+            int dr = map_data.Bounds.Right-old_bounds.Right;
+            int dt = -map_data.Bounds.Top+old_bounds.Top;
+            int db = map_data.Bounds.Bottom-old_bounds.Bottom;
+
+            level.SolidTiles.Tiles.Extend(dl/8, dr/8, dt/8, db/8);
+            level.BgTiles.Tiles.Extend(dl/8, dr/8, dt/8, db/8);
+            level.SolidTiles.Grid.Extend(dl/8, dr/8, dt/8, db/8);
+
+
+            start_x -= map_data.Bounds.Left;
+            start_y -= map_data.Bounds.Top;
+            target_x -= map_data.Bounds.Left;
+            target_y -= map_data.Bounds.Top;
+            
+            start_x /= 8;
+            start_y /= 8;
+            target_x /= 8;
+            target_y /= 8;
+
+            for(int x = 0; x < 46; ++x)
+            {
+                for(int y=0; y < 36; ++y)
+                {
+                   level.SolidTiles.Tiles.Tiles[target_x+x,target_y+y] = level.SolidTiles.Tiles.Tiles[start_x+x, start_y+y];
+                   level.SolidTiles.Grid.Data[target_x+x,target_y+y] = level.SolidTiles.Grid.Data[start_x+x, start_y+y];
+                   level.BgTiles.Tiles.Tiles[target_x+x,target_y+y] = level.SolidTiles.Tiles.Tiles[start_x+x, start_y+y];
+                }
+            }
+
+
         }
-
-        public static void regenerate_tiles(Level Level)
-        {
-
-        MapData mapData = Level.Session.MapData;
-
-
-        regenerate_tilebounds(mapData);
-
-        Level.BgTiles.RemoveSelf();
-        Level.SolidTiles.RemoveSelf();
-
-/* well that didn't work
-        LevelLoader loader = new(Level.Session);
-        loader.Level = Level;
-        loader.LoadingThread();
-*/
-        //And then this is where you paste the whole tile generation section of LevelLoader.LoadThread
-       }
 
         public static void try_load(Session session)
         {
