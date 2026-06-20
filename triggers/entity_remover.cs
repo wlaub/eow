@@ -112,6 +112,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(check())
             {
                 remove_entities();
+//TODO remove me
+EstateController.move_room(SceneAs<Level>());
             }
 
         }
