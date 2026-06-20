@@ -12,8 +12,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 {
 
     [Tracked]
-    [CustomEntity("eow/EntityRemover")]
-    public class EntityRemover : Trigger 
+    [CustomEntity("eow/TestTrigger")]
+    public class TestTrigger : Trigger 
     {
 
         public readonly string flag;
@@ -27,7 +27,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public bool triggered = false;
 
-        public EntityRemover (EntityData data, Vector2 offset) : base(data, offset)
+        public TestTrigger (EntityData data, Vector2 offset) : base(data, offset)
         {
             nodes = data.NodesOffset(offset);
             invert = data.Bool("invert");
@@ -83,26 +83,21 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
         }
 
-        public void remove_entities()
-        {
-            if(triggered) return;
-
-            Level level = SceneAs<Level>();
-
-            foreach(Entity e in targets)
-            {
-                if(remove_player || !(e is Player)){
-                level.Remove(e);}
-            }
-
-            triggered = true;
-
-        }
-
         public bool check()
         {
+            return true;
             if(flag == "") return true;
             return SceneAs<Level>().Session.GetFlag(flag) != invert;
+        }
+
+        public void activate()
+        {
+           int target_x = 46*8;
+           int target_y = -18*8;
+
+Logger.Log(LogLevel.Info, "eow", $"{nodes[0]}");
+ 
+           EstateController.move_room(SceneAs<Level>(), flag, (int)(nodes[0].X), (int)(nodes[0].Y));
         }
 
         public override void OnEnter(Player player)
@@ -111,7 +106,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(check())
             {
-                remove_entities();
+                activate();
             }
 
         }
@@ -121,7 +116,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             find_entities(scene);
             if(on_load && check())
             {
-                remove_entities();
+                activate();
             }
         }
 

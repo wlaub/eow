@@ -8,9 +8,10 @@ dyno.placements = {
         data = {
             name = "",
             number = 0,
-            tags = "",
+            sprite = "",
             selection_count = 1,
             selection_expression = "",
+            tags = "",
         }
     }
 }

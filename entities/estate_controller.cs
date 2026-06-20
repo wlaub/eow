@@ -54,14 +54,12 @@ namespace Celeste.Mod.ErrandOfWednesday
         }
        
 
-        public static void move_room(Level level) 
+        public static void move_room(Level level, string room_name, int target_x, int target_y) 
         {
             Session session = level.Session;
-            int target_x = 46*8;
-            int target_y = -18*8;
- 
 
-            LevelData level_data = session.MapData.Get("www");
+
+            LevelData level_data = session.MapData.Get(room_name);
 
             int start_x = level_data.Bounds.X;
             int start_y = level_data.Bounds.Y;
@@ -140,7 +138,7 @@ Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
                 {
                    level.SolidTiles.Tiles.Tiles[target_x+x,target_y+y] = level.SolidTiles.Tiles.Tiles[start_x+x, start_y+y];
                    level.SolidTiles.Grid.Data[target_x+x,target_y+y] = level.SolidTiles.Grid.Data[start_x+x, start_y+y];
-                   level.BgTiles.Tiles.Tiles[target_x+x,target_y+y] = level.SolidTiles.Tiles.Tiles[start_x+x, start_y+y];
+                   level.BgTiles.Tiles.Tiles[target_x+x,target_y+y] = level.BgTiles.Tiles.Tiles[start_x+x, start_y+y];
                 }
             }
 
