@@ -11,6 +11,7 @@ dyno.placements = {
             sprite = "",
             selection_count = 1,
             selection_expression = "",
+            entries = "",
             tags = "",
         }
     }

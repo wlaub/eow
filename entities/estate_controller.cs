@@ -19,6 +19,78 @@ using Celeste.Mod.Entities;
 namespace Celeste.Mod.ErrandOfWednesday
 {
 
+    public class EstateRoomInfo
+    {
+        public LevelData level_data;
+        public EntityData room_data;
+
+        public int start_x;
+        public int start_y;
+
+        public bool[] entries; //lrtb
+
+        public string key;
+
+        public int room_number;
+        public string display_name;
+
+        public int selection_count;
+
+        public EstateRoomInfo(LevelData level_data, EntityData room_data)
+        {
+            this.level_data = level_data;
+            this.room_data = room_data;
+
+            key = level_data.Name;
+
+            selection_count = room_data.Int("selection_count",1);
+            
+            room_number = room_data.Int("number", -1);
+            display_name = room_data.Attr("name", "???????");
+
+            start_x = level_data.Bounds.X;
+            start_y = level_data.Bounds.Y;
+
+            this.entries = new bool[4];
+
+            string entries_string = room_data.Attr("entries");
+            if(string.IsNullOrWhiteSpace(entries_string))
+            {
+                scan_tiles();
+            }
+            else
+            {
+                entries[0] = entries_string.Contains("l");
+                entries[1] = entries_string.Contains("r");
+                entries[2] = entries_string.Contains("t");
+                entries[3] = entries_string.Contains("b");
+            }
+            //create sprite
+
+            //tags
+
+            //selection expressions
+
+        }
+
+        public void scan_tiles()
+        {
+            int w = level_data.Bounds.Width/8;
+            int h = level_data.Bounds.Height/8;
+            int w2 = w/2;
+            int h2 = h/2;
+
+            Grid grid = new(1,1,level_data.Solids);
+
+            entries[0] = !grid[w2,0];
+            entries[2] = !grid[0,h2];
+            entries[1] = !grid[w-1,h2];
+            entries[3] = !grid[w2,h-1];
+
+        }
+
+    }
+
     [Tracked]
     [CustomEntity("eow/EstateController")]
     public class EstateController : Entity
@@ -30,8 +102,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static int grid_width;
         public static int grid_height;
 
-        public static Dictionary<string, LevelData> rooms;
-        public static HashSet<string> drafted_rooms;
+        public static Dictionary<string, EstateRoomInfo> rooms = new();
+        public static HashSet<string> drafted_rooms = new();
 
         
 
@@ -53,6 +125,98 @@ namespace Celeste.Mod.ErrandOfWednesday
             loaded = false;
         }
        
+
+        public static void try_load(Session session)
+        {
+
+            LevelData level_data = session.MapData.Get("!eow");
+            if(level_data == null)
+            {
+                level_data = session.MapData.Get("~eow");
+            }
+            if(level_data == null)
+            {
+Logger.Log(LogLevel.Debug, "eow", "Didn't find the eye.");
+                return;
+            }
+Logger.Log(LogLevel.Debug, "eow", "Estate mode activate."); 
+
+            //Find the controller
+            EntityData data = null;
+            foreach(EntityData entity_data in level_data.Entities)
+            {
+                if(entity_data.Name == "eow/EstateController")
+                {
+                    data = entity_data;
+                }
+            }
+
+            if (data == null)
+            {
+                return;
+            }
+       
+            rooms.Clear();
+            drafted_rooms.Clear(); 
+
+            room_width = data.Int("room_width");
+            room_height = data.Int("room_height");
+            grid_width = data.Int("grid_width");
+            grid_height = data.Int("grid_height");
+
+            foreach(LevelData room_data in session.MapData.Levels)
+            {
+                foreach(EntityData entity_data in room_data.Entities)
+                {
+                    if(entity_data.Name == "eow/EstateRoom")
+                    {
+Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
+                        EstateRoomInfo info = new(room_data, entity_data);
+                        rooms[info.key] = info;
+                    }
+                }
+               
+            }
+
+            Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
+
+            loaded = true;
+
+/*
+            //Scan for things
+            foreach(LevelData level_data in level.Session.MapData.Levels)
+            {
+                foreach(EntityData entity_data in level_data.Entities)
+                {
+                    if(entity_data.Name == name)
+                    {
+                        return true;
+                    }
+                }
+            }
+*/
+
+
+        }
+
+        public static List<EstateRoomInfo> make_pool(int side)
+        {
+            List<EstateRoomInfo> pool = new();
+
+            foreach(EstateRoomInfo info in rooms.Values)
+            {
+                if(info.entries[side] && !drafted_rooms.Contains(info.key))
+                {
+                    for(int i = 0; i < info.selection_count; ++i)
+                    {
+                        pool.Add(info);
+                    }
+                }
+            }
+
+            return pool;
+        }
+
 
         public static void move_room(Level level, string room_name, int target_x, int target_y) 
         {
@@ -92,7 +256,7 @@ Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
 
         public static void regenerate_tilebounds(Level level, int start_x, int start_y, int target_x, int target_y)
         {
-
+            //TODO save states don't move the room back but do revert the tiles
             MapData map_data = level.Session.MapData;
             int left = map_data.Bounds.Left;
             int right = map_data.Bounds.Right;
@@ -121,6 +285,8 @@ Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
             level.BgTiles.Tiles.Extend(dl/8, dr/8, dt/8, db/8);
             level.SolidTiles.Grid.Extend(dl/8, dr/8, dt/8, db/8);
 
+            //TODO update autotiler bounds to fix dash blocks crashing?
+//            GFX.FGAutotiler.LevelBounds.Add(new Rectangle(level.TileBounds.X-map_data.TileBounds.X, level.TileBounds.Y-map_data.TileBounds.Y, level.TileBounds.Width, level.TileBounds.Height));
 
             start_x -= map_data.Bounds.Left;
             start_y -= map_data.Bounds.Top;
@@ -145,73 +311,6 @@ Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
 
         }
 
-        public static void try_load(Session session)
-        {
-
-            LevelData level_data = session.MapData.Get("!eow");
-            if(level_data == null)
-            {
-                level_data = session.MapData.Get("~eow");
-            }
-            if(level_data == null)
-            {
-Logger.Log(LogLevel.Debug, "eow", "Didn't find the eye.");
-                return;
-            }
-Logger.Log(LogLevel.Debug, "eow", "Estate mode activate."); 
-
-            //Find the controller
-            EntityData data = null;
-            foreach(EntityData entity_data in level_data.Entities)
-            {
-                if(entity_data.Name == "eow/EstateController")
-                {
-                    data = entity_data;
-                }
-            }
-
-            if (data == null)
-            {
-                return;
-            }
-
-            room_width = data.Int("room_width");
-            room_height = data.Int("room_height");
-            grid_width = data.Int("grid_width");
-            grid_height = data.Int("grid_height");
-
-            foreach(LevelData room_data in session.MapData.Levels)
-            {
-                foreach(EntityData entity_data in room_data.Entities)
-                {
-                    if(entity_data.Name == "eow/EstateRoom")
-                    {
-                        //TODO load up that estate room
-                    }
-                }
-               
-            }
-
-            Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
-
-            loaded = true;
-
-/*
-            //Scan for things
-            foreach(LevelData level_data in level.Session.MapData.Levels)
-            {
-                foreach(EntityData entity_data in level_data.Entities)
-                {
-                    if(entity_data.Name == name)
-                    {
-                        return true;
-                    }
-                }
-            }
-*/
-
-
-        }
 
  
     }

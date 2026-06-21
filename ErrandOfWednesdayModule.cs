@@ -277,6 +277,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
         {
             orig(self, session, startposition);
             EyeOfTheWednesday.try_load(session);
+            EstateController.try_load(session);
         
         }
 
@@ -324,6 +325,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             MyAudioTrigger.on_exit(level);
             AreaIntroCutscene.on_exit(level);
             EyeOfTheWednesday.unload();
+            EstateController.unload();
         }
 
 
