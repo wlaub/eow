@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -36,6 +37,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public int selection_count;
 
+        public Sprite sprite;
+
         public EstateRoomInfo(LevelData level_data, EntityData room_data)
         {
             this.level_data = level_data;
@@ -46,7 +49,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             selection_count = room_data.Int("selection_count",1);
             
             room_number = room_data.Int("number", -1);
-            display_name = room_data.Attr("name", "???????");
+            display_name = Dialog.Get(room_data.Attr("name", $"eow_estate_room_{key}"));
 
             start_x = level_data.Bounds.X;
             start_y = level_data.Bounds.Y;
@@ -66,6 +69,20 @@ namespace Celeste.Mod.ErrandOfWednesday
                 entries[3] = entries_string.Contains("b");
             }
             //create sprite
+
+            string sprite_name = room_data.Attr("sprite", "");
+            if(GFX.SpriteBank.Has(sprite_name))
+            {
+                sprite = GFX.SpriteBank.Create(sprite_name);
+            }
+            else
+            {
+                sprite = new Sprite(GFX.Gui, "");
+                sprite.AddLoop("idle", sprite_name, 0.08f);
+                sprite.CenterOrigin();
+            }
+            sprite.Play("idle");
+
 
             //tags
 
@@ -88,6 +105,97 @@ namespace Celeste.Mod.ErrandOfWednesday
             entries[3] = !grid[w2,h-1];
 
         }
+
+    }
+
+    public class DraftMenu : Entity
+    {
+        public int selection = 0;
+
+        public List<EstateRoomInfo> options = new();
+
+        public int target_x;
+        public int target_y;
+
+        public DraftMenu(List<EstateRoomInfo> pool, int target_x, int target_y)
+        {
+            this.target_x = target_x;
+            this.target_y = target_y;
+
+            base.Tag = Tags.HUD | Tags.FrozenUpdate;
+            while(options.Count < 3 && pool.Count > 0)
+            {
+                EstateRoomInfo new_option = Calc.Random.Choose(pool);
+                pool.RemoveAll( x => x == new_option);
+                options.Add(new_option);
+
+                Add(new_option.sprite);
+
+                int idx = options.Count-1;
+                //w=320, gap=160
+                //m=320
+                new_option.sprite.Position = new Vector2(320f+160f+idx*(320f+160f), 320f);
+            }
+
+            Add(new Coroutine(routine()));
+        }
+
+        public IEnumerator routine()
+        {
+            Level level = SceneAs<Level>();
+            level.Frozen = true;
+            while(true)
+            {
+                if(Input.MenuConfirm.Pressed)
+                {
+
+                    EstateRoomInfo draft = options[selection];
+                    EstateController.drafted_rooms.Add(draft.key); 
+                    EstateController.move_room(level, draft.key, target_x, target_y);
+                    break;                    
+                }
+                if(Input.MenuLeft.Pressed && selection > 0)
+                {
+                    --selection;
+                }
+                if(Input.MenuRight.Pressed && selection < options.Count-1)
+                {
+                    ++selection;
+                }
+                yield return null;
+            }
+            level.Frozen = false;
+            RemoveSelf();
+        }
+
+        public override void Render()
+        {
+            base.Render();
+            for(int i = 0; i < options.Count; ++i)
+            {
+                EstateRoomInfo option = options[i];
+
+                float cx = option.sprite.Position.X;
+                float cy = option.sprite.Position.Y;
+
+                if(i == selection)
+                {
+                    option.sprite.Color = Color.White; 
+                }
+                else
+                {
+                    option.sprite.Color = Color.White*0.5f; 
+                }
+
+                ActiveFont.Draw(option.display_name, 
+                    new Vector2(option.sprite.Position.X, option.sprite.Position.Y+option.sprite.Height/2+7),
+                    new Vector2(0.5f, 0f), Vector2.One,
+                    Color.White
+                    );
+             }
+
+        }
+
 
     }
 

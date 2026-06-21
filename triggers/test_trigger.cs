@@ -134,6 +134,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
 
             if(pool.Count == 0){return;}
+
+
 foreach(EstateRoomInfo option in pool)
 {
 Logger.Log(LogLevel.Info, "eow", $"  {option.key}");
@@ -143,8 +145,9 @@ Logger.Log(LogLevel.Info, "eow", $"side={side}");
             EstateRoomInfo draft = Calc.Random.Choose(pool);
 Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
 
-            EstateController.drafted_rooms.Add(draft.key); 
-            EstateController.move_room(level, draft.key, target_x, target_y);
+            level.Add(new DraftMenu(pool, target_x, target_y));
+//            EstateController.drafted_rooms.Add(draft.key); 
+//            EstateController.move_room(level, draft.key, target_x, target_y);
         }
 
         public override void OnEnter(Player player)
