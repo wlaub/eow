@@ -71,6 +71,14 @@ namespace Celeste.Mod.ErrandOfWednesday
             //create sprite
 
             string sprite_name = room_data.Attr("sprite", "");
+            if(string.IsNullOrWhiteSpace(sprite_name))
+            {
+                sprite_name = "eow/estate/";
+                if( entries[0]) {sprite_name+="l";}
+                if( entries[1]) {sprite_name+="r";}
+                if (entries[2]) {sprite_name+="t";}
+                if (entries[3]) {sprite_name+="d";}
+            }
             if(GFX.SpriteBank.Has(sprite_name))
             {
                 sprite = GFX.SpriteBank.Create(sprite_name);
@@ -148,7 +156,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 if(Input.MenuConfirm.Pressed)
                 {
-
+                    //TODO this causes the player to jump immediately
+                    Input.MenuConfirm.ConsumeBuffer();
                     EstateRoomInfo draft = options[selection];
                     EstateController.drafted_rooms.Add(draft.key); 
                     EstateController.move_room(level, draft.key, target_x, target_y);
@@ -345,24 +354,20 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             for(int i = 0; i < level_data.Spawns.Count; ++i)
             {
                 Vector2 spawn = level_data.Spawns[i];
-Logger.Log(LogLevel.Info, "eow", $"  {spawn.X} {spawn.Y}");
                 spawn.X += off_x;
                 spawn.Y += off_y;
                 level_data.Spawns[i] = spawn;
-
-Logger.Log(LogLevel.Info, "eow", $"->{spawn.X} {spawn.Y}");
             }
             for(int i = 0; i < level_data.Spawns.Count; ++i)
             {
                 Vector2 spawn = level_data.Spawns[i];
-Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
             }
 
-            regenerate_tilebounds(level, start_x, start_y, target_x, target_y);
+            regenerate_tilebounds(level, level_data, start_x, start_y, target_x, target_y);
 
         }
 
-        public static void regenerate_tilebounds(Level level, int start_x, int start_y, int target_x, int target_y)
+        public static void regenerate_tilebounds(Level level, LevelData level_data, int start_x, int start_y, int target_x, int target_y)
         {
             //TODO save states don't move the room back but do revert the tiles
             MapData map_data = level.Session.MapData;
@@ -381,20 +386,48 @@ Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
 
 
             Rectangle old_bounds = map_data.Bounds;
+            Rectangle old_tb = map_data.TileBounds;
             int m = 64;
             map_data.Bounds = new Rectangle(left-m, top-m, right-left+2*m, bot-top + 2*m);
 
-            int dl = -map_data.Bounds.Left+old_bounds.Left;
-            int dr = map_data.Bounds.Right-old_bounds.Right;
-            int dt = -map_data.Bounds.Top+old_bounds.Top;
-            int db = map_data.Bounds.Bottom-old_bounds.Bottom;
+            int dl = -map_data.TileBounds.Left+old_tb.Left;
+            int dr = map_data.TileBounds.Right-old_tb.Right;
+            int dt = -map_data.TileBounds.Top+old_tb.Top;
+            int db = map_data.TileBounds.Bottom-old_tb.Bottom;
 
-            level.SolidTiles.Tiles.Extend(dl/8, dr/8, dt/8, db/8);
-            level.BgTiles.Tiles.Extend(dl/8, dr/8, dt/8, db/8);
-            level.SolidTiles.Grid.Extend(dl/8, dr/8, dt/8, db/8);
+            level.SolidTiles.Tiles.Extend(dl, dr, dt, db);
+            level.BgTiles.Tiles.Extend(dl, dr, dt, db);
+            level.SolidTiles.Grid.Extend(dl, dr, dt, db);
 
             //TODO update autotiler bounds to fix dash blocks crashing?
-//            GFX.FGAutotiler.LevelBounds.Add(new Rectangle(level.TileBounds.X-map_data.TileBounds.X, level.TileBounds.Y-map_data.TileBounds.Y, level.TileBounds.Width, level.TileBounds.Height));
+
+ //           foreach(Rectangle other_bounds in GFX.FGAutotiler.LevelBounds)
+            for(int i = 0; i < GFX.FGAutotiler.LevelBounds.Count; ++i)
+            {
+                Rectangle other_bounds = GFX.FGAutotiler.LevelBounds[i];
+                other_bounds.X+=dl;
+                other_bounds.Y+=dt;
+//                GFX.FGAutotiler.LevelBounds.X += dl;
+            }
+
+            GFX.FGAutotiler.LevelBounds.Add(new Rectangle(level_data.TileBounds.X-map_data.TileBounds.X, level_data.TileBounds.Y-map_data.TileBounds.Y, level_data.TileBounds.Width, level_data.TileBounds.Height));
+
+            //extend level.solidsdata and level.bgdata
+//            Grid grid = new(1,1,level.SolidsData);
+            VirtualMap<char> new_map = new(map_data.TileBounds.Width, map_data.TileBounds.Height,'0');
+            VirtualMap<char> new_bg = new(map_data.TileBounds.Width, map_data.TileBounds.Height,'0');
+            for(int x = 0; x<old_tb.Width; ++x)
+            {
+                for(int y = 0; y <old_tb.Height; ++y)
+                {
+                    new_map[x+dl, y+dt]=level.SolidsData[x,y];
+                    new_bg[x+dl, y+dt]=level.BgData[x,y];
+                }
+            }
+            level.SolidsData = new_map;
+            level.BgData = new_bg;
+
+            //TODO lighting masks?
 
             start_x -= map_data.Bounds.Left;
             start_y -= map_data.Bounds.Top;
@@ -410,9 +443,19 @@ Logger.Log(LogLevel.Info, "eow", $"=={spawn.X} {spawn.Y}");
             {
                 for(int y=0; y < 36; ++y)
                 {
-                   level.SolidTiles.Tiles.Tiles[target_x+x,target_y+y] = level.SolidTiles.Tiles.Tiles[start_x+x, start_y+y];
-                   level.SolidTiles.Grid.Data[target_x+x,target_y+y] = level.SolidTiles.Grid.Data[start_x+x, start_y+y];
-                   level.BgTiles.Tiles.Tiles[target_x+x,target_y+y] = level.BgTiles.Tiles.Tiles[start_x+x, start_y+y];
+//TODO: animated tiles
+                    int tx = target_x+x;
+                    int ty = target_y+y;
+                    int sx = start_x+x;
+                    int sy = start_y+y;
+                    level.SolidTiles.Tiles.Tiles[tx,ty] = level.SolidTiles.Tiles.Tiles[sx,sy];
+                    level.SolidTiles.Grid.Data[tx,ty] = level.SolidTiles.Grid.Data[sx,sy];
+                    level.SolidsData[tx,ty] = level.SolidsData[sx,sy];
+
+                    level.BgTiles.Tiles.Tiles[tx,ty] = level.BgTiles.Tiles.Tiles[sx,sy];
+                    level.BgData[tx,ty] = level.BgData[sx,sy];
+
+
                 }
             }
 
