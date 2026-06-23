@@ -246,6 +246,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static void try_load(Session session)
         {
 
+//TODO: restart chapter doesn't call this?????
+
             LevelData level_data = session.MapData.Get("!eow");
             if(level_data == null)
             {
@@ -276,6 +278,18 @@ Logger.Log(LogLevel.Debug, "eow", "Estate mode activate.");
             rooms.Clear();
             drafted_rooms.Clear(); 
 
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+
+            if(mod_session.estate_state is null)
+            {
+                mod_session.estate_state = new();
+            }
+            {
+Logger.Log(LogLevel.Debug, "eow", "found existing estate state"); 
+
+
+            }
+
             room_width = data.Int("room_width");
             room_height = data.Int("room_height");
             grid_width = data.Int("grid_width");
@@ -292,6 +306,62 @@ Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
                         rooms[info.key] = info;
                     }
                 }
+               
+            }
+
+            foreach(EstateRoomState room_state in mod_session.estate_state.drafted_rooms.Values)
+            {
+                LevelData target_data = session.MapData.Get(room_state.key);
+Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
+
+                drafted_rooms.Add(room_state.key);
+
+                int target_x = room_state.xpos;
+                int target_y = room_state.ypos;
+
+                int start_x = target_data.Bounds.X;
+                int start_y = target_data.Bounds.Y;
+                int off_x = target_x-start_x;
+                int off_y = target_y-start_y;
+
+
+                target_data.Bounds.X = target_x;
+                target_data.Bounds.Y = target_y;
+
+                for(int i = 0; i < target_data.Spawns.Count; ++i)
+                {
+                    Vector2 spawn = target_data.Spawns[i];
+                    spawn.X += off_x;
+                    spawn.Y += off_y;
+                    target_data.Spawns[i] = spawn;
+                }
+                for(int i = 0; i < target_data.Spawns.Count; ++i)
+                {
+                    Vector2 spawn = target_data.Spawns[i];
+                }
+
+            MapData map_data = session.MapData;
+            int left = map_data.Bounds.Left;
+            int right = map_data.Bounds.Right;
+            int top = map_data.Bounds.Top;
+            int bot = map_data.Bounds.Bottom;
+
+            foreach (LevelData _level in map_data.Levels)
+            {
+                left = Math.Min(left, _level.Bounds.Left);
+                right = Math.Max(right, _level.Bounds.Right);
+                top = Math.Min(top, _level.Bounds.Top);
+                bot = Math.Max(bot, _level.Bounds.Top);
+            }
+
+
+            Rectangle old_bounds = map_data.Bounds;
+            Rectangle old_tb = map_data.TileBounds;
+            int m = 64;
+            map_data.Bounds = new Rectangle(left-m, top-m, right-left+2*m, bot-top + 2*m);
+
+
+
                
             }
 
@@ -335,6 +405,35 @@ Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
         }
 
 
+        public static void save_room_state(string key, int xstart, int ystart, int xpos, int ypos)
+        {
+Logger.Log(LogLevel.Info, "eow", $"doing the room save"); 
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+Logger.Log(LogLevel.Info, "eow", $"mod session {mod_session}"); 
+            if(mod_session.estate_state is null)
+            {
+                mod_session.estate_state = new();
+Logger.Log(LogLevel.Info, "eow", "did  not found state???"); 
+            }
+            {
+
+
+
+            }
+
+
+
+            EstateRoomState new_state = new();
+            new_state.xstart=xstart;
+            new_state.ystart=ystart;
+            new_state.key = key;
+            new_state.xpos=xpos;
+            new_state.ypos=ypos;
+            mod_session.estate_state.drafted_rooms[key] = new_state;
+           
+        }
+
+
         public static void move_room(Level level, string room_name, int target_x, int target_y) 
         {
             Session session = level.Session;
@@ -364,6 +463,13 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             }
 
             regenerate_tilebounds(level, level_data, start_x, start_y, target_x, target_y);
+
+            save_room_state(room_name, start_x, start_y, target_x, target_y);
+
+            session.MapData.Reload();
+            AssetReloadHelper.ReloadLevel();
+//            Player player = level.Tracker.GetEntity<Player>();
+//            Engine.Scene = new LevelLoader(session, player.Position);
 
         }
 

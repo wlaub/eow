@@ -275,9 +275,10 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         public void level_loader_constructor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startposition)
         {
+            EstateController.try_load(session);
             orig(self, session, startposition);
             EyeOfTheWednesday.try_load(session);
-            EstateController.try_load(session);
+
         
         }
 
