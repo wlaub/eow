@@ -466,8 +466,8 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
 
             save_room_state(room_name, start_x, start_y, target_x, target_y);
 
-            session.MapData.Reload();
-            AssetReloadHelper.ReloadLevel();
+//            session.MapData.Reload(); //m,aybe need to hook and call this on chaper restart?
+//            AssetReloadHelper.ReloadLevel();
 //            Player player = level.Tracker.GetEntity<Player>();
 //            Engine.Scene = new LevelLoader(session, player.Position);
 
@@ -505,17 +505,14 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             level.BgTiles.Tiles.Extend(dl, dr, dt, db);
             level.SolidTiles.Grid.Extend(dl, dr, dt, db);
 
-            //TODO update autotiler bounds to fix dash blocks crashing?
-
- //           foreach(Rectangle other_bounds in GFX.FGAutotiler.LevelBounds)
+            //update autotiler bounds to fix dash blocks crashing?
             for(int i = 0; i < GFX.FGAutotiler.LevelBounds.Count; ++i)
             {
                 Rectangle other_bounds = GFX.FGAutotiler.LevelBounds[i];
                 other_bounds.X+=dl;
                 other_bounds.Y+=dt;
-//                GFX.FGAutotiler.LevelBounds.X += dl;
+                GFX.FGAutotiler.LevelBounds[i] = other_bounds;
             }
-
             GFX.FGAutotiler.LevelBounds.Add(new Rectangle(level_data.TileBounds.X-map_data.TileBounds.X, level_data.TileBounds.Y-map_data.TileBounds.Y, level_data.TileBounds.Width, level_data.TileBounds.Height));
 
             //extend level.solidsdata and level.bgdata
