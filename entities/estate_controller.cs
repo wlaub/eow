@@ -476,6 +476,7 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
         public static void regenerate_tilebounds(Level level, LevelData level_data, int start_x, int start_y, int target_x, int target_y)
         {
             //TODO save states don't move the room back but do revert the tiles
+            //TODO restart chapter needs to somehow reload the original map file
             MapData map_data = level.Session.MapData;
             int left = map_data.Bounds.Left;
             int right = map_data.Bounds.Right;
@@ -502,6 +503,7 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             int db = map_data.TileBounds.Bottom-old_tb.Bottom;
 
             level.SolidTiles.Tiles.Extend(dl, dr, dt, db);
+            level.FgTilesLightMask.Extend(dl, dr, dt, db);
             level.BgTiles.Tiles.Extend(dl, dr, dt, db);
             level.SolidTiles.Grid.Extend(dl, dr, dt, db);
 
@@ -516,7 +518,6 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             GFX.FGAutotiler.LevelBounds.Add(new Rectangle(level_data.TileBounds.X-map_data.TileBounds.X, level_data.TileBounds.Y-map_data.TileBounds.Y, level_data.TileBounds.Width, level_data.TileBounds.Height));
 
             //extend level.solidsdata and level.bgdata
-//            Grid grid = new(1,1,level.SolidsData);
             VirtualMap<char> new_map = new(map_data.TileBounds.Width, map_data.TileBounds.Height,'0');
             VirtualMap<char> new_bg = new(map_data.TileBounds.Width, map_data.TileBounds.Height,'0');
             for(int x = 0; x<old_tb.Width; ++x)
@@ -529,8 +530,6 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             }
             level.SolidsData = new_map;
             level.BgData = new_bg;
-
-            //TODO lighting masks?
 
             start_x -= map_data.Bounds.Left;
             start_y -= map_data.Bounds.Top;
@@ -552,6 +551,7 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
                     int sx = start_x+x;
                     int sy = start_y+y;
                     level.SolidTiles.Tiles.Tiles[tx,ty] = level.SolidTiles.Tiles.Tiles[sx,sy];
+                    level.FgTilesLightMask.Tiles[tx,ty] = level.FgTilesLightMask.Tiles[sx,sy];
                     level.SolidTiles.Grid.Data[tx,ty] = level.SolidTiles.Grid.Data[sx,sy];
                     level.SolidsData[tx,ty] = level.SolidsData[sx,sy];
 
