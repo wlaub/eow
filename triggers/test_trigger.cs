@@ -93,11 +93,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             Level level = SceneAs<Level>();
 
-
-            int target_x;
-            int target_y;
-
-
             int nx = (int)nodes[0].X;
             int ny = (int)nodes[0].Y;
 
