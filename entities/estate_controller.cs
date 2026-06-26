@@ -242,6 +242,18 @@ namespace Celeste.Mod.ErrandOfWednesday
             loaded = false;
         }
        
+        public static void restart(Session session)
+        {
+            rooms.Clear();
+            drafted_rooms.Clear(); 
+           
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+            if(mod_session.estate_state is not null)
+            {
+                mod_session.estate_state = new();
+            }
+           
+        }
 
         public static void try_load(Session session)
         {
@@ -274,7 +286,8 @@ Logger.Log(LogLevel.Debug, "eow", "Estate mode activate.");
             {
                 return;
             }
-       
+
+            session.MapData.Reload();       
             rooms.Clear();
             drafted_rooms.Clear(); 
 
@@ -446,7 +459,6 @@ Logger.Log(LogLevel.Info, "eow", "did  not found state???");
             int off_x = target_x-start_x;
             int off_y = target_y-start_y;
 
-Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}");
             level_data.Bounds.X = target_x;
             level_data.Bounds.Y = target_y;
 
@@ -468,8 +480,6 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
 
 //            session.MapData.Reload(); //m,aybe need to hook and call this on chaper restart?
 //            AssetReloadHelper.ReloadLevel();
-//            Player player = level.Tracker.GetEntity<Player>();
-//            Engine.Scene = new LevelLoader(session, player.Position);
 
         }
 
@@ -541,9 +551,9 @@ Logger.Log(LogLevel.Info, "eow", $"{level_data.Bounds.X} {level_data.Bounds.Y}")
             target_x /= 8;
             target_y /= 8;
 
-            for(int x = 0; x < 46; ++x)
+            for(int x = 0; x < level_data.TileBounds.Width; ++x)
             {
-                for(int y=0; y < 36; ++y)
+                for(int y=0; y < level_data.TileBounds.Height; ++y)
                 {
 //TODO: animated tiles
                     int tx = target_x+x;

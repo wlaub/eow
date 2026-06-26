@@ -91,10 +91,12 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public void activate()
         {
-            int target_x = 46*8;
-            int target_y = -18*8;
-
             Level level = SceneAs<Level>();
+
+
+            int target_x;
+            int target_y;
+
 
             int nx = (int)nodes[0].X;
             int ny = (int)nodes[0].Y;
@@ -111,14 +113,14 @@ namespace Celeste.Mod.ErrandOfWednesday
             else if(nx < this_level.Bounds.Left)
             {//enter right
                 side=1;
-                target_x = this_level.Bounds.Left-46*8;
+                target_x = this_level.Bounds.Left-EstateController.room_width*8;
                 target_y = this_level.Bounds.Y;
             }
             else if(ny < this_level.Bounds.Top)
             {//enter bot
                 side=3;
                 target_x = this_level.Bounds.X;
-                target_y = this_level.Bounds.Y-36*8;
+                target_y = this_level.Bounds.Y-EstateController.room_height*8;
             }
             else if(ny > this_level.Bounds.Bottom)
             {//enter top
