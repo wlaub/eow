@@ -418,6 +418,50 @@ Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
         }
 
 
+        public static void draft_room(Level level, LevelData from_level, int side)
+        {
+            int target_x;
+            int target_y;
+            switch(side)
+            {
+                case 0:
+                    target_x = from_level.Bounds.Right;
+                    target_y = from_level.Bounds.Y;
+                    break;
+                case 1:
+                    target_x = from_level.Bounds.Left-EstateController.room_width*8;
+                    target_y = from_level.Bounds.Y;
+                    break;
+                case 3:
+                    target_x = from_level.Bounds.X;
+                    target_y = from_level.Bounds.Y-EstateController.room_height*8;
+                    break;
+                case 2:
+                    target_x = from_level.Bounds.X;
+                    target_y = from_level.Bounds.Bottom;
+                    break; 
+                default:
+                    return;
+            }
+
+            if(level.Session.MapData.GetAt(new Vector2(target_x, target_y)) != null){return;}
+
+            List<EstateRoomInfo> pool = EstateController.make_pool(side);
+
+            if(pool.Count == 0){return;}
+
+foreach(EstateRoomInfo option in pool)
+{
+Logger.Log(LogLevel.Info, "eow", $"  {option.key}");
+}
+
+Logger.Log(LogLevel.Info, "eow", $"side={side}");
+            EstateRoomInfo draft = Calc.Random.Choose(pool);
+Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
+
+            level.Add(new DraftMenu(pool, target_x, target_y));
+        }
+
         public static void save_room_state(string key, int xstart, int ystart, int xpos, int ypos)
         {
 Logger.Log(LogLevel.Info, "eow", $"doing the room save"); 

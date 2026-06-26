@@ -107,49 +107,22 @@ namespace Celeste.Mod.ErrandOfWednesday
             if(nx > this_level.Bounds.Right)
             {//enter left
                 side=0;
-                target_x = this_level.Bounds.Right;
-                target_y = this_level.Bounds.Y;
             }
             else if(nx < this_level.Bounds.Left)
             {//enter right
                 side=1;
-                target_x = this_level.Bounds.Left-EstateController.room_width*8;
-                target_y = this_level.Bounds.Y;
             }
             else if(ny < this_level.Bounds.Top)
             {//enter bot
                 side=3;
-                target_x = this_level.Bounds.X;
-                target_y = this_level.Bounds.Y-EstateController.room_height*8;
             }
             else if(ny > this_level.Bounds.Bottom)
             {//enter top
                 side=2;
-                target_x = this_level.Bounds.X;
-                target_y = this_level.Bounds.Bottom;
             }
             else {return;}
 
-            if(level.Session.MapData.GetAt(nodes[0]) != null){return;}
-
-            List<EstateRoomInfo> pool = EstateController.make_pool(side);
-
-
-            if(pool.Count == 0){return;}
-
-
-foreach(EstateRoomInfo option in pool)
-{
-Logger.Log(LogLevel.Info, "eow", $"  {option.key}");
-}
-
-Logger.Log(LogLevel.Info, "eow", $"side={side}");
-            EstateRoomInfo draft = Calc.Random.Choose(pool);
-Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
-
-            level.Add(new DraftMenu(pool, target_x, target_y));
-//            EstateController.drafted_rooms.Add(draft.key); 
-//            EstateController.move_room(level, draft.key, target_x, target_y);
+            EstateController.draft_room(level, this_level, side);
         }
 
         public override void OnEnter(Player player)
