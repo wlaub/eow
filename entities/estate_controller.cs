@@ -242,7 +242,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             loaded = false;
         }
        
-        public static void restart(Session session)
+        public static void clear_save(Session session)
         {
             rooms.Clear();
             drafted_rooms.Clear(); 

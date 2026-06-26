@@ -275,16 +275,10 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         public void level_loader_constructor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startposition)
         {
-            LevelExit exit = Engine.Scene as LevelExit;
-            if(exit is not null && (exit.mode == LevelExit.Mode.Restart || exit.mode == LevelExit.Mode.GoldenBerryRestart))
-            {
-                EstateController.restart(session);
-            }
             EstateController.try_load(session);
             orig(self, session, startposition);
             EyeOfTheWednesday.try_load(session);
-
-        
+       
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
@@ -332,6 +326,11 @@ namespace Celeste.Mod.ErrandOfWednesday {
             AreaIntroCutscene.on_exit(level);
             EyeOfTheWednesday.unload();
             EstateController.unload();
+            if(mode != LevelExit.Mode.SaveAndQuit)
+            {
+                EstateController.clear_save(session);
+            }
+ 
         }
 
 
