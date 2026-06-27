@@ -141,11 +141,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public EstateController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
-            //TODO camera boundary control
-            //TODO detect and add starting room to pool
-            //maybe have estate room entity add its own room to the pool as a backup when it loads
-            //and then maybe the estate room entity can also do the camera boundary
-            //i wonder if you can make a fake wall/dash block that just like batches up all the entities and runs all through the autotiler together somehow
+            //TODO i wonder if you can make a fake wall/dash block that just like batches up all the entities and runs all through the autotiler together somehow
             //like essentially just make a virtualmap<char> that is a composite of all the dash blocks in the room and then pass that whole thing to the autotiler once to generate a single overlay, and then regenerate that whenever one gets removed.
         }
 
@@ -295,16 +291,16 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             Rectangle old_tb = map_data.TileBounds;
             int m = 64;
             map_data.Bounds = new Rectangle(left-m, top-m, right-left+2*m, bot-top + 2*m);
-
-
-
                
             }
+
+            // Hooks
 
             camera_target_hook = new Hook(
                 typeof(Player).GetMethod("get_CameraTarget"),
                 typeof(EstateController).GetMethod("my_camera_target_hook", BindingFlags.NonPublic | BindingFlags.Static));
 
+            // Done
 
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
 
@@ -325,8 +321,6 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 
                 result.X = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
                 result.Y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
-
-
             }
             return result;
         }
