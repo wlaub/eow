@@ -326,6 +326,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             AreaIntroCutscene.on_exit(level);
             EyeOfTheWednesday.unload();
             EstateController.unload();
+Logger.Log(LogLevel.Info, "eow", $"on exit got called with {mode}");
             if(mode != LevelExit.Mode.SaveAndQuit)
             {
                 EstateController.clear_save(session);

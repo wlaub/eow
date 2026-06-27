@@ -20,102 +20,6 @@ using Celeste.Mod.Entities;
 namespace Celeste.Mod.ErrandOfWednesday
 {
 
-    public class EstateRoomInfo
-    {
-        public LevelData level_data;
-        public EntityData room_data;
-
-        public int start_x;
-        public int start_y;
-
-        public bool[] entries; //lrtb
-
-        public string key;
-
-        public int room_number;
-        public string display_name;
-
-        public int selection_count;
-
-        public Sprite sprite;
-
-        public EstateRoomInfo(LevelData level_data, EntityData room_data)
-        {
-            this.level_data = level_data;
-            this.room_data = room_data;
-
-            key = level_data.Name;
-
-            selection_count = room_data.Int("selection_count",1);
-            
-            room_number = room_data.Int("number", -1);
-            display_name = Dialog.Get(room_data.Attr("name", $"eow_estate_room_{key}"));
-
-            start_x = level_data.Bounds.X;
-            start_y = level_data.Bounds.Y;
-
-            this.entries = new bool[4];
-
-            string entries_string = room_data.Attr("entries");
-            if(string.IsNullOrWhiteSpace(entries_string))
-            {
-                scan_tiles();
-            }
-            else
-            {
-                entries[0] = entries_string.Contains("l");
-                entries[1] = entries_string.Contains("r");
-                entries[2] = entries_string.Contains("t");
-                entries[3] = entries_string.Contains("b");
-            }
-            //create sprite
-
-            string sprite_name = room_data.Attr("sprite", "");
-            if(string.IsNullOrWhiteSpace(sprite_name))
-            {
-                sprite_name = "eow/estate/";
-                if( entries[0]) {sprite_name+="l";}
-                if( entries[1]) {sprite_name+="r";}
-                if (entries[2]) {sprite_name+="t";}
-                if (entries[3]) {sprite_name+="d";}
-            }
-            if(GFX.SpriteBank.Has(sprite_name))
-            {
-                sprite = GFX.SpriteBank.Create(sprite_name);
-            }
-            else
-            {
-                sprite = new Sprite(GFX.Gui, "");
-                sprite.AddLoop("idle", sprite_name, 0.08f);
-                sprite.CenterOrigin();
-            }
-            sprite.Play("idle");
-
-
-            //tags
-
-            //selection expressions
-
-        }
-
-        public void scan_tiles()
-        {
-            int w = level_data.Bounds.Width/8;
-            int h = level_data.Bounds.Height/8;
-            int w2 = w/2;
-            int h2 = h/2;
-
-            Grid grid = new(1,1,level_data.Solids);
-
-            entries[0] = !grid[w2,0];
-            entries[2] = !grid[0,h2];
-            entries[1] = !grid[w-1,h2];
-            entries[3] = !grid[w2,h-1];
-
-        }
-
-    }
-
     public class DraftMenu : Entity
     {
         public int selection = 0;
@@ -232,15 +136,22 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static Dictionary<string, EstateRoomInfo> rooms = new();
         public static HashSet<string> drafted_rooms = new();
 
+        public static int camera_margin;
         
 
         public EstateController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
-
-
+            //TODO camera boundary control
+            //TODO detect and add starting room to pool
+            //maybe have estate room entity add its own room to the pool as a backup when it loads
+            //and then maybe the estate room entity can also do the camera boundary
+            //i wonder if you can make a fake wall/dash block that just like batches up all the entities and runs all through the autotiler together somehow
+            //like essentially just make a virtualmap<char> that is a composite of all the dash blocks in the room and then pass that whole thing to the autotiler once to generate a single overlay, and then regenerate that whenever one gets removed.
         }
 
         /* Actual implementation */
+
+        public static Hook camera_target_hook;
 
         public static void unload()
         {
@@ -248,6 +159,9 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 return;
             }
+
+            camera_target_hook?.Dispose();
+            camera_target_hook = null;
 
             loaded = false;
         }
@@ -267,8 +181,6 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void try_load(Session session)
         {
-
-//TODO: restart chapter doesn't call this?????
 
             LevelData level_data = session.MapData.Get("!eow");
             if(level_data == null)
@@ -315,6 +227,9 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             room_height = data.Int("room_height");
             grid_width = data.Int("grid_width");
             grid_height = data.Int("grid_height");
+
+            camera_margin = data.Int("camera_margin", 8);
+
 
             foreach(LevelData room_data in session.MapData.Levels)
             {
@@ -386,10 +301,34 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
                
             }
 
+            camera_target_hook = new Hook(
+                typeof(Player).GetMethod("get_CameraTarget"),
+                typeof(EstateController).GetMethod("my_camera_target_hook", BindingFlags.NonPublic | BindingFlags.Static));
+
+
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
 
             loaded = true;
 
+        }
+
+        private static Vector2 my_camera_target_hook(Func<Player, Vector2> orig, Player self)
+        {
+            Vector2 result = orig(self);
+ 
+            if(self.Scene is not null)
+            {
+                Level level = (self.Scene as Level);
+                Rectangle bounds = level.Session.LevelData.Bounds;
+
+                int m = EstateController.camera_margin;
+
+                result.X = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
+                result.Y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
+
+
+            }
+            return result;
         }
 
         public static List<EstateRoomInfo> make_pool(int side)
@@ -533,8 +472,6 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
 
         public static void regenerate_tilebounds(Level level, LevelData level_data, int start_x, int start_y, int target_x, int target_y)
         {
-            //TODO save states don't move the room back but do revert the tiles
-            //TODO restart chapter needs to somehow reload the original map file
             MapData map_data = level.Session.MapData;
             int left = map_data.Bounds.Left;
             int right = map_data.Bounds.Right;
