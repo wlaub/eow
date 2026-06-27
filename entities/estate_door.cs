@@ -15,6 +15,7 @@ namespace Celeste.Mod.ErrandOfWednesday
     public class EstateDoor : Solid
     {
         public Vector2 target;
+        public TalkComponent door_handle;
 
         public MTexture[,] nineSlice;
 
@@ -26,7 +27,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             this.eid = eid;
 
-            target = data.Nodes[0]+offset;
+            target = data.Nodes[0]+offset-Position+new Vector2(8f,8f);
 
             //TODO create interaction thingy
 
@@ -48,6 +49,19 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
+        public void open_door(Player player)
+        {
+            Level level = SceneAs<Level>();
+            LevelData this_level = level.Session.LevelData;
+            EstateController.draft_room(level, this_level, side, do_open);
+        }
+
+        public void do_open()
+        {
+            //add coroutine to animate opening
+            RemoveSelf();
+        }
+
         public override void Added(Scene scene)
         {
             base.Added(scene);
@@ -55,10 +69,10 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             LevelData this_level = level.Session.LevelData;            
 
-
             float dx = (Position.X - this_level.Bounds.Left)/(this_level.Bounds.Width-Width)-0.5f;
             float dy = (Position.Y - this_level.Bounds.Top)/(this_level.Bounds.Height-Height)-0.5f;
 
+            Vector2 real_target;
 
             if(Math.Abs(dx) > Math.Abs(dy))
             {
@@ -70,6 +84,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {
                     side = 1;
                 }
+                real_target = target;
             }
             else
             {
@@ -81,9 +96,29 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {
                     side = 3;
                 }
- 
+                real_target = target+new Vector2(0,-8f);
             }
 //Logger.Log(LogLevel.Info, "eow", $"  {eid}:{side}");   
+
+            int test_x;
+            int test_y;
+            if(EstateController.get_draft_target(this_level, side, out test_x, out test_y))
+            {
+                if(level.Session.MapData.GetAt(new Vector2(test_x, test_y)) != null){
+                    RemoveSelf();
+                    return;
+                    }
+
+               
+            }
+           
+
+            Add(door_handle = new TalkComponent(
+                new Rectangle((int)real_target.X-4,(int)real_target.Y, 8, 8),
+                target, 
+                open_door
+                ));
+ 
 
         }
 

@@ -125,10 +125,13 @@ namespace Celeste.Mod.ErrandOfWednesday
         public int target_x;
         public int target_y;
 
-        public DraftMenu(List<EstateRoomInfo> pool, int target_x, int target_y)
+        public Action on_finish;
+
+        public DraftMenu(List<EstateRoomInfo> pool, int target_x, int target_y, Action on_finish=null)
         {
             this.target_x = target_x;
             this.target_y = target_y;
+            this.on_finish = on_finish;
 
             base.Tag = Tags.HUD | Tags.FrozenUpdate;
             while(options.Count < 3 && pool.Count > 0)
@@ -174,6 +177,13 @@ namespace Celeste.Mod.ErrandOfWednesday
                 yield return null;
             }
             level.Frozen = false;
+
+
+            if(on_finish is not null)
+            {
+                on_finish();
+            }
+
             RemoveSelf();
         }
 
@@ -299,8 +309,6 @@ Logger.Log(LogLevel.Debug, "eow", "Estate mode activate.");
             }
             {
 Logger.Log(LogLevel.Debug, "eow", "found existing estate state"); 
-
-
             }
 
             room_width = data.Int("room_width");
@@ -314,7 +322,7 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
                 {
                     if(entity_data.Name == "eow/EstateRoom")
                     {
-Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
+//Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
                         EstateRoomInfo info = new(room_data, entity_data);
                         rooms[info.key] = info;
                     }
@@ -325,7 +333,7 @@ Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
             foreach(EstateRoomState room_state in mod_session.estate_state.drafted_rooms.Values)
             {
                 LevelData target_data = session.MapData.Get(room_state.key);
-Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
+//Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
 
                 drafted_rooms.Add(room_state.key);
 
@@ -382,21 +390,6 @@ Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
 
             loaded = true;
 
-/*
-            //Scan for things
-            foreach(LevelData level_data in level.Session.MapData.Levels)
-            {
-                foreach(EntityData entity_data in level_data.Entities)
-                {
-                    if(entity_data.Name == name)
-                    {
-                        return true;
-                    }
-                }
-            }
-*/
-
-
         }
 
         public static List<EstateRoomInfo> make_pool(int side)
@@ -418,10 +411,8 @@ Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
         }
 
 
-        public static void draft_room(Level level, LevelData from_level, int side)
+        public static bool get_draft_target(LevelData from_level, int side, out int target_x, out int target_y)
         {
-            int target_x;
-            int target_y;
             switch(side)
             {
                 case 0:
@@ -441,7 +432,20 @@ Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
                     target_y = from_level.Bounds.Bottom;
                     break; 
                 default:
-                    return;
+                    target_x=0;
+                    target_y=0;
+                    return false;
+            }
+            return true;
+        }
+
+        public static void draft_room(Level level, LevelData from_level, int side, Action on_finish = null)
+        {
+            int target_x;
+            int target_y;
+            if(!EstateController.get_draft_target(from_level, side, out target_x, out target_y))
+            {
+                return;
             }
 
             if(level.Session.MapData.GetAt(new Vector2(target_x, target_y)) != null){return;}
@@ -459,18 +463,18 @@ Logger.Log(LogLevel.Info, "eow", $"side={side}");
             EstateRoomInfo draft = Calc.Random.Choose(pool);
 Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
 
-            level.Add(new DraftMenu(pool, target_x, target_y));
+            level.Add(new DraftMenu(pool, target_x, target_y, on_finish));
         }
 
         public static void save_room_state(string key, int xstart, int ystart, int xpos, int ypos)
         {
-Logger.Log(LogLevel.Info, "eow", $"doing the room save"); 
+//Logger.Log(LogLevel.Info, "eow", $"doing the room save"); 
             ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
-Logger.Log(LogLevel.Info, "eow", $"mod session {mod_session}"); 
+//Logger.Log(LogLevel.Info, "eow", $"mod session {mod_session}"); 
             if(mod_session.estate_state is null)
             {
                 mod_session.estate_state = new();
-Logger.Log(LogLevel.Info, "eow", "did  not found state???"); 
+//Logger.Log(LogLevel.Info, "eow", "did  not found state???"); 
             }
             {
 
