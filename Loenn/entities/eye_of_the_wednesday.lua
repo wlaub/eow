@@ -24,6 +24,7 @@ dyno.placements = {
             forehead_flag = "",
             forehead_distance = 13,
             show_hitbox_flag = "",
+            stage_mirror_enable = false,
         }
     }
 }

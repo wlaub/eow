@@ -128,21 +128,21 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
-	public override void Render()
-	{
-		float num = base.Collider.Width / 8f - 1f;
-		float num2 = base.Collider.Height / 8f - 1f;
-		for (int i = 0; (float)i <= num; i++)
-		{
-			for (int j = 0; (float)j <= num2; j++)
-			{
-				int num3 = (((float)i < num) ? Math.Min(i, 1) : 2);
-				int num4 = (((float)j < num2) ? Math.Min(j, 1) : 2);
-				nineSlice[num3, num4].Draw(Position + base.Shake + new Vector2(i * 8, j * 8));
-			}
-		}
-		base.Render();
-	}
+        public override void Render()
+        {
+            float num = base.Collider.Width / 8f - 1f;
+            float num2 = base.Collider.Height / 8f - 1f;
+            for (int i = 0; (float)i <= num; i++)
+            {
+                for (int j = 0; (float)j <= num2; j++)
+                {
+                    int num3 = (((float)i < num) ? Math.Min(i, 1) : 2);
+                    int num4 = (((float)j < num2) ? Math.Min(j, 1) : 2);
+                    nineSlice[num3, num4].Draw(Position + base.Shake + new Vector2(i * 8, j * 8));
+                }
+            }
+            base.Render();
+        }
 
     }
 }

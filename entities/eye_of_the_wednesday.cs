@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Monocle;
 
@@ -33,6 +34,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static bool loaded = false;
         public static ILHook bird_hook;
+        public static ILHook stage_mirror_hook;
+
 
 
         public static bool guitar_hands_enabled = false;
@@ -102,6 +105,11 @@ namespace Celeste.Mod.ErrandOfWednesday
                 bird_hook.Dispose();
                 bird_hook = null;
                 On.Celeste.CS00_Ending.ctor -= bird_once;
+            }
+            if(stage_mirror_hook != null)
+            {
+                stage_mirror_hook.Dispose();
+                stage_mirror_hook = null;
             }
             if(guitar_hands_enabled)
             {
@@ -240,6 +248,11 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                     forehead_enabled = true;
                 }
             }
+            if(data.Bool("stage_mirror_enable", false))
+            {
+                enable_stage_mirror();
+            }
+ 
 
             string hitbox_flag = data.Attr("show_hitbox_flag", "");
             if(!string.IsNullOrWhiteSpace(hitbox_flag))
@@ -356,6 +369,53 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 return;
             }
         } 
+
+
+        public static void enable_stage_mirror()
+        {
+            if(stage_mirror_hook == null)
+            {
+                stage_mirror_hook = new ILHook(
+                    typeof(Level).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
+                    stage_mirror_render_bullshit
+                    );
+            }
+        }
+
+
+        public static void stage_mirror_render_bullshit(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //Intercept the draw call
+            if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt<SpriteBatch>("Draw")))
+            {
+                cursor.Next.OpCode = OpCodes.Call;
+                cursor.Next.Operand = typeof(EyeOfTheWednesday).GetMethod("stage_mirror_draw");
+
+                Logger.Log(LogLevel.Warn, "eow", $"stage mirror enabled");
+            }
+             else
+            {
+                Logger.Log(LogLevel.Warn, "eow", $"Couldn't find opcode to stage mirror.");
+                return;
+            }
+ 
+        }
+
+        public static void stage_mirror_draw(SpriteBatch sb, RenderTarget2D texture, Vector2 position, Rectangle? buffer_bounds, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float depth)
+        {
+            sb.Draw(texture, position, buffer_bounds, color, rotation,
+                origin, scale, effects, depth);
+
+            SpriteEffects mirror_effect = effects == SpriteEffects.None ? SpriteEffects.FlipHorizontally : SpriteEffects.None; 
+            
+            Rectangle bb = buffer_bounds.Value;
+            Rectangle mirror_bounds = new Rectangle(bb.Width/2,0,bb.Width, bb.Height-128);
+            sb.Draw(texture, position+new Vector2(-bb.Width/2,0), mirror_bounds, color, rotation,
+                origin, scale, mirror_effect, depth);
+
+        }
 
         public static void forehead(ILContext il)
         {
