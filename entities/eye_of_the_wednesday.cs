@@ -388,12 +388,17 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             ILCursor cursor = new ILCursor(il);
 
             //Intercept the draw call
-            if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt<SpriteBatch>("Draw")))
+            if (cursor.TryGotoNext(MoveType.Before, 
+                instr => instr.MatchLdnull(),
+                instr => instr.MatchCallvirt<GraphicsDevice>("SetRenderTarget")
+                ))
             {
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Next.OpCode = OpCodes.Call;
-                cursor.Next.Operand = typeof(EyeOfTheWednesday).GetMethod("stage_mirror_draw");
 
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Action<Level>>((level) => {
+                    stage_mirror_draw(level);
+                    });
+ 
                 Logger.Log(LogLevel.Warn, "eow", $"stage mirror enabled");
             }
              else
@@ -404,18 +409,22 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
  
         }
 
-        public static void stage_mirror_draw(SpriteBatch sb, RenderTarget2D texture, Vector2 position, Rectangle? buffer_bounds, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float depth, Level level)
+        public static void stage_mirror_draw(Level level)
         {
-            sb.Draw(texture, position, buffer_bounds, color, rotation, origin, scale, effects, depth);
-            sb.End();
+            /* this is the only way the author of dreamjellyfish could imagine doing this, which is better than i could manage */
+            SpriteBatch sb = Draw.SpriteBatch;
 
-            SpriteEffects mirror_effect = effects == SpriteEffects.None ? SpriteEffects.FlipHorizontally : SpriteEffects.None; 
-            
             float world_x = 272;
             float world_top = 0;
             float world_bot = 32;
 
-            Rectangle bb = buffer_bounds.Value;
+            world_x = 184;
+            world_bot = 64;
+            world_top = 32;
+//            world_top = level.Bounds.Top;
+//            world_bot = level.Bounds.Bottom;
+
+            Rectangle bb = GameplayBuffers.Level.Bounds;
             int xoff = bb.Width-32;
             int ytop = 64;
             int ybot;
@@ -423,33 +432,127 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             ytop = (int)(world_top - level.Camera.Position.Y);
             ybot = (int)(world_bot - level.Camera.Position.Y);
 
+            int stop = (int)(level.Bounds.Top - level.Camera.Position.Y);
+            int sbot = (int)(level.Bounds.Bottom - level.Camera.Position.Y);
+
 
             RenderTarget2D mask = new(sb.GraphicsDevice, bb.Width, bb.Height);
             sb.GraphicsDevice.SetRenderTarget(mask);
-//            sb.GraphicsDevice.SetRenderTarget(null);
             sb.GraphicsDevice.Clear(Color.Transparent);
 
-            //Full Extendo
-//            Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),0,bb.Width, bb.Height);
-//            sb.Draw(texture, position, mirror_bounds, color, rotation, origin, scale, mirror_effect, depth);
 
-            //Extendo
+            int ytop2 = level.Bounds.Top;
+            int ybot2 = level.Bounds.Bottom;
+            int xedge = level.Bounds.Left;
+            Player player = level.Tracker.GetEntity<Player>();
+            if(player != null)
+            {
+                if(player.Left > world_x)
+                {
+                    float xeye = player.Left;
+                    float yeye = player.Top;
+                    float dx = xeye-world_x;
+                    float ddx = xeye-level.Bounds.Left;
+                    ytop2 = (int)(world_top+(world_top-yeye)*ddx/dx);
+                    ybot2 = (int)(world_bot+(world_bot-yeye)*ddx/dx);
+                    xedge = level.Bounds.Left;
+                }
+                else if(player.Right < world_x)
+                {
+                    float xeye = player.Left;
+                    float yeye = player.Top;
+                    float dx = world_x-xeye;
+                    float ddx = level.Bounds.Right - xeye;
+                    ytop2 = (int)(world_top+(world_top-yeye)*ddx/dx);
+                    ybot2 = (int)(world_bot+(world_bot-yeye)*ddx/dx);
+                    xedge = level.Bounds.Right;
+                }
+            }
 
-            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, ColorGrade.Effect, Engine.ScreenMatrix);
-            Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),ytop,bb.Width, ybot-ytop);
-            sb.Draw(texture, position+new Vector2(0,ytop), mirror_bounds, color, rotation, origin, scale, mirror_effect, depth);
+
+
+            VertexPositionColor[] verts = new VertexPositionColor[6];
+
+            verts[0].Position = new Vector3(world_x, world_top, 0f);
+            verts[1].Position = new Vector3(world_x, world_bot, 0f);
+            verts[2].Position = new Vector3(xedge, ytop2, 0f);
+
+            verts[3].Position = new Vector3(xedge, ybot2, 0f);
+            verts[4].Position = new Vector3(xedge, ytop2, 0f);
+            verts[5].Position = new Vector3(world_x, world_bot, 0f);
+ 
+            verts[0].Color = Color.White;
+            verts[1].Color = Color.White;
+            verts[2].Color = Color.White;
+            verts[3].Color = Color.White;
+            verts[4].Color = Color.White;
+            verts[5].Color = Color.White;
+
+
+            GFX.DrawVertices(level.Camera.Matrix, verts, 6, null, null);
+
+            BlendState mask_blend = new();
+            mask_blend.ColorSourceBlend = Blend.DestinationAlpha;
+            mask_blend.ColorDestinationBlend = Blend.Zero;
+
+            mask_blend.AlphaSourceBlend = Blend.Zero;
+            mask_blend.AlphaDestinationBlend = Blend.One;
+            mask_blend.AlphaBlendFunction = BlendFunction.Add;
+
+            sb.Begin(SpriteSortMode.Deferred, mask_blend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
+
+            Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),stop,bb.Width, sbot-stop);
+            sb.Draw(GameplayBuffers.Level, new Vector2(0,stop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
             sb.End();
-            //Finite
-//            Rectangle mirror_bounds = new Rectangle(0,ytop,bb.Width, ybot-ytop);
-//            sb.Draw(texture, position+new Vector2(bb.Width - 2*(bb.Width-xoff),ytop), mirror_bounds, color, rotation, origin, scale, mirror_effect, depth);
-
-            sb.GraphicsDevice.SetRenderTarget(null);
-            Matrix matrix = Matrix.CreateScale(6f) * Engine.ScreenMatrix;
-            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, ColorGrade.Effect, matrix);
-            sb.Draw(texture, position, buffer_bounds, color, rotation, origin, scale, effects, depth);
 
 
-//            sb.Draw(mask, position, buffer_bounds, color, rotation, origin, scale, SpriteEffects.None, depth);
+
+/*
+
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
+            Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),ytop,bb.Width, ybot-ytop);
+            sb.Draw(GameplayBuffers.Level, new Vector2(0,ytop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
+            sb.End();
+
+            BlendState mask_blend = new();
+            mask_blend.ColorSourceBlend = Blend.Zero;
+            mask_blend.ColorDestinationBlend = Blend.SourceAlpha;
+
+            mask_blend.AlphaSourceBlend = Blend.One;
+            mask_blend.AlphaDestinationBlend = Blend.Zero;
+            mask_blend.AlphaBlendFunction = BlendFunction.Add;
+//            mask_blend
+
+            VertexPositionColor[] verts = new VertexPositionColor[4];
+
+            verts[0].Position = new Vector3(world_x, world_top, 0f);
+            verts[1].Position = new Vector3(world_x, world_bot, 0f);
+            verts[2].Position = new Vector3(world_x-20, world_bot, 0f);
+            verts[3].Position = new Vector3(world_x-20, world_top, 0f);
+
+            verts[0].Color = Color.White;
+            verts[1].Color = Color.White;
+            verts[2].Color = Color.White;
+            verts[3].Color = Color.White;
+
+
+            GFX.DrawVertices(level.Camera.Matrix, verts, 4, null, mask_blend);
+
+            sb.Begin(SpriteSortMode.Deferred, mask_blend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
+//            sb.Draw(GameplayBuffers.Level, new Vector2(0,ytop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
+            Draw.Rect(xoff,ytop,200,200,Color.White);
+            Draw.Rect(xoff,ybot-32,200,200,Color.Transparent);
+
+
+            sb.End();
+*/
+            sb.GraphicsDevice.SetRenderTarget(GameplayBuffers.Level);
+ 
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
+            sb.Draw(mask, Vector2.Zero, bb, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0);
+            Draw.Line(new Vector2(xoff, ytop), new Vector2(xoff, ybot), Color.Black);
+            sb.End(); 
+
         }
 
         public static void forehead(ILContext il)
