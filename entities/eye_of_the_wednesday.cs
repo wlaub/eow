@@ -414,6 +414,9 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             /* this is the only way the author of dreamjellyfish could imagine doing this, which is better than i could manage */
             SpriteBatch sb = Draw.SpriteBatch;
 
+            foreach (StageMirror mirror in level.Tracker.GetEntities<StageMirror>())
+            {
+
             float world_x = 272;
             float world_top = 0;
             float world_bot = 32;
@@ -421,6 +424,11 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             world_x = 184;
             world_bot = 64;
             world_top = 32;
+
+            world_x = mirror.Center.X;
+            world_top = mirror.Top;
+            world_bot = mirror.Bottom;
+
 //            world_top = level.Bounds.Top;
 //            world_bot = level.Bounds.Bottom;
 
@@ -538,6 +546,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             }
             Draw.Line(new Vector2(xoff, ytop), new Vector2(xoff, ybot), Color.Black, 2f);
             sb.End(); 
+
+            }
 
         }
 
