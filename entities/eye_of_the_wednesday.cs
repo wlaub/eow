@@ -436,21 +436,17 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             int sbot = (int)(level.Bounds.Bottom - level.Camera.Position.Y);
 
 
-            RenderTarget2D mask = new(sb.GraphicsDevice, bb.Width, bb.Height);
-            sb.GraphicsDevice.SetRenderTarget(mask);
-            sb.GraphicsDevice.Clear(Color.Transparent);
-
-
-            int ytop2 = level.Bounds.Top;
-            int ybot2 = level.Bounds.Bottom;
+            bool no_draw = false;
+            float ytop2 = level.Bounds.Top;
+            float ybot2 = level.Bounds.Bottom;
             int xedge = level.Bounds.Left;
             Player player = level.Tracker.GetEntity<Player>();
             if(player != null)
             {
+                float yeye = player.Top;
                 if(player.Left > world_x)
                 {
                     float xeye = player.Left;
-                    float yeye = player.Top;
                     float dx = xeye-world_x;
                     float ddx = xeye-level.Bounds.Left;
                     ytop2 = (int)(world_top+(world_top-yeye)*ddx/dx);
@@ -459,98 +455,88 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 }
                 else if(player.Right < world_x)
                 {
-                    float xeye = player.Left;
-                    float yeye = player.Top;
+                    float xeye = player.Right;
                     float dx = world_x-xeye;
                     float ddx = level.Bounds.Right - xeye;
                     ytop2 = (int)(world_top+(world_top-yeye)*ddx/dx);
                     ybot2 = (int)(world_bot+(world_bot-yeye)*ddx/dx);
                     xedge = level.Bounds.Right;
                 }
+                else if (yeye >= world_top && yeye <= world_bot)
+                {
+                    if(player.Center.X < world_x)
+                    {
+                         xedge = level.Bounds.Right;
+                         ytop2 = world_top = level.Bounds.Top;
+                         ybot2 = world_bot = level.Bounds.Bottom;
+                    }
+                    else
+                    {
+                         xedge = level.Bounds.Left;
+                         ytop2 = world_top = level.Bounds.Top;
+                         ybot2 = world_bot = level.Bounds.Bottom;
+                    }
+                }
+                else
+                {
+                    no_draw = true;
+                } 
             }
 
-
-
-            VertexPositionColor[] verts = new VertexPositionColor[6];
-
-            verts[0].Position = new Vector3(world_x, world_top, 0f);
-            verts[1].Position = new Vector3(world_x, world_bot, 0f);
-            verts[2].Position = new Vector3(xedge, ytop2, 0f);
-
-            verts[3].Position = new Vector3(xedge, ybot2, 0f);
-            verts[4].Position = new Vector3(xedge, ytop2, 0f);
-            verts[5].Position = new Vector3(world_x, world_bot, 0f);
- 
-            verts[0].Color = Color.White;
-            verts[1].Color = Color.White;
-            verts[2].Color = Color.White;
-            verts[3].Color = Color.White;
-            verts[4].Color = Color.White;
-            verts[5].Color = Color.White;
-
-
-            GFX.DrawVertices(level.Camera.Matrix, verts, 6, null, null);
-
-            BlendState mask_blend = new();
-            mask_blend.ColorSourceBlend = Blend.DestinationAlpha;
-            mask_blend.ColorDestinationBlend = Blend.Zero;
-
-            mask_blend.AlphaSourceBlend = Blend.Zero;
-            mask_blend.AlphaDestinationBlend = Blend.One;
-            mask_blend.AlphaBlendFunction = BlendFunction.Add;
-
-            sb.Begin(SpriteSortMode.Deferred, mask_blend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
-
-            Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),stop,bb.Width, sbot-stop);
-            sb.Draw(GameplayBuffers.Level, new Vector2(0,stop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
-            sb.End();
+            RenderTarget2D mask = null;
+            if(!no_draw)
+            {
+                mask = new(sb.GraphicsDevice, bb.Width, bb.Height);
+                sb.GraphicsDevice.SetRenderTarget(mask);
+                sb.GraphicsDevice.Clear(Color.Transparent);
 
 
 
-/*
+                VertexPositionColor[] verts = new VertexPositionColor[6];
 
-            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
-            Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),ytop,bb.Width, ybot-ytop);
-            sb.Draw(GameplayBuffers.Level, new Vector2(0,ytop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
-            sb.End();
+                verts[0].Position = new Vector3(world_x, world_top, 0f);
+                verts[1].Position = new Vector3(world_x, world_bot, 0f);
+                verts[2].Position = new Vector3(xedge, ytop2, 0f);
 
-            BlendState mask_blend = new();
-            mask_blend.ColorSourceBlend = Blend.Zero;
-            mask_blend.ColorDestinationBlend = Blend.SourceAlpha;
-
-            mask_blend.AlphaSourceBlend = Blend.One;
-            mask_blend.AlphaDestinationBlend = Blend.Zero;
-            mask_blend.AlphaBlendFunction = BlendFunction.Add;
-//            mask_blend
-
-            VertexPositionColor[] verts = new VertexPositionColor[4];
-
-            verts[0].Position = new Vector3(world_x, world_top, 0f);
-            verts[1].Position = new Vector3(world_x, world_bot, 0f);
-            verts[2].Position = new Vector3(world_x-20, world_bot, 0f);
-            verts[3].Position = new Vector3(world_x-20, world_top, 0f);
-
-            verts[0].Color = Color.White;
-            verts[1].Color = Color.White;
-            verts[2].Color = Color.White;
-            verts[3].Color = Color.White;
+                verts[3].Position = new Vector3(xedge, ybot2, 0f);
+                verts[4].Position = new Vector3(xedge, ytop2, 0f);
+                verts[5].Position = new Vector3(world_x, world_bot, 0f);
+     
+                verts[0].Color = Color.White;
+                verts[1].Color = Color.White;
+                verts[2].Color = Color.White;
+                verts[3].Color = Color.White;
+                verts[4].Color = Color.White;
+                verts[5].Color = Color.White;
 
 
-            GFX.DrawVertices(level.Camera.Matrix, verts, 4, null, mask_blend);
+                GFX.DrawVertices(level.Camera.Matrix, verts, 6, null, null);
 
-            sb.Begin(SpriteSortMode.Deferred, mask_blend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
-//            sb.Draw(GameplayBuffers.Level, new Vector2(0,ytop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
-            Draw.Rect(xoff,ytop,200,200,Color.White);
-            Draw.Rect(xoff,ybot-32,200,200,Color.Transparent);
+                BlendState mask_blend = new();
+                mask_blend.ColorSourceBlend = Blend.DestinationAlpha;
+                mask_blend.ColorDestinationBlend = Blend.Zero;
+
+                mask_blend.AlphaSourceBlend = Blend.Zero;
+                mask_blend.AlphaDestinationBlend = Blend.One;
+                mask_blend.AlphaBlendFunction = BlendFunction.Add;
+
+                sb.Begin(SpriteSortMode.Deferred, mask_blend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
+
+                Rectangle mirror_bounds = new Rectangle(-(bb.Width-2*xoff),stop,bb.Width, sbot-stop);
+                sb.Draw(GameplayBuffers.Level, new Vector2(0,stop), mirror_bounds, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0);
+                sb.End();
 
 
-            sb.End();
-*/
+            }
+
             sb.GraphicsDevice.SetRenderTarget(GameplayBuffers.Level);
  
             sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
-            sb.Draw(mask, Vector2.Zero, bb, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0);
-            Draw.Line(new Vector2(xoff, ytop), new Vector2(xoff, ybot), Color.Black);
+            if(!no_draw)
+            {
+                sb.Draw(mask, Vector2.Zero, bb, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0);
+            }
+            Draw.Line(new Vector2(xoff, ytop), new Vector2(xoff, ybot), Color.Black, 2f);
             sb.End(); 
 
         }
