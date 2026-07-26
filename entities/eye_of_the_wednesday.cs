@@ -414,6 +414,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             /* this is the only way the author of dreamjellyfish could imagine doing this, which is better than i could manage */
             SpriteBatch sb = Draw.SpriteBatch;
 
+            //TODO you have to sort by distant to player if you want more than 1 to work right
             foreach (StageMirror mirror in level.Tracker.GetEntities<StageMirror>())
             {
 
