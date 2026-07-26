@@ -473,7 +473,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 }
                 else if (yeye >= world_top && yeye <= world_bot)
                 {
-                    if(player.Center.X < world_x)
+//                    if(player.Center.X < world_x) // wrong because it can fall out of sync with mirror.was_left and flip sides before the mirror event happens
+                    if(mirror.was_left)
                     {
                          xedge = level.Bounds.Right;
                          ytop2 = world_top = level.Bounds.Top;
