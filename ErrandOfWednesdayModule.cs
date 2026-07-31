@@ -248,19 +248,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 #endif
         }
 
-        public override void Load() {
-            On.Celeste.Lookout.Update += lookout_stop;
-            On.Monocle.Engine.Update += Update;
-
-            On.Celeste.LevelLoader.ctor += level_loader_constructor;
-            Everest.Events.Level.OnLoadLevel += on_load_level;
-            Everest.Events.Level.OnExit += on_exit_hook;
-            Everest.Events.Level.OnTransitionTo += transition_hook;
-
-            AxisParallax.load();
-
-            typeof(GravityHelperImports).ModInterop();
-
+        public override void Initialize() {
             typeof(FrostHelperImports).ModInterop();
             FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow","followers", 
                         (session) => 
@@ -275,6 +263,22 @@ namespace Celeste.Mod.ErrandOfWednesday {
                                 return 0;
                             }
                         });
+
+
+        }
+
+        public override void Load() {
+            On.Celeste.Lookout.Update += lookout_stop;
+            On.Monocle.Engine.Update += Update;
+
+            On.Celeste.LevelLoader.ctor += level_loader_constructor;
+            Everest.Events.Level.OnLoadLevel += on_load_level;
+            Everest.Events.Level.OnExit += on_exit_hook;
+            Everest.Events.Level.OnTransitionTo += transition_hook;
+
+            AxisParallax.load();
+
+            typeof(GravityHelperImports).ModInterop();
 
 //            VergeBlock.Load();
         }
