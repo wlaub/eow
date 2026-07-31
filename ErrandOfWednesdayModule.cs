@@ -23,6 +23,14 @@ namespace Celeste.Mod.ErrandOfWednesday {
             public static Func<int> GetPlayerGravity;
     }
 
+    [ModImportName("FrostHelper")]
+    public static class FrostHelperImports 
+    {
+        public static Action<string, string, Func<Session, object>> RegisterSimpleSessionExpressionCommand;
+    }
+
+
+
     public class InvisibleHitbox : Hitbox
     {
         public InvisibleHitbox(float width, float height, float x=0f, float y=0f) : base(width, height, x, y)
@@ -252,6 +260,21 @@ namespace Celeste.Mod.ErrandOfWednesday {
             AxisParallax.load();
 
             typeof(GravityHelperImports).ModInterop();
+
+            typeof(FrostHelperImports).ModInterop();
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow","followers", 
+                        (session) => 
+                        {
+                            Player player = Engine.Scene.Tracker.GetEntity<Player>();
+                            if(player != null)
+                            {
+                                return player.Leader.Followers.Count;
+                            }
+                            else
+                            {
+                                return 0;
+                            }
+                        });
 
 //            VergeBlock.Load();
         }
