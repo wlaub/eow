@@ -60,6 +60,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static string show_hitbox_flag;
         public static bool show_hitbox_flag_inverted;
 
+        public static bool lore_enabled = false;
+
         public static bool is_riding_hook(On.Celeste.Player.orig_IsRiding_Solid orig, Player self, Solid solid)
         {
             if(orig(self, solid)) 
@@ -251,6 +253,10 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(data.Bool("stage_mirror_enable", false))
             {
                 enable_stage_mirror();
+            }
+            if(data.Bool("lore_enable", true))
+            {
+                enable_lore();
             }
  
 
@@ -635,9 +641,40 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             hitbox_flag_loaded = false;
         }
 
+        public static void enable_lore()
+        {
+            if(lore_enabled) return;
+            On.Celeste.TheoCrystal.Die+=lore_die_hook;
+            lore_enabled = true;
+        }
 
+        public static void unload_lore()
+        {
+            if(!lore_enabled) return;
+            On.Celeste.TheoCrystal.Die-=lore_die_hook;
+            lore_enabled = false;
+        }
 
+        public static void lore_die_hook(On.Celeste.TheoCrystal.orig_Die orig, TheoCrystal self)
+        {
+            if(!(self is LoreOre))
+            {
+                orig(self);
+            }
+            else if (!self.dead)
+            {
+                self.dead = true;
+                //TODO don't do this on transition
+                Audio.Play("event:/game/05_mirror_temple/crystaltheo_break_free", self.Position);
+                self.Add(new DeathEffect(Color.Orange, self.Center - self.Position));
+                self.sprite.Visible = false;
+                self.Depth = -1000000;
+                self.AllowPushing = false;
 
+                //TODO after animation
+                self.RemoveSelf();
+            }            
+        }
 
  
     }
