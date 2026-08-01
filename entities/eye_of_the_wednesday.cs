@@ -663,7 +663,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             }
             else if (!self.dead)
             {
-                self.dead = true;
+                (self as LoreOre).die();
+/*                self.dead = true;
                 //TODO don't do this on transition
                 Audio.Play("event:/game/05_mirror_temple/crystaltheo_break_free", self.Position);
                 self.Add(new DeathEffect(Color.Orange, self.Center - self.Position));
@@ -672,7 +673,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 self.AllowPushing = false;
 
                 //TODO after animation
-                self.RemoveSelf();
+                self.RemoveSelf();*/
             }            
         }
 

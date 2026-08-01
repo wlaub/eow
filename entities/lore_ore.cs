@@ -140,8 +140,13 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             Tag -= Tags.TransitionUpdate;
 
-//            Remove(sprite);
-//            Add(sprite = GFX.SpriteBank.Create("lore_ore"));
+            Sprite new_sprite = GFX.SpriteBank.Create("lore_ore");
+
+            if(new_sprite != null)
+            {
+                Remove(sprite);
+                Add(sprite = new_sprite);
+            }
         }
 
         public override void Update()
@@ -181,6 +186,21 @@ namespace Celeste.Mod.ErrandOfWednesday
         public void crack()
         {
             Audio.Play("event:/game/09_core/iceball_break", Position);
+        }
+
+        public void die()
+        {
+                dead = true;
+                Audio.Play("event:/game/05_mirror_temple/crystaltheo_break_free", Position);
+                sprite.Play("shatter");
+                AllowPushing = false;
+                Collidable=false;
+
+                sprite.OnLastFrame = delegate(string anim)
+                {
+                    RemoveSelf();
+                }               ;
+ 
         }
 
         new public void OnCollideV(CollisionData data)
