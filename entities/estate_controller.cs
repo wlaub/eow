@@ -172,7 +172,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             //e_right_of()
             //e_above_of()
             //e_below_of()
-
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_pool_depth",
+                (session) =>
+                {
+                    return drafting_context.pool_depth;
+                }
+                );
+ 
 
 /*            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow","followers", 
                         (session) => 
@@ -373,40 +379,44 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
         public static DraftingContext drafting_context = null;
 
+
         public static List<EstateRoomInfo> make_pool(int side, Session session)
         {
             List<EstateRoomInfo> pool = new();
 
-            foreach(EstateRoomInfo info in rooms.Values)
+            while(pool.Count == 0 && drafting_context.pool_depth < 3)
             {
-                if(info.entries[side] && !drafted_rooms.Contains(info.key))
+                foreach(EstateRoomInfo info in rooms.Values)
                 {
-                    float selection_count = info.selection_count;
-                    if(info.session_expression != null)
+                    if(info.entries[side] && !drafted_rooms.Contains(info.key))
                     {
-                        object result = FrostHelperImports.GetSessionExpressionValue?.Invoke(info.session_expression, session);
-Logger.Log(LogLevel.Info, "eow", $"{info.selection_expression}: {result}");
-                        if(result is int)
+                        float selection_count = info.selection_count;
+                        if(info.session_expression != null)
                         {
-                            selection_count *= (int)result;
+                            object result = FrostHelperImports.GetSessionExpressionValue?.Invoke(info.session_expression, session);
+    Logger.Log(LogLevel.Info, "eow", $"{info.selection_expression}: {result}");
+                            if(result is int)
+                            {
+                                selection_count *= (int)result;
+                            }
+                            else if(result is float)
+                            {
+                                selection_count *= (float)result;
+                            }
+                            else if(result is bool && !(bool)result)
+                            {
+                                selection_count = 0;
+                            }
                         }
-                        else if(result is float)
-                        {
-                            selection_count *= (float)result;
-                        }
-                        else if(result is bool && !(bool)result)
-                        {
-                            selection_count = 0;
-                        }
-                    }
 
-                    for(int i = 0; i < selection_count; ++i)
-                    {
-                        pool.Add(info);
+                        for(int i = 0; i < selection_count; ++i)
+                        {
+                            pool.Add(info);
+                        }
                     }
                 }
+                ++drafting_context.pool_depth;
             }
-
             return pool;
         }
 
@@ -440,6 +450,7 @@ Logger.Log(LogLevel.Info, "eow", $"{info.selection_expression}: {result}");
         }
 
     public class DraftingContext{
+        public int pool_depth = 0;
         public LevelData from_level;
         public int side;
         //TODO from grid pos
