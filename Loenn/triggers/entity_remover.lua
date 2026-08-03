@@ -14,6 +14,7 @@ entityRemover.placements = {
             invert = false,
             on_load = false,
             remove_player = false,
+            remove_entities_inside = false,
         },
     },
 } 

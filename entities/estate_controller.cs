@@ -122,6 +122,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
     }
 
+
+
     [Tracked]
     [CustomEntity("eow/EstateController")]
     public class EstateController : Entity
@@ -137,7 +139,6 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static HashSet<string> drafted_rooms = new();
 
         public static int camera_margin;
-        
 
         public EstateController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
@@ -148,6 +149,46 @@ namespace Celeste.Mod.ErrandOfWednesday
         /* Actual implementation */
 
         public static Hook camera_target_hook;
+
+        public static void register_commands()
+        {
+            FrostHelperImports.RegisterFunctionSessionExpressionCommand?.Invoke("eow", "e_from",
+                (session, args) =>
+                {
+                    return (string)args[0] == drafting_context.from_level.Name ? 1:0;
+                }
+                );
+            FrostHelperImports.RegisterFunctionSessionExpressionCommand?.Invoke("eow", "e_drafted",
+                (session, args) =>
+                {
+                    return drafted_rooms.Contains((string)args[0])?1:0;
+                }
+                );
+            //e_top_row
+            //e_bottom_row
+            //e_left_col
+            //e_right_col
+            //e_left_of()
+            //e_right_of()
+            //e_above_of()
+            //e_below_of()
+
+
+/*            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow","followers", 
+                        (session) => 
+                        {
+                            Player player = Engine.Scene.Tracker.GetEntity<Player>();
+                            if(player != null)
+                            {
+                                return player.Leader.Followers.Count;
+                            }
+                            else
+                            {
+                                return 0;
+                            }
+                        });*/
+ 
+        }
 
         public static void unload()
         {
@@ -224,9 +265,10 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             grid_width = data.Int("grid_width");
             grid_height = data.Int("grid_height");
 
-            camera_margin = data.Int("camera_margin", 8);
+            camera_margin = data.Int("camera_margin", 16);
 
 
+            int[] e = {0,0,0,0};
             foreach(LevelData room_data in session.MapData.Levels)
             {
                 foreach(EntityData entity_data in room_data.Entities)
@@ -236,10 +278,14 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 //Logger.Log(LogLevel.Info, "eow", $"loading room {room_data.Name}");
                         EstateRoomInfo info = new(room_data, entity_data);
                         rooms[info.key] = info;
+                        for(int i = 0; i < 4; ++i)
+                            e[i] += info.entries[i]?1:0; 
                     }
                 }
                
             }
+
+Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
             foreach(EstateRoomState room_state in mod_session.estate_state.drafted_rooms.Values)
             {
@@ -325,7 +371,9 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             return result;
         }
 
-        public static List<EstateRoomInfo> make_pool(int side)
+        public static DraftingContext drafting_context = null;
+
+        public static List<EstateRoomInfo> make_pool(int side, Session session)
         {
             List<EstateRoomInfo> pool = new();
 
@@ -333,7 +381,26 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             {
                 if(info.entries[side] && !drafted_rooms.Contains(info.key))
                 {
-                    for(int i = 0; i < info.selection_count; ++i)
+                    float selection_count = info.selection_count;
+                    if(info.session_expression != null)
+                    {
+                        object result = FrostHelperImports.GetSessionExpressionValue?.Invoke(info.session_expression, session);
+Logger.Log(LogLevel.Info, "eow", $"{info.selection_expression}: {result}");
+                        if(result is int)
+                        {
+                            selection_count *= (int)result;
+                        }
+                        else if(result is float)
+                        {
+                            selection_count *= (float)result;
+                        }
+                        else if(result is bool && !(bool)result)
+                        {
+                            selection_count = 0;
+                        }
+                    }
+
+                    for(int i = 0; i < selection_count; ++i)
                     {
                         pool.Add(info);
                     }
@@ -372,6 +439,17 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             return true;
         }
 
+    public class DraftingContext{
+        public LevelData from_level;
+        public int side;
+        //TODO from grid pos
+        //TODO to grid pos
+        //TODO left, right, above, below rooms
+        //TODO top row, bottom row, left side, right side?
+        };
+
+
+
         public static void draft_room(Level level, LevelData from_level, int side, Action on_finish = null)
         {
             int target_x;
@@ -381,9 +459,13 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
                 return;
             }
 
+            drafting_context = new();
+            drafting_context.from_level = from_level;
+            drafting_context.side = side;
+
             if(level.Session.MapData.GetAt(new Vector2(target_x, target_y)) != null){return;}
 
-            List<EstateRoomInfo> pool = EstateController.make_pool(side);
+            List<EstateRoomInfo> pool = EstateController.make_pool(side, level.Session);
 
             if(pool.Count == 0){return;}
 

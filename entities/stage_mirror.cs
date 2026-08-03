@@ -17,6 +17,8 @@ namespace Celeste.Mod.ErrandOfWednesday
     {
         public bool was_left;
 
+        //TODO make persistent
+
         public StageMirror(EntityData data, Vector2 offset) : base(data.Position + offset, data.Width, data.Height, safe:false)
         {
             Collidable=false;

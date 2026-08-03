@@ -89,6 +89,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public int health;
         public string contents;
 
+        //TODO make named instance damager persistent
+
         public Vector2 lorientation; //front side, left side
         /* front: left, bottom, right, top
         F:aF[]

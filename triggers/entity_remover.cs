@@ -24,8 +24,11 @@ namespace Celeste.Mod.ErrandOfWednesday
         public List<Entity> targets;
 
         public string type_filter;
+        public HashSet<string> type_filters;
 
         public bool triggered = false;
+        public bool remove_entities_inside = false;
+        public bool remove_held_entities;
 
         public EntityRemover (EntityData data, Vector2 offset) : base(data, offset)
         {
@@ -36,9 +39,43 @@ namespace Celeste.Mod.ErrandOfWednesday
             remove_player = data.Bool("remove_player", false);
 
             type_filter = data.Attr("type_filter", "");
+            type_filters = new();
+            if(!String.IsNullOrWhiteSpace(type_filter))
+            {
+                type_filters.UnionWith(type_filter.Split(','));
+            }
+
+            remove_entities_inside = data.Bool("remove_entities_inside", false);
+            remove_held_entities = data.Bool("remove_held_entities", false);
+
 
             targets = new();
 
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            Level level = Scene as Level;
+
+            if(remove_entities_inside)
+            {
+                Player player = Engine.Scene.Tracker.GetEntity<Player>();
+                foreach(string entity_type in type_filters)
+                {
+                    foreach(Entity e in level.Tracker.Entities[Type.GetType(entity_type)])
+                    {
+                        //not if held
+                        if(e.Bottom < Bottom && e.Top > Top && e.Left > Left  && e.Right < Right)
+                        {
+                            if(player == null || player.Holding == null || player.Holding.Entity != e || remove_held_entities)
+                            {
+                                e.RemoveSelf();
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public void find_entities(Scene scene)
@@ -73,10 +110,12 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
             }
         }
+
         public void add_entity(Entity e)
         {
 // Logger.Log(LogLevel.Debug, "eow", $"{e.GetType().FullName} {type_filter}");
-            if(String.IsNullOrWhiteSpace(type_filter) || e.GetType().FullName == type_filter)
+//            if(String.IsNullOrWhiteSpace(type_filter) || e.GetType().FullName == type_filter)
+            if(type_filters.Count == 0 || type_filters.Contains(e.GetType().FullName))
             {
 // Logger.Log(LogLevel.Debug, "eow", $"^matched");
                 targets.Add(e);

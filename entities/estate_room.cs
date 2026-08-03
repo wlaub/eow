@@ -29,6 +29,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public int start_y;
 
         public bool[] entries; //lrtb
+        public bool[] exits;
 
         public string key;
 
@@ -36,6 +37,8 @@ namespace Celeste.Mod.ErrandOfWednesday
         public string display_name;
 
         public int selection_count;
+        public string selection_expression;
+        public object session_expression;
 
         public Sprite sprite;
 
@@ -47,7 +50,11 @@ namespace Celeste.Mod.ErrandOfWednesday
             key = level_data.Name;
 
             selection_count = room_data.Int("selection_count",1);
-            
+            selection_expression = room_data.Attr("selection_expression", "");
+           
+            FrostHelperImports.TryCreateSessionExpression?.Invoke(selection_expression, out session_expression);
+Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}");           
+ 
             room_number = room_data.Int("number", -1);
             display_name = Dialog.Get(room_data.Attr("name", $"eow_estate_room_{key}"));
 
@@ -55,19 +62,32 @@ namespace Celeste.Mod.ErrandOfWednesday
             start_y = level_data.Bounds.Y;
 
             this.entries = new bool[4];
+            exits = new bool[4];
 
-            string entries_string = room_data.Attr("entries");
-            if(string.IsNullOrWhiteSpace(entries_string))
+            scan_tiles(); //BAD
+            string exits_string = room_data.Attr("exits");
+            if(!string.IsNullOrWhiteSpace(exits_string))
             {
-                scan_tiles();
+                exits[0] = exits_string.Contains("l");
+                exits[1] = exits_string.Contains("r");
+                exits[2] = exits_string.Contains("t");
+                exits[3] = exits_string.Contains("b");
             }
             else
+            {
+                for(int i = 0; i < 4; ++i)
+                    exits[0] = entries[0];
+            }
+ 
+            string entries_string = room_data.Attr("entries");
+            if(!string.IsNullOrWhiteSpace(entries_string))
             {
                 entries[0] = entries_string.Contains("l");
                 entries[1] = entries_string.Contains("r");
                 entries[2] = entries_string.Contains("t");
                 entries[3] = entries_string.Contains("b");
             }
+
             //create sprite
 
             string sprite_name = room_data.Attr("sprite", "");
@@ -107,10 +127,12 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             Grid grid = new(1,1,level_data.Solids);
 
-            entries[0] = !grid[w2,0];
-            entries[2] = !grid[0,h2];
-            entries[1] = !grid[w-1,h2];
-            entries[3] = !grid[w2,h-1];
+            entries[2] = !grid[w2,0]; //t
+            entries[0] = !grid[0,h2]; //l
+            entries[1] = !grid[w-1,h2]; //r
+            entries[3] = !grid[w2,h-1]; //b
+
+Logger.Log(LogLevel.Info, "eow", $"{display_name} scan tiles found l,r,t,d,= {string.Join(",",entries)}");
 
         }
 
