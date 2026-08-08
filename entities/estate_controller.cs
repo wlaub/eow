@@ -52,6 +52,27 @@ namespace Celeste.Mod.ErrandOfWednesday
                 new_option.sprite.Position = new Vector2(320f+160f+idx*(320f+160f), 320f);
             }
 
+            EstateGrid grid = EstateController.grid;
+            float w,h;
+            w = options[0].sprite.Width/4;
+            h = options[0].sprite.Height/4;
+            float offx = 49f;
+            float offy = 1080f-49f-h*grid.grid_height;
+ 
+            foreach (string room_key in grid.room_position.Keys)
+            {
+                Vector2 pos = grid.room_position[room_key];
+                EstateRoomInfo room = EstateController.rooms[room_key];
+                room.sprite.Scale = new Vector2(0.25f,0.25f);
+                room.sprite.Position.X = offx+(pos.X+0.5f)*w;
+                room.sprite.Position.Y = offy+(pos.Y+0.5f)*h;
+                Add(room.sprite);
+            }
+
+            int gx,gy;
+            grid.w2g(target_x, target_y, out gx, out gy);
+
+
             Add(new Coroutine(routine()));
         }
 
