@@ -12,6 +12,7 @@ dyno.placements = {
             selection_count = 1,
             selection_expression = "",
             entries = "",
+            exits = "",
             tags = "",
         }
     }

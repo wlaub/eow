@@ -53,7 +53,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             selection_expression = room_data.Attr("selection_expression", "");
            
             FrostHelperImports.TryCreateSessionExpression?.Invoke(selection_expression, out session_expression);
-Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}");           
+//Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}");           
  
             room_number = room_data.Int("number", -1);
             display_name = Dialog.Get(room_data.Attr("name", $"eow_estate_room_{key}"));
@@ -76,7 +76,7 @@ Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}"
             else
             {
                 for(int i = 0; i < 4; ++i)
-                    exits[0] = entries[0];
+                    exits[i] = entries[i];
             }
  
             string entries_string = room_data.Attr("entries");
@@ -132,7 +132,7 @@ Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}"
             entries[1] = !grid[w-1,h2]; //r
             entries[3] = !grid[w2,h-1]; //b
 
-Logger.Log(LogLevel.Info, "eow", $"{display_name} scan tiles found l,r,t,d,= {string.Join(",",entries)}");
+//Logger.Log(LogLevel.Info, "eow", $"{display_name} scan tiles found l,r,t,d,= {string.Join(",",entries)}");
 
         }
 

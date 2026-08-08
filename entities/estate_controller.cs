@@ -67,6 +67,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     Input.MenuConfirm.ConsumeBuffer();
                     EstateRoomInfo draft = options[selection];
                     EstateController.drafted_rooms.Add(draft.key); 
+                    EstateController.grid.add_room_world(draft.key, target_x, target_y);
                     EstateController.move_room(level, draft.key, target_x, target_y);
                     break;                    
                 }
@@ -123,6 +124,82 @@ namespace Celeste.Mod.ErrandOfWednesday
     }
 
 
+    public class EstateGrid 
+    {
+        public int room_width; //size of room
+        public int room_height;
+        public int grid_width; //rows and cols
+        public int grid_height;
+        public int top_world; //location of room 0,0 upper left corner
+        public int left_world;
+
+        public int rw_world;
+        public int rh_world;
+
+        public string[,] rooms;
+        public Dictionary<Tuple<int,int>, string> position_room;
+        public Dictionary<string, Vector2> room_position;
+ 
+        public EstateGrid(int gw, int gh, int rw, int rh, int top, int left) 
+        {
+            grid_width=gw;
+            grid_height=gh;
+            room_width=rw;
+            room_height=rh;
+            top_world=top;
+            left_world=left;
+            rw_world = room_width*8;
+            rh_world = room_height*8;
+
+            room_position = new();
+            position_room = new();
+        }
+
+        public void populate_grid(Session session)
+        {
+Logger.Log(LogLevel.Info, "eow", $"populate grid {grid_width} {grid_height}!!!!!!!!!!!!!!!!!!");
+            for(int x = 0; x < grid_width; ++x)
+            {
+                for(int y = 0; y < grid_height; ++y)
+                {
+
+                    Vector2 world_pos = new Vector2(left_world+x*rw_world, top_world+y*rh_world);
+                    LevelData room = session.MapData.GetAt(world_pos);
+//Logger.Log(LogLevel.Info, "eow", $"checking {world_pos}");
+                    if(room != null)
+                    {
+                        add_room(room.Name, x, y);
+                    }
+                   
+                }
+            }
+           
+        }
+
+        public void w2g(int wx, int wy, out int gx, out int gy)
+        {
+            gx = (int)(wx-left_world)/rw_world;
+            gy = (int)(wy-top_world)/rh_world;
+        }
+ 
+        public void add_room(string room_key, int x, int y)
+        {
+            position_room[Tuple.Create(x,y)] = room_key;
+            room_position[room_key] = new Vector2(x,y);
+ Logger.Log(LogLevel.Info, "eow", $"added room {room_key} at {x},{y}");           
+        }
+        public void add_room_world(string room_key, int wx, int wy)
+        {
+            int x,y;
+            w2g(wx, wy, out x, out y);
+            add_room(room_key, x, y);
+            
+        }
+
+
+
+    }
+
 
     [Tracked]
     [CustomEntity("eow/EstateController")]
@@ -130,6 +207,7 @@ namespace Celeste.Mod.ErrandOfWednesday
     {
 
         public static bool loaded = false;
+        public static EstateGrid grid;
         public static int room_width;
         public static int room_height;
         public static int grid_width;
@@ -164,6 +242,19 @@ namespace Celeste.Mod.ErrandOfWednesday
                     return drafted_rooms.Contains((string)args[0])?1:0;
                 }
                 );
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_left",
+                (session) => { return drafting_context.into_left; } );
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_right",
+                (session) => { return drafting_context.into_right; } );
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_top",
+                (session) => { return drafting_context.into_top; } );
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_bot",
+                (session) => { return drafting_context.into_bot; } );
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_x",
+                (session) => { return drafting_context.into_x; } );
+            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_y",
+                (session) => { return drafting_context.into_y; } );
+ 
             //e_top_row
             //e_bottom_row
             //e_left_col
@@ -273,6 +364,15 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 
             camera_margin = data.Int("camera_margin", 16);
 
+//            data.Nodes[0];
+            Vector2 grid_ul = Vector2.Zero;
+            if(data.Nodes.Length > 0)
+            {
+                grid_ul = data.Nodes[0]+level_data.Position;
+            }
+            grid = new EstateGrid(grid_width, grid_height, room_width, room_height, (int)grid_ul.Y, (int)grid_ul.X);
+
+            grid.populate_grid(session);
 
             int[] e = {0,0,0,0};
             foreach(LevelData room_data in session.MapData.Levels)
@@ -293,12 +393,18 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 
 Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
+            foreach(string room_key in grid.room_position.Keys)
+            {
+                drafted_rooms.Add(room_key);
+            }
+
             foreach(EstateRoomState room_state in mod_session.estate_state.drafted_rooms.Values)
             {
                 LevelData target_data = session.MapData.Get(room_state.key);
 //Logger.Log(LogLevel.Info, "eow", $"re-drafting room {room_state.key}");
 
                 drafted_rooms.Add(room_state.key);
+                grid.add_room_world(room_state.key, room_state.xpos, room_state.ypos);
 
                 int target_x = room_state.xpos;
                 int target_y = room_state.ypos;
@@ -380,7 +486,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
         public static DraftingContext drafting_context = null;
 
 
-        public static List<EstateRoomInfo> make_pool(int side, Session session)
+        public static List<EstateRoomInfo> make_pool(int side, Session session, int target_x, int target_y)
         {
             List<EstateRoomInfo> pool = new();
 
@@ -390,6 +496,15 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                 {
                     if(info.entries[side] && !drafted_rooms.Contains(info.key))
                     {
+                        if( drafting_context.into_top && info.exits[2] ||
+                            drafting_context.into_bot && info.exits[3] ||
+                            drafting_context.into_left && info.exits[0] ||
+                            drafting_context.into_right && info.exits[1]
+                            )
+                        {
+                            continue;
+                        }
+//    Logger.Log(LogLevel.Info, "eow", $"passing {info.key} with {string.Join(",",info.exits)}");
                         float selection_count = info.selection_count;
                         if(info.session_expression != null)
                         {
@@ -453,10 +568,14 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
         public int pool_depth = 0;
         public LevelData from_level;
         public int side;
+        public bool into_top;
+        public bool into_bot;
+        public bool into_left;
+        public bool into_right;
+        public int into_x;
+        public int into_y;
         //TODO from grid pos
-        //TODO to grid pos
         //TODO left, right, above, below rooms
-        //TODO top row, bottom row, left side, right side?
         };
 
 
@@ -476,7 +595,18 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
             if(level.Session.MapData.GetAt(new Vector2(target_x, target_y)) != null){return;}
 
-            List<EstateRoomInfo> pool = EstateController.make_pool(side, level.Session);
+            int gx, gy;
+            grid.w2g(target_x, target_y, out gx, out gy);
+            drafting_context.into_x = gx;
+            drafting_context.into_y = gy;
+            drafting_context.into_top = gy==0;
+            drafting_context.into_bot = gy==grid.grid_height-1;
+            drafting_context.into_left = gx==0;
+            drafting_context.into_right = gx==grid.grid_width-1;
+
+//Logger.Log(LogLevel.Info, "eow", $"drafting into {gx},{gy}");
+
+            List<EstateRoomInfo> pool = EstateController.make_pool(side, level.Session, target_x, target_y);
 
             if(pool.Count == 0){return;}
 
