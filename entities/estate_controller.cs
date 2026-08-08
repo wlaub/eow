@@ -72,6 +72,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             int gx,gy;
             grid.w2g(target_x, target_y, out gx, out gy);
 
+            
 
             Add(new Coroutine(routine()));
         }
@@ -498,8 +499,39 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
                 int m = EstateController.camera_margin;
 
-                result.X = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
-                result.Y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
+                EstateGrid grid = EstateController.grid;
+                int gx, gy;
+                grid.w2g((int)self.Position.X, (int)self.Position.Y, out gx, out gy);
+                int l = grid.left_world+gx*grid.rw_world+m;
+                int r = grid.left_world+(gx+1)*grid.rw_world-m;
+                int t = grid.top_world+gy*grid.rh_world+m;
+                int b = grid.top_world+(gy+1)*grid.rh_world-m;
+
+                float clamp_x = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
+                float clamp_y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
+
+                if(self.Position.X < l)
+                {
+                    result.X = MathHelper.Lerp(clamp_x, result.X, (l-self.Position.X)/m);
+                }
+                else if(self.Position.X > r)
+                {
+                    result.X = MathHelper.Lerp(clamp_x, result.X, (self.Position.X-r)/m);
+                }
+                else
+                {result.X=clamp_x;}
+                if(self.Top < t)
+                {
+                    result.Y = MathHelper.Lerp(clamp_y, result.Y, (t-self.Top)/m);
+                }
+                else if(self.Bottom > b)
+                {
+                    result.Y = MathHelper.Lerp(clamp_y, result.Y, (self.Bottom-b)/m);
+                }
+                else
+                {result.Y=clamp_y;}
+
+
             }
             return result;
         }
