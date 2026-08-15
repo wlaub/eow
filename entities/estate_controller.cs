@@ -277,36 +277,14 @@ Logger.Log(LogLevel.Info, "eow", $"populate grid {grid_width} {grid_height}!!!!!
             FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_into_y",
                 (session) => { return drafting_context.into_y; } );
  
-            //e_top_row
-            //e_bottom_row
-            //e_left_col
-            //e_right_col
+            //e_from_*
             //e_left_of()
             //e_right_of()
             //e_above_of()
             //e_below_of()
             FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_pool_depth",
-                (session) =>
-                {
-                    return drafting_context.pool_depth;
-                }
-                );
- 
+                (session) => { return drafting_context.pool_depth; } );
 
-/*            FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow","followers", 
-                        (session) => 
-                        {
-                            Player player = Engine.Scene.Tracker.GetEntity<Player>();
-                            if(player != null)
-                            {
-                                return player.Leader.Followers.Count;
-                            }
-                            else
-                            {
-                                return 0;
-                            }
-                        });*/
- 
         }
 
         public static void unload()
@@ -510,13 +488,19 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                 float clamp_x = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
                 float clamp_y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
 
-                if(self.Position.X < l)
+                if(self.Left >= l && self.Right <= r && self.Top >= t && self.Bottom <= b)
                 {
-                    result.X = MathHelper.Lerp(clamp_x, result.X, (l-self.Position.X)/m);
+                    result.X = clamp_x;
+                    result.Y = clamp_y;
                 }
-                else if(self.Position.X > r)
+                /*
+                if(self.Left < l)
                 {
-                    result.X = MathHelper.Lerp(clamp_x, result.X, (self.Position.X-r)/m);
+                    result.X = MathHelper.Lerp(clamp_x, result.X, (l-self.Left)/m);
+                }
+                else if(self.Right > r)
+                {
+                    result.X = MathHelper.Lerp(clamp_x, result.X, (self.Right-r)/m);
                 }
                 else
                 {result.X=clamp_x;}
@@ -530,7 +514,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                 }
                 else
                 {result.Y=clamp_y;}
-
+                */
 
             }
             return result;
