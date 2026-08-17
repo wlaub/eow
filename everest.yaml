@@ -2,5 +2,5 @@
   Version: 0.4.2
   DLL: bin/ErrandOfWednesday.dll
   Dependencies:
-    - Name: Everest
+    - Name: EverestCore
       Version: 1.5935.0

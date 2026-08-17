@@ -732,7 +732,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 {
                     Entity entity = player.Holding.Entity;
                     Type etype = entity.GetType();
-            Logger.Log(LogLevel.Info, "eow", $" {etype}");
+            Logger.Log(LogLevel.Info, "eow", $" {etype}->{entity.SourceId}");
 //                    FieldInfo field = etype.GetField("")
 
 
