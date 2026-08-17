@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -266,7 +267,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             }
             if(data.Bool("loop_invariance", true)) //TODO update lonn
             {
-                invariance_targets = data.Attr("invariance_targets","Celeste.Mod.ErrandOfWednesday.LoreOre,Celeste.Key").Split(',');
+                invariance_targets = data.Attr("invariance_targets","Celeste.Mod.ErrandOfWednesday.LoreOre,Celeste.Key,Celeste.StrawberrySeed").Split(',');
                 enable_loop_invariance();
             }
  
@@ -703,18 +704,56 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             //don't add new copies of objects that are instantiated already
 
             if(loop_invariance_enabled) return;
+            Logger.Log(LogLevel.Info, "eow", $"loading loop invariance");
             Everest.Events.Level.OnTransitionTo += li_transition_hook;
+//            Everest.Events.Player.OnDie += li_on_die;
+            On.Celeste.Player.Die += li_on_die;
+
             invariant_entities.Clear();
             loop_invariance_enabled = true;
         }
         public static void unload_loop_invariance()
         {
             if(!loop_invariance_enabled) return;
+            Logger.Log(LogLevel.Info, "eow", $"unloading loop invariance");
             Everest.Events.Level.OnTransitionTo -= li_transition_hook;
+//            Everest.Events.Player.OnDie -= li_on_die;
+            On.Celeste.Player.Die -= li_on_die;
             invariant_entities.Clear();
             loop_invariance_enabled = false;
         }
         public static Dictionary<Entity, string> invariant_entities = new();
+
+        public static PlayerDeadBody li_on_die(On.Celeste.Player.orig_Die orig, Player player, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats)
+        {
+            Level level = player.Scene as Level;
+            List<Follower> to_lose = new();
+            foreach(Follower follower in player.Leader.Followers)
+            {
+                Entity entity = follower.Entity;
+Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
+                 if((invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
+                {
+                    entity.Tag |= Tags.Global;
+                    entity.Collidable = true;
+                    invariant_entities[entity] = level.Session.LevelData.Name;
+                    to_lose.Add(follower);
+                    if(entity.SourceId.ID != default(EntityID).ID)
+                    {
+                        level.Session.DoNotLoad.Add(entity.SourceId);
+                        level.Session.Keys.Remove(entity.SourceId);
+                    }
+                }
+                
+            }
+            foreach(Follower follower in to_lose)
+            {
+                player.Leader.LoseFollower(follower);
+            }
+
+            return orig(player, direction, evenIfInvincible, registerDeathInStats);
+        }
+
         public static void li_transition_hook(Level level, LevelData next, Vector2 direction)
         {
             Player player = level.Tracker.GetEntity<Player>();
@@ -728,16 +767,26 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                         e.Active = next.Name == room_name;
                     }
                 }
+            foreach(Follower follower in player.Leader.Followers)
+            {
+                Entity entity = follower.Entity;
+                if(invariant_entities.ContainsKey(entity))
+                {
+                    entity.Active = true;
+                    invariant_entities[entity] = next.Name;
+                }
+            }
+ 
                 if(player.Holding != null)
                 {
                     Entity entity = player.Holding.Entity;
-                    Type etype = entity.GetType();
-            Logger.Log(LogLevel.Info, "eow", $" {etype}->{entity.SourceId}");
-//                    FieldInfo field = etype.GetField("")
-
-
-                    entity.Tag |= Tags.Global;
-                    invariant_entities[entity] = next.Name;
+            Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
+                    if(entity.SourceId.ID != default(EntityID).ID && (invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
+                    {
+                        entity.Tag |= Tags.Global;
+                        invariant_entities[entity] = next.Name;
+                        level.Session.DoNotLoad.Add(entity.SourceId);
+                    }
                 }
             }
         }

@@ -304,6 +304,8 @@ namespace Celeste.Mod.ErrandOfWednesday {
             CannotTransitionTo.unload();
             RefillBubbler.unload();
             PoppingMirror.unload();
+
+            EyeOfTheWednesday.unload();
         }
 
         public void level_loader_constructor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startposition)
