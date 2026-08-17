@@ -62,6 +62,9 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static bool lore_enabled = false;
 
+        public static bool loop_invariance_enabled = false;
+        public static string[] invariance_targets;
+
         public static bool is_riding_hook(On.Celeste.Player.orig_IsRiding_Solid orig, Player self, Solid solid)
         {
             if(orig(self, solid)) 
@@ -133,6 +136,9 @@ namespace Celeste.Mod.ErrandOfWednesday
                 forehead_enabled = false;
             }
             unload_hitbox_flag();
+
+            unload_lore();
+            unload_loop_invariance();
 
             loaded = false;
         }
@@ -254,9 +260,14 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 enable_stage_mirror(session);
             }
-            if(data.Bool("lore_enable", true))
+            if(data.Bool("lore_enable", true)) //TODO: update lonn
             {
                 enable_lore();
+            }
+            if(data.Bool("loop_invariance", true)) //TODO update lonn
+            {
+                invariance_targets = data.Attr("invariance_targets","Celeste.Mod.ErrandOfWednesday.LoreOre,Celeste.Key").Split(',');
+                enable_loop_invariance();
             }
  
 
@@ -288,7 +299,6 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 
 
         }
-
 
         public static void bird_once(On.Celeste.CS00_Ending.orig_ctor orig, CS00_Ending self, Player player, BirdNPC bird, Bridge bridge)
         {
@@ -682,6 +692,56 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 self.RemoveSelf();*/
             }            
         }
+
+        public static void enable_loop_invariance()
+        {
+            //on transition, make held object global
+            //or on pickup make held object global/if it has an eid
+            //on death, detach followers in-place, make global
+            //save object positions and metadata
+            //reinstantiate saved objects on load
+            //don't add new copies of objects that are instantiated already
+
+            if(loop_invariance_enabled) return;
+            Everest.Events.Level.OnTransitionTo += li_transition_hook;
+            invariant_entities.Clear();
+            loop_invariance_enabled = true;
+        }
+        public static void unload_loop_invariance()
+        {
+            if(!loop_invariance_enabled) return;
+            Everest.Events.Level.OnTransitionTo -= li_transition_hook;
+            invariant_entities.Clear();
+            loop_invariance_enabled = false;
+        }
+        public static Dictionary<Entity, string> invariant_entities = new();
+        public static void li_transition_hook(Level level, LevelData next, Vector2 direction)
+        {
+            Player player = level.Tracker.GetEntity<Player>();
+            if(player != null)
+            {
+                foreach(Entity e in invariant_entities.Keys)
+                {
+                    string room_name = invariant_entities[e];
+                    if(player.Holding == null || player.Holding.Entity != e)
+                    {
+                        e.Active = next.Name == room_name;
+                    }
+                }
+                if(player.Holding != null)
+                {
+                    Entity entity = player.Holding.Entity;
+                    Type etype = entity.GetType();
+            Logger.Log(LogLevel.Info, "eow", $" {etype}");
+//                    FieldInfo field = etype.GetField("")
+
+
+                    entity.Tag |= Tags.Global;
+                    invariant_entities[entity] = next.Name;
+                }
+            }
+        }
+
 
  
     }

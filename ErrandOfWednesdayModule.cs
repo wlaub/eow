@@ -29,7 +29,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public static Action<string, string, Func<Session, object>> RegisterSimpleSessionExpressionCommand;
         public static Action<string, string, Func<Session, IReadOnlyList<object>, object>> RegisterFunctionSessionExpressionCommand;
 
-        public delegate bool tcse(string str, out object? expr);
+        public delegate bool tcse(string str, out object expr);
         public static tcse TryCreateSessionExpression;
 
         public static Func<object, Session, object> GetSessionExpressionValue;
