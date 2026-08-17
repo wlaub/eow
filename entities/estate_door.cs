@@ -104,7 +104,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             int test_y;
             if(EstateController.get_draft_target(this_level, side, out test_x, out test_y))
             {
-                if(level.Session.MapData.GetAt(new Vector2(test_x, test_y)) != null){
+                if(EstateController.room_at_world(test_x, test_y) != null){
                     RemoveSelf();
                     return;
                     }

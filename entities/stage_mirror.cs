@@ -15,6 +15,14 @@ namespace Celeste.Mod.ErrandOfWednesday
     [CustomEntity("eow/StageMirror")]
     public class StageMirror : Solid
     {
+        public const string MIRROR_FLAG = "eow_stage_mirrored";
+        public const string FROM_LEFT_FLAG = "eow_stage_mirrored_from_left";
+        public const string FROM_RIGHT_FLAG = "eow_stage_mirrored_from_right";
+        public const string N_FROM_LEFT_FLAG = "eow_stage_normal_from_left";
+        public const string N_FROM_RIGHT_FLAG = "eow_stage_normal_from_right";
+
+
+
         public bool was_left;
 
         //TODO make persistent
@@ -22,6 +30,9 @@ namespace Celeste.Mod.ErrandOfWednesday
         public StageMirror(EntityData data, Vector2 offset) : base(data.Position + offset, data.Width, data.Height, safe:false)
         {
             Collidable=false;
+
+            
+
         }
 
         public override void Awake(Scene scene)
@@ -35,7 +46,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Vector2 eye_pos = new Vector2(player.Center.X, player.Top);
                 was_left = eye_pos.X < Center.X;
             }
-           
+
+   
         }
 
         public override void Update()
@@ -66,6 +78,15 @@ namespace Celeste.Mod.ErrandOfWednesday
                     SaveData.Instance.Assists.MirrorMode = !SaveData.Instance.Assists.MirrorMode;
 Input.MoveX.Inverted = (Input.Aim.InvertedX = (Input.Feather.InvertedX = SaveData.Instance.Assists.MirrorMode));
              Logger.Log(LogLevel.Info, "eow", $"doing flip {was_left} {eye_pos} {player.Speed} {level.Camera.Position} {Center}");
+
+                    bool is_mirrored = SaveData.Instance.Assists.MirrorMode;
+                    level.Session.SetFlag(MIRROR_FLAG, is_mirrored);
+                    level.Session.SetFlag(FROM_LEFT_FLAG, was_left&&is_mirrored);
+                    level.Session.SetFlag(FROM_RIGHT_FLAG, !was_left&&is_mirrored);
+                    level.Session.SetFlag(N_FROM_LEFT_FLAG, was_left&&!is_mirrored);
+                    level.Session.SetFlag(N_FROM_RIGHT_FLAG, !was_left&&!is_mirrored);
+
+
                     is_left = !is_left;
                 }
                 was_left = is_left;

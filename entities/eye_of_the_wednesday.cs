@@ -252,7 +252,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             }
             if(data.Bool("stage_mirror_enable", false))
             {
-                enable_stage_mirror();
+                enable_stage_mirror(session);
             }
             if(data.Bool("lore_enable", true))
             {
@@ -377,7 +377,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         } 
 
 
-        public static void enable_stage_mirror()
+        public static void enable_stage_mirror(Session session)
         {
             if(stage_mirror_hook == null)
             {
@@ -385,6 +385,12 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                     typeof(Level).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
                     stage_mirror_render_bullshit
                     );
+
+                if(session.GetFlag(StageMirror.MIRROR_FLAG))
+                {
+                     SaveData.Instance.Assists.MirrorMode = true;
+                }
+               
             }
         }
 

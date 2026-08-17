@@ -158,7 +158,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public int rw_world;
         public int rh_world;
 
-        public string[,] rooms;
+//        public string[,] rooms;
         public Dictionary<Tuple<int,int>, string> position_room;
         public Dictionary<string, Vector2> room_position;
  
@@ -179,18 +179,19 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public void populate_grid(Session session)
         {
-Logger.Log(LogLevel.Info, "eow", $"populate grid {grid_width} {grid_height}!!!!!!!!!!!!!!!!!!");
+//Logger.Log(LogLevel.Info, "eow", $"populate grid {grid_width} {grid_height}!!!!!!!!!!!!!!!!!!");
             for(int x = 0; x < grid_width; ++x)
             {
                 for(int y = 0; y < grid_height; ++y)
                 {
 
                     Vector2 world_pos = new Vector2(left_world+x*rw_world, top_world+y*rh_world);
-                    LevelData room = session.MapData.GetAt(world_pos);
-//Logger.Log(LogLevel.Info, "eow", $"checking {world_pos}");
-                    if(room != null)
+                    foreach(LevelData room in session.MapData.Levels)
                     {
-                        add_room(room.Name, x, y);
+                        if(room.Position == world_pos)
+                        {
+                            add_room(room.Name, x, y);
+                        }
                     }
                    
                 }
@@ -531,6 +532,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
             {
                 foreach(EstateRoomInfo info in rooms.Values)
                 {
+//    Logger.Log(LogLevel.Info, "eow", $"checking {info.key}");
                     if(info.entries[side] && !drafted_rooms.Contains(info.key))
                     {
                         if( drafting_context.into_top && info.exits[2] ||
@@ -616,6 +618,14 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
         };
 
 
+        public static string room_at_world(int world_x, int world_y)
+        {
+            grid.w2g(world_x, world_y, out world_x, out world_y);
+            Tuple<int, int> key= new Tuple<int, int>(world_x, world_y) ; //what is this language's fucking problem
+
+            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
+
+        }
 
         public static void draft_room(Level level, LevelData from_level, int side, Action on_finish = null)
         {
@@ -630,7 +640,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
             drafting_context.from_level = from_level;
             drafting_context.side = side;
 
-            if(level.Session.MapData.GetAt(new Vector2(target_x, target_y)) != null){return;}
+            if(room_at_world(target_x, target_y) != null){return;}
 
             int gx, gy;
             grid.w2g(target_x, target_y, out gx, out gy);
