@@ -489,11 +489,15 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                 float clamp_x = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
                 float clamp_y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
 
-                if(self.Left >= l && self.Right <= r && self.Top >= t && self.Bottom <= b)
+                if(self.Left >= l && self.Right <= r)
                 {
                     result.X = clamp_x;
+                }
+                if(self.Top >= t && self.Bottom <= b)
+                {
                     result.Y = clamp_y;
                 }
+ 
                 /*
                 if(self.Left < l)
                 {

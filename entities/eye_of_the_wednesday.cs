@@ -741,11 +741,12 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
                     if(entity.SourceId.ID != default(EntityID).ID)
                     {
                         level.Session.DoNotLoad.Add(entity.SourceId);
-                        level.Session.Keys.Remove(entity.SourceId);
+//                        level.Session.Keys.Remove(entity.SourceId);
                     }
                 }
                 
             }
+            level.Session.Keys.Clear(); // keys given back to the player after loading have no id even though the constructor is called with the original id
             foreach(Follower follower in to_lose)
             {
                 player.Leader.LoseFollower(follower);
@@ -781,11 +782,14 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
                 {
                     Entity entity = player.Holding.Entity;
             Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
-                    if(entity.SourceId.ID != default(EntityID).ID && (invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
+                    if((invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
                     {
                         entity.Tag |= Tags.Global;
                         invariant_entities[entity] = next.Name;
-                        level.Session.DoNotLoad.Add(entity.SourceId);
+                        if(entity.SourceId.ID != default(EntityID).ID)
+                        {
+                            level.Session.DoNotLoad.Add(entity.SourceId);   
+                        }
                     }
                 }
             }
