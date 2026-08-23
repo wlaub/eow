@@ -104,7 +104,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 yield return null;
             }
             level.Frozen = false;
-
+            level.AutoSave();
 
             if(on_finish is not null)
             {

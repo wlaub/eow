@@ -143,9 +143,29 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             loaded = false;
         }
-        
 
-        public static void try_load(Session session)
+        public static void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
+        {
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+            if(loop_invariance_enabled)
+            {
+                if(mod_session.invariance_state is not null)
+                {
+                    if(isFromLoader)
+                    {
+                        mod_session.invariance_state.restore_state(level.Session, level);
+                    }
+                }
+                else
+                {
+                    mod_session.invariance_state = new();
+                }
+            }
+
+            
+        }
+
+        public static void try_load(Session session, LevelLoader level_loader)
         {
 
             LevelData level_data = session.MapData.Get("!eow");
@@ -710,6 +730,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             On.Celeste.Player.Die += li_on_die;
 
             invariant_entities.Clear();
+            invariance_states.Clear();
+
             loop_invariance_enabled = true;
         }
         public static void unload_loop_invariance()
@@ -720,6 +742,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 //            Everest.Events.Player.OnDie -= li_on_die;
             On.Celeste.Player.Die -= li_on_die;
             invariant_entities.Clear();
+            invariance_states.Clear();
             loop_invariance_enabled = false;
         }
         public static Dictionary<Entity, string> invariant_entities = new();
@@ -734,15 +757,16 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
                  if((invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
                 {
-                    entity.Tag |= Tags.Global;
+                    make_invariant(level, entity, level.Session.LevelData.Name, true);
+//                    entity.Tag |= Tags.Global;
                     entity.Collidable = true;
-                    invariant_entities[entity] = level.Session.LevelData.Name;
+//                    invariant_entities[entity] = level.Session.LevelData.Name;
                     to_lose.Add(follower);
-                    if(entity.SourceId.ID != default(EntityID).ID)
-                    {
-                        level.Session.DoNotLoad.Add(entity.SourceId);
-//                        level.Session.Keys.Remove(entity.SourceId);
-                    }
+//                    if(entity.SourceId.ID != default(EntityID).ID)
+//                    {
+//                        level.Session.DoNotLoad.Add(entity.SourceId);
+////                        level.Session.Keys.Remove(entity.SourceId);
+//                    }
                 }
                 
             }
@@ -753,6 +777,56 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
             }
 
             return orig(player, direction, evenIfInvincible, registerDeathInStats);
+        }
+
+        public static Dictionary<Entity, InvariantEntityState> invariance_states = new();
+
+        public static void make_invariant(Level level, Entity entity, string room_name, bool is_follower)
+        {
+//TODO we need to know if a follower is held or not
+Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
+            entity.Tag |= Tags.Global;
+            invariant_entities[entity] = room_name;
+            if(entity.SourceId.ID != default(EntityID).ID)
+            {
+                level.Session.DoNotLoad.Add(entity.SourceId);   
+            }
+
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+            if(mod_session.invariance_state is not null)
+            {
+                mod_session.invariance_state.save_entity(entity, room_name, is_follower, false);
+            }
+            else
+            {
+Logger.Log(LogLevel.Error, "eow", $"loop invariance session data missing");
+            }
+        }
+
+        public static void _save_invariant_entity(InvarianceState self, Entity entity, string room_name, bool is_follower, bool is_held)
+        {//this is stupid
+            if(entity.SourceData is null)
+            {
+Logger.Log(LogLevel.Error, "eow", $"can't save entity with null source data");
+                return;
+            }
+            InvariantEntityState entry;
+
+            if(invariance_states.ContainsKey(entity))
+            {
+                entry = invariance_states[entity];
+                entry.update_from(entity, room_name, is_follower, is_held);
+Logger.Log(LogLevel.Info, "eow", $"updating saved entity: ->{entity.SourceId}, {entity.GetType().FullName}");
+            }
+            else
+            {
+Logger.Log(LogLevel.Info, "eow", $"saving new entity: ->{entity.SourceId}, {entity.GetType().FullName}");
+                entry = new();
+                entry.update_from(entity, room_name, is_follower, is_held);
+                self.entities.Add(entry);
+                invariance_states[entity] = entry;
+            }
+Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities saved");
         }
 
         public static void li_transition_hook(Level level, LevelData next, Vector2 direction)
@@ -784,12 +858,15 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
             Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
                     if((invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
                     {
+                        make_invariant(level, entity, next.Name, false);
+/*;
                         entity.Tag |= Tags.Global;
                         invariant_entities[entity] = next.Name;
                         if(entity.SourceId.ID != default(EntityID).ID)
                         {
                             level.Session.DoNotLoad.Add(entity.SourceId);   
                         }
+*/
                     }
                 }
             }

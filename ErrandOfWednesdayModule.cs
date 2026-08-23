@@ -312,12 +312,12 @@ namespace Celeste.Mod.ErrandOfWednesday {
         {
             EstateController.try_load(session);
             orig(self, session, startposition);
-            EyeOfTheWednesday.try_load(session);
-       
+            EyeOfTheWednesday.try_load(session, self);
         }
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
         {
+
             if(Session == null)
             {
    Logger.Log(LogLevel.Warn, "eow", $"Tragedy");
@@ -336,6 +336,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
                 }
             }
+            EyeOfTheWednesday.on_load_level(level, playerIntro, isFromLoader);
             if(Session!= null && Session.sd_active)
             {
                 SDTimerDisplay timer = SDTimerDisplay.create();
