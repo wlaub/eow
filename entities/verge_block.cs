@@ -334,7 +334,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
                 else
                 {
-Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {depth}");
+Logger.Log(LogLevel.Error, "eow", $"somehow already removed {room} {Depth}");
                 }
             }
 

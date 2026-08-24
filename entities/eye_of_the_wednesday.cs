@@ -438,9 +438,9 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
 
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Action<Level>>((level) => {
-                    stage_mirror_draw(level);
-                    });
+                cursor.EmitDelegate<Action<Level>>(
+                    stage_mirror_draw
+                    );
  
                 Logger.Log(LogLevel.Warn, "eow", $"stage mirror enabled");
             }

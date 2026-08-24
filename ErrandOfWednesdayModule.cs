@@ -29,8 +29,8 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public static Action<string, string, Func<Session, object>> RegisterSimpleSessionExpressionCommand;
         public static Action<string, string, Func<Session, IReadOnlyList<object>, object>> RegisterFunctionSessionExpressionCommand;
 
-        public delegate bool tcse(string str, out object expr);
-        public static tcse TryCreateSessionExpression;
+        public delegate bool tcSe(string str, out object expr);
+        public static tcSe TryCreateSessionExpression;
 
         public static Func<object, Session, object> GetSessionExpressionValue;
     }
@@ -308,7 +308,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
             EyeOfTheWednesday.unload();
         }
 
-        public void level_loader_constructor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startposition)
+        public static void level_loader_constructor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startposition)
         {
             EstateController.try_load(session);
             orig(self, session, startposition);
@@ -376,7 +376,7 @@ Logger.Log(LogLevel.Info, "eow", $"on exit got called with {mode}");
             MyAudioTrigger.on_transition(level);
         }
 
-        public void lookout_stop(On.Celeste.Lookout.orig_Update orig, Lookout self)
+        public static void lookout_stop(On.Celeste.Lookout.orig_Update orig, Lookout self)
         { //I can't believe I have to do it like this.
             orig(self);
             if(all_lookouts) return;

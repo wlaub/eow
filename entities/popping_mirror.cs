@@ -477,7 +477,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             if(change_spawn)
             {
-                if(target != null)
+//                if(target != null)
                 {
                    target = level.GetSpawnPoint(target);
                 }
@@ -585,7 +585,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             }
 
-            if(audio_event != null && last_player_position != null)
+            if(audio_event != null)// && last_player_position != null)
             {
                  Vector2 offset = level.Camera.Position+ new Vector2(320f, 180f) / 2f - last_player_position;
                 Audio.Position(audio_event, Center+offset);
