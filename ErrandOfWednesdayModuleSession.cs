@@ -38,20 +38,49 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public List<InvariantEntityState> entities = new();
 
         public void restore_state(Session session, Level level){
+            Player player = level.Tracker.GetEntity<Player>();
+            //restore source data and entity id for keys
+            Dictionary<EntityID, Entity> key_lookup = new();
+            foreach(Follower follower in player.Leader.Followers)
+            {
+                Entity entity = follower.Entity;
+                if(entity is Key)
+                {
+Logger.Log(LogLevel.Info, "eow", $"restoring key id {entity.SourceId} -> {((Key)entity).ID}");
+                    entity.SourceId = ((Key)entity).ID;
+                    key_lookup[entity.SourceId] = entity;
+                }
+            }
+            
+
             foreach (InvariantEntityState entry in entities){
-                if(entry.is_follower && entry.is_held){
-                    //the game will restore it and it will be made invariant later
-                    continue;
+                EntityData entity_data = entry.data.to_entity_data(level.Session);
+                if(entry.is_follower){
+Logger.Log(LogLevel.Info, "eow", $"follower {entry.id}?");
+                    if(key_lookup.ContainsKey(entry.id)){
+ Logger.Log(LogLevel.Info, "eow", $"restoring key source data for {entry.id}?");
+                        Entity key_entity = key_lookup[entry.id];
+                        key_entity.SourceData = entity_data;
+                        EyeOfTheWednesday.invariance_states[key_entity] = entry;
+                        continue; //if it's in followers, don't need to spawn the entity
+                        }
+                    //restore entity data
+//                    if(entry.is_held){
+                        //the game will restore it and it will be made invariant later
+//                        continue;
+//                        }
                     }
 Logger.Log(LogLevel.Info, "eow", $"restoring {entry.id} {entry.room_name} at {entry.x} {entry.y}");
                 Entity e;
-                EntityData entity_data = entry.data.to_entity_data(level.Session);
+
                 if (Level.LoadCustomEntity(entity_data, level)){
                     e = level.Entities.toAdd[^1];
                     }
                 else{
                     if(entity_data.Name == "key"){
                         e = new Key(entity_data, Vector2.Zero, entry.id);
+                        e.SourceId = ((Key)e).ID;
+                        e.SourceData = entity_data;
                         level.Add(e);
                         }
                     else{

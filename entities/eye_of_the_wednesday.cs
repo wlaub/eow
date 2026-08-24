@@ -747,6 +747,12 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         }
         public static Dictionary<Entity, string> invariant_entities = new();
 
+        //TODO make key invariant on pickup, set held
+        //TODO update holdable state on drop, death
+        //TODO update holdable state on stationery
+        //TODO update all entity states on save and quit?
+        //TODO update lore SourceData on damage, rotation, etc
+
         public static PlayerDeadBody li_on_die(On.Celeste.Player.orig_Die orig, Player player, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats)
         {
             Level level = player.Scene as Level;
