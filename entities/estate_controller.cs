@@ -294,8 +294,42 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             Engine.Commands.Log("~~ estate stats ~~");
 
-            int[] entry_counts = new int[16];
-            int[] exit_counts = new int[16];
+            List<EstateRoomInfo>[] entry_counts = new List<EstateRoomInfo>[16];
+            List<EstateRoomInfo>[] exit_counts = new List<EstateRoomInfo>[16];
+
+            string[] shapes = {
+                " o ", //no doors
+                " n ", //0001
+                " u ", //0010
+                "|| ", //0011
+                " [ ", //0100
+                "ulc", //0101
+                "llc", //0110
+                "| =", //0111
+                " ] ", //1000
+                "urc", //1001
+                "lrc", //1010
+                "= |", //1011
+                " = ", //1100
+                " T ", //1101
+                "_|_", //1110
+                " + "  //1111
+                };
+
+            int[] order = {
+                15, // +
+                14,13,11,7,// T
+                3,12,// halls
+                5,6,9,10,// corners
+                1,2,4,8,// dead ends
+                0 // no doors
+                };
+
+            for(int i = 0; i < 16; ++i)
+            {
+                entry_counts[i] = new();
+                exit_counts[i] = new();
+            }
 
             //l,r,t,b
             foreach (string room_name in rooms.Keys)
@@ -305,52 +339,63 @@ namespace Celeste.Mod.ErrandOfWednesday
                 int exits = 0; //ready to see something really stupid?
                 for(int i = 0; i < 4; ++i) //get ready
                 { //i can't be bothered to come up with something less shit right now
-                    if(info.entries[i]) entries |= 1<<i;
-                    if(info.exits[i]) exits |= 1<<i;
+                    if(info.entries[3-i]) entries |= 1<<i;
+                    if(info.exits[3-i]) exits |= 1<<i;
                 }
-                entry_counts[entries] += 1;
-                exit_counts[exits] += 1;
+//                Engine.Commands.Log($"{room_name} {entries:b} {exits:b}");
+                entry_counts[entries].Add(info);
+                exit_counts[exits].Add(info);
 
             }
 
-            for (int i = 0; i < 16; ++i)
+            for (int j = 0; j < 16; ++j)
             {
+                int i = order[j];
                 bool l = (i&8)!=0; //oh you thought i was done?
                 bool r = (i&4)!=0;
                 bool t = (i&2)!=0;
                 bool b = (i&1)!=0;
 
-                string line = "";
-                if(t)
+                string line = $"{shapes[i]} {entry_counts[i].Count} {exit_counts[i].Count} ";
+
+                string names = "";
+                foreach(EstateRoomInfo info in entry_counts[i])//' '.join(x.display_name for x in entry_counts[i]) just sayin
                 {
-                    line+="X X\n";
-                }
-                else
-                {
-                    line+="XXX\n";
+                    names += info.display_name + " ";
                 }
 
-                string m = ""; //and this
-                if(l) m+= "X "; //is to go
-                else m+="  "; //even
-                if(r) m+= "X "; //is to go
-                else m+="  "; //even
-                m+=$"{entry_counts[i]}  {exit_counts[i]}"; //further
-//                Engine.Commands.Log(m); //beyond
+                line += names;
 
-                line += m + "\n";
-
-                if(b)
-                {
-                    line+="X X\n";
-                }
-                else
-                {
-                    line+="XXX\n";
-                }
                 Engine.Commands.Log(line);
 
             }
+
+            for(int y = 0; y < grid.grid_height; ++y)
+            {
+                string row = "";
+                for(int x = 0; x < grid.grid_width; ++x)
+                {
+                    int count=0;
+                    int mask = 0;
+                    if(x == 0) mask |= 8; //no left exits on left side
+                    if(x == grid.grid_width-1) mask |= 4; //right side
+                    if(y == 0) mask |= 2; //top side
+                    if(y == grid.grid_height-1) mask |= 1; //bottom side
+
+                    for(int k = 0; k < 16; ++k)
+                    {
+                        if((mask & k) == 0)
+                        {
+                            count += exit_counts[k].Count;
+                        }
+                    }
+                    row += $"{count,3} ";
+                }
+                Engine.Commands.Log(row);
+            }
+
+
+            
 
         }
 
