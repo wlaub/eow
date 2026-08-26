@@ -35,8 +35,6 @@ namespace Celeste.Mod.ErrandOfWednesday {
         public static Func<object, Session, object> GetSessionExpressionValue;
     }
 
-
-
     public class InvisibleHitbox : Hitbox
     {
         public InvisibleHitbox(float width, float height, float x=0f, float y=0f) : base(width, height, x, y)
@@ -271,6 +269,12 @@ namespace Celeste.Mod.ErrandOfWednesday {
                         });
             EstateController.register_commands();
 
+        }
+
+        [Command("estate_stats", "")]
+        public static void estate_stats_command()
+        {
+            EstateController.stats_command();
         }
 
         public override void Load() {

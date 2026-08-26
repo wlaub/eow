@@ -104,7 +104,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 yield return null;
             }
             level.Frozen = false;
-            level.AutoSave();
+
 
             if(on_finish is not null)
             {
@@ -285,6 +285,72 @@ namespace Celeste.Mod.ErrandOfWednesday
             //e_below_of()
             FrostHelperImports.RegisterSimpleSessionExpressionCommand?.Invoke("eow", "e_pool_depth",
                 (session) => { return drafting_context.pool_depth; } );
+
+        }
+
+        public static void stats_command()
+        {
+            if(!loaded) return;
+
+            Engine.Commands.Log("~~ estate stats ~~");
+
+            int[] entry_counts = new int[16];
+            int[] exit_counts = new int[16];
+
+            //l,r,t,b
+            foreach (string room_name in rooms.Keys)
+            {
+                EstateRoomInfo info = rooms[room_name];
+                int entries = 0;
+                int exits = 0; //ready to see something really stupid?
+                for(int i = 0; i < 4; ++i) //get ready
+                { //i can't be bothered to come up with something less shit right now
+                    if(info.entries[i]) entries |= 1<<i;
+                    if(info.exits[i]) exits |= 1<<i;
+                }
+                entry_counts[entries] += 1;
+                exit_counts[exits] += 1;
+
+            }
+
+            for (int i = 0; i < 16; ++i)
+            {
+                bool l = (i&8)!=0; //oh you thought i was done?
+                bool r = (i&4)!=0;
+                bool t = (i&2)!=0;
+                bool b = (i&1)!=0;
+
+                string line = "";
+                if(t)
+                {
+                    line+="X X\n";
+                }
+                else
+                {
+                    line+="XXX\n";
+                }
+
+                string m = ""; //and this
+                if(l) m+= "X "; //is to go
+                else m+="  "; //even
+                if(r) m+= "X "; //is to go
+                else m+="  "; //even
+                m+=$"{entry_counts[i]}  {exit_counts[i]}"; //further
+//                Engine.Commands.Log(m); //beyond
+
+                line += m + "\n";
+
+                if(b)
+                {
+                    line+="X X\n";
+                }
+                else
+                {
+                    line+="XXX\n";
+                }
+                Engine.Commands.Log(line);
+
+            }
 
         }
 
@@ -489,15 +555,11 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                 float clamp_x = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
                 float clamp_y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
 
-                if(self.Left >= l && self.Right <= r)
+                if(self.Left >= l && self.Right <= r && self.Top >= t && self.Bottom <= b)
                 {
                     result.X = clamp_x;
-                }
-                if(self.Top >= t && self.Bottom <= b)
-                {
                     result.Y = clamp_y;
                 }
- 
                 /*
                 if(self.Left < l)
                 {
