@@ -601,8 +601,8 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                 int t = grid.top_world+gy*grid.rh_world+m;
                 int b = grid.top_world+(gy+1)*grid.rh_world-m;
 
-                float clamp_x = MathHelper.Clamp(result.X, bounds.Left+m, bounds.Right-320-m);
-                float clamp_y = MathHelper.Clamp(result.Y, bounds.Top+m, bounds.Bottom-180-m);
+                float clamp_x = MathHelper.Clamp(result.X, l, r-320);
+                float clamp_y = MathHelper.Clamp(result.Y, t, b-180);
 
                 if(self.Left >= l && self.Right <= r)
                 {
