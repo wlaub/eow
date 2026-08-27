@@ -81,11 +81,14 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             Level level = SceneAs<Level>();
             level.Frozen = true;
+
+            Player player = level.Tracker.GetEntity<Player>();
+            if(player != null) player.StateMachine.State = Player.StDummy;
+
             while(true)
             {
                 if(Input.MenuConfirm.Pressed)
                 {
-                    //TODO this causes the player to jump immediately
                     Input.MenuConfirm.ConsumeBuffer();
                     EstateRoomInfo draft = options[selection];
                     EstateController.drafted_rooms.Add(draft.key); 
@@ -103,6 +106,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
                 yield return null;
             }
+            yield return null;
             level.Frozen = false;
             level.AutoSave();
 
@@ -110,7 +114,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 on_finish();
             }
-
+            if(player != null) player.StateMachine.State = Player.StNormal;
             RemoveSelf();
         }
 
