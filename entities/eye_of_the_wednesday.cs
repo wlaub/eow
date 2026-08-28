@@ -281,13 +281,13 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 enable_stage_mirror(session);
             }
-            if(data.Bool("lore_enable", true)) //TODO: update lonn
+            if(data.Bool("lore_enable", false)) 
             {
                 enable_lore();
             }
-            if(data.Bool("loop_invariance", true)) //TODO update lonn
+            if(data.Bool("loop_invariance", false)) 
             {
-                invariance_targets = data.Attr("invariance_targets","Celeste.Mod.ErrandOfWednesday.LoreOre,Celeste.Key,Celeste.StrawberrySeed").Split(',');
+                invariance_targets = data.Attr("invariance_targets","").Split(',');
                 enable_loop_invariance();
             }
  
@@ -758,7 +758,6 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         public static Dictionary<Entity, string> invariant_entities = new();
 
         //TODO update all entity states on save and quit?
-        //TODO update lore SourceData on damage, rotation, etc
         //TODO holdable active state based on room bounds?
         //TODO i'm gonna need to figure out how to hold the game open after player death until things settle anyway so i might as well do that sooner than later
 
