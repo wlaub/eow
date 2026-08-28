@@ -128,6 +128,11 @@ Logger.Log(LogLevel.Info, "eow", $"the item was created");
  
             }
 
+        public void update_position(Entity e) {
+            x = e.Position.X;
+            y = e.Position.Y;
+            }
+
         public void clone_data(EntityData d){
             //in python you can just import copy
             data.ID = d.ID;

@@ -728,6 +728,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             Everest.Events.Level.OnTransitionTo += li_transition_hook;
 //            Everest.Events.Player.OnDie += li_on_die;
             On.Celeste.Player.Die += li_on_die;
+            On.Celeste.Actor.Update += li_actor_update;
 
             invariant_entities.Clear();
             invariance_states.Clear();
@@ -741,6 +742,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             Everest.Events.Level.OnTransitionTo -= li_transition_hook;
 //            Everest.Events.Player.OnDie -= li_on_die;
             On.Celeste.Player.Die -= li_on_die;
+            On.Celeste.Actor.Update -= li_actor_update;
             invariant_entities.Clear();
             invariance_states.Clear();
             loop_invariance_enabled = false;
@@ -753,6 +755,20 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         //TODO update holdable state on stationery
         //TODO update all entity states on save and quit?
         //TODO update lore SourceData on damage, rotation, etc
+
+        public static void li_actor_update(On.Celeste.Actor.orig_Update orig, Actor entity)
+        {
+            orig(entity);
+            if(invariance_states.ContainsKey(entity))
+            {
+                InvariantEntityState entry;
+//                Level level = entity.Scene as Level;
+//                string room_name = level.Session.LevelData.Name;
+                entry = invariance_states[entity];
+                entry.update_position(entity);
+            }
+ 
+        }
 
         public static PlayerDeadBody li_on_die(On.Celeste.Player.orig_Die orig, Player player, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats)
         {
