@@ -726,10 +726,10 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(loop_invariance_enabled) return;
             Logger.Log(LogLevel.Info, "eow", $"loading loop invariance");
             Everest.Events.Level.OnTransitionTo += li_transition_hook;
-//            Everest.Events.Player.OnDie += li_on_die;
             On.Celeste.Player.Die += li_on_die;
             On.Celeste.Actor.Update += li_actor_update;
             On.Celeste.Leader.GainFollower += li_gain_follower;
+            On.Celeste.Leader.LoseFollower += li_lose_follower;
 
             invariant_entities.Clear();
             invariance_states.Clear();
@@ -741,20 +741,17 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(!loop_invariance_enabled) return;
             Logger.Log(LogLevel.Info, "eow", $"unloading loop invariance");
             Everest.Events.Level.OnTransitionTo -= li_transition_hook;
-//            Everest.Events.Player.OnDie -= li_on_die;
             On.Celeste.Player.Die -= li_on_die;
             On.Celeste.Actor.Update -= li_actor_update;
             On.Celeste.Leader.GainFollower -= li_gain_follower;
+            On.Celeste.Leader.LoseFollower -= li_lose_follower;
             invariant_entities.Clear();
             invariance_states.Clear();
             loop_invariance_enabled = false;
         }
         public static Dictionary<Entity, string> invariant_entities = new();
 
-        //TODO make key invariant on pickup, set held
         //TODO remove entities from state when they get removed
-        //TODO update holdable state on drop, death
-        //TODO update holdable state on stationery
         //TODO update all entity states on save and quit?
         //TODO update lore SourceData on damage, rotation, etc
 
@@ -767,6 +764,19 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 Level level = entity.Scene as Level;
                 make_invariant(level, entity, level.Session.LevelData.Name, true, true);
             }
+
+        }
+
+        public static void li_lose_follower(On.Celeste.Leader.orig_LoseFollower orig, Leader self, Follower follower)
+        {
+            orig(self, follower);
+            Entity entity = follower.Entity;
+            if(li_allowed(entity) && entity.Scene is not null)
+            {
+                Level level = entity.Scene as Level;
+                make_invariant(level, entity, level.Session.LevelData.Name, true, false);
+            }
+
 
         }
 
@@ -799,16 +809,17 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
                 if(li_allowed(entity))
                 {
-                    make_invariant(level, entity, level.Session.LevelData.Name, true, false);
+//                    make_invariant(level, entity, level.Session.LevelData.Name, true, false);
                     entity.Collidable = true;
                     to_lose.Add(follower);
+                    level.Session.Keys.Remove(entity.SourceId);
                 }
                 
             }
-            level.Session.Keys.Clear(); // keys given back to the player after loading have no id even though the constructor is called with the original id
+
             foreach(Follower follower in to_lose)
             {
-                player.Leader.LoseFollower(follower);
+                player.Leader.LoseFollower(follower); //this triggers the entity to become invariant
             }
 
             return orig(player, direction, evenIfInvincible, registerDeathInStats);
@@ -818,7 +829,6 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
 
         public static void make_invariant(Level level, Entity entity, string room_name, bool is_follower, bool is_held)
         {
-//TODO we need to know if a follower is held or not
 Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
             entity.Tag |= Tags.Global;
             invariant_entities[entity] = room_name;
