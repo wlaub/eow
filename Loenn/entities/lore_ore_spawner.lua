@@ -11,6 +11,7 @@ uniqueGlider.placements = {
             max_lores= 7,
             lore_health = 7,
             lore_options = "",
+            enable_flag = "",
         }
     }
 }

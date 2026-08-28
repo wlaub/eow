@@ -53,15 +53,18 @@ namespace Celeste.Mod.ErrandOfWednesday
             health = data.Int("lore_health", 0);
             options = data.Attr("lore_options", "").Split(',');
 
-            //TODO enable flag
-
+            enable_flag_inverted = Flagic.process_flag(data.Attr("enable_flag", ""), out enable_flag);
+ 
         }
 
         public override void Update()
         {
             Level level = SceneAs<Level>();
 
-            //TODO enable flag
+            if(!Flagic.test_flag(level.Session, enable_flag, enable_flag_inverted))
+            {
+                return;
+            }
 
             timer += Engine.DeltaTime;
             if(timer >= rate)
@@ -70,7 +73,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 if(max_lores < 0 || level.Tracker.CountEntities<LoreOre>() < max_lores)
                 {
                     //TODO select random option
-                    level.Add(new LoreOre(Position, health, health, options[0]));
+                    level.Add(LoreOre.new_lore_ore(level, Position, health, health, options[0]));
                 }
 
             }
@@ -118,19 +121,11 @@ namespace Celeste.Mod.ErrandOfWednesday
         F=aL[iL(F)+4] = aL[iL(F)] = F
         */
 
-        public LoreOre(EntityData data, Vector2 offset) : 
-            this(data.Position+offset, 
-                data.Int("health", 7),
-                data.Int("max_health", 7),
-                data.Attr("contents", "")
-                )
-        {}
-
-        public LoreOre(Vector2 position, int health, int max_health, string contents) : base(position)
+        public LoreOre(EntityData data, Vector2 offset) : base(data.Position+offset)
         {
-            this.health=health;
-            this.max_health = max_health;
-            this.contents=contents;
+            health = data.Int("health", 7);
+            max_health = data.Int("max_health", 7);
+            contents = data.Attr("contents", "");
 
             Hold.SlowFall = false;
             Hold.SlowRun = true;
@@ -151,6 +146,25 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
         }
 
+        public static LoreOre new_lore_ore(Level level, Vector2 position, int health, int max_health, string contents)
+        {
+            EntityData source_data = new();
+            source_data.Level = level.Session.LevelData;
+            source_data.Position = position;
+            source_data.Origin = Vector2.Zero;
+            source_data.Name = "eow/LoreOre";
+            source_data.Values = new();
+            source_data.Values["health"] = health;
+            source_data.Values["max_health"] = max_health;
+            source_data.Values["contents"] = contents;
+
+            LoreOre result = new(source_data, Vector2.Zero);
+
+            result.SourceData = source_data;
+
+            return result;
+        }
+
         public override void Update()
         {
             base.Update();
@@ -165,7 +179,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             //140-182
             if(Math.Abs(Speed.X) > 140f +42*health/max_health)
             {
-                health-= 1;
+                inc_health(-1);
                 if(health<0)
                 {
                     //break
@@ -183,6 +197,12 @@ namespace Celeste.Mod.ErrandOfWednesday
                 Audio.Play("event:/game/05_mirror_temple/crystaltheo_hit_side", Position);
                 Speed.X *= -0.4f;
             }
+        }
+
+        public void inc_health(int amt)
+        {
+            health += amt;
+            SourceData.Values["health"] = health;
         }
 
         public void crack()
@@ -211,7 +231,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             //200 should be unsafe at max health
             if(Speed.Y >= 133+66*health/max_health)
             {
-                health-= 1;
+                inc_health(-1);
                 if(health<0)
                 {
                     //break
