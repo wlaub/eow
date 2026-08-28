@@ -93,7 +93,7 @@ Logger.Log(LogLevel.Info, "eow", $"the item was created");
                     EyeOfTheWednesday.invariance_states[e] = entry;//has to come before make_invariant
                     e.Active = level.Session.LevelData.Name == entry.room_name;
                     e.Position = new Vector2(entry.x, entry.y); //must come before make_invariant
-                    EyeOfTheWednesday.make_invariant(level, e, entry.room_name, entry.is_follower);
+                    EyeOfTheWednesday.make_invariant(level, e, entry.room_name, entry.is_follower, entry.is_held);
 
                     }
                 }

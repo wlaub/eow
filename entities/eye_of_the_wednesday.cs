@@ -729,6 +729,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 //            Everest.Events.Player.OnDie += li_on_die;
             On.Celeste.Player.Die += li_on_die;
             On.Celeste.Actor.Update += li_actor_update;
+            On.Celeste.Leader.GainFollower += li_gain_follower;
 
             invariant_entities.Clear();
             invariance_states.Clear();
@@ -743,6 +744,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 //            Everest.Events.Player.OnDie -= li_on_die;
             On.Celeste.Player.Die -= li_on_die;
             On.Celeste.Actor.Update -= li_actor_update;
+            On.Celeste.Leader.GainFollower -= li_gain_follower;
             invariant_entities.Clear();
             invariance_states.Clear();
             loop_invariance_enabled = false;
@@ -755,6 +757,18 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         //TODO update holdable state on stationery
         //TODO update all entity states on save and quit?
         //TODO update lore SourceData on damage, rotation, etc
+
+        public static void li_gain_follower(On.Celeste.Leader.orig_GainFollower orig, Leader self, Follower follower)
+        {
+            orig(self, follower);
+            Entity entity = follower.Entity;
+            if(li_allowed(entity) && entity.Scene is not null)
+            {
+                Level level = entity.Scene as Level;
+                make_invariant(level, entity, level.Session.LevelData.Name, true, true);
+            }
+
+        }
 
         public static void li_actor_update(On.Celeste.Actor.orig_Update orig, Actor entity)
         {
@@ -770,6 +784,11 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
  
         }
 
+        public static bool li_allowed(Entity entity)
+        {
+            return (invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0);
+        }
+
         public static PlayerDeadBody li_on_die(On.Celeste.Player.orig_Die orig, Player player, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats)
         {
             Level level = player.Scene as Level;
@@ -778,18 +797,11 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 Entity entity = follower.Entity;
 Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
-                 if((invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
+                if(li_allowed(entity))
                 {
-                    make_invariant(level, entity, level.Session.LevelData.Name, true);
-//                    entity.Tag |= Tags.Global;
+                    make_invariant(level, entity, level.Session.LevelData.Name, true, false);
                     entity.Collidable = true;
-//                    invariant_entities[entity] = level.Session.LevelData.Name;
                     to_lose.Add(follower);
-//                    if(entity.SourceId.ID != default(EntityID).ID)
-//                    {
-//                        level.Session.DoNotLoad.Add(entity.SourceId);
-////                        level.Session.Keys.Remove(entity.SourceId);
-//                    }
                 }
                 
             }
@@ -804,7 +816,7 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
 
         public static Dictionary<Entity, InvariantEntityState> invariance_states = new();
 
-        public static void make_invariant(Level level, Entity entity, string room_name, bool is_follower)
+        public static void make_invariant(Level level, Entity entity, string room_name, bool is_follower, bool is_held)
         {
 //TODO we need to know if a follower is held or not
 Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
@@ -818,11 +830,11 @@ Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.
             ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
             if(mod_session.invariance_state is not null)
             {
-                mod_session.invariance_state.save_entity(entity, room_name, is_follower, false);
+                mod_session.invariance_state.save_entity(entity, room_name, is_follower, is_held);
             }
             else
             {
-Logger.Log(LogLevel.Error, "eow", $"loop invariance session data missing");
+                Logger.Log(LogLevel.Error, "eow", $"loop invariance session data missing");
             }
         }
 
@@ -879,9 +891,9 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                 {
                     Entity entity = player.Holding.Entity;
             Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
-                    if((invariance_targets.Contains(entity.GetType().FullName) || invariance_targets.Length == 0))
+                    if(li_allowed(entity))
                     {
-                        make_invariant(level, entity, next.Name, false);
+                        make_invariant(level, entity, next.Name, false, false);
 /*;
                         entity.Tag |= Tags.Global;
                         invariant_entities[entity] = next.Name;
