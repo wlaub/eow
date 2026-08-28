@@ -288,6 +288,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(data.Bool("loop_invariance", false)) 
             {
                 invariance_targets = data.Attr("invariance_targets","").Split(',');
+                li_disable_berry_return = data.Bool("disable_li_berry_return", false); //TODO update lonn
                 enable_loop_invariance();
             }
  
@@ -821,12 +822,22 @@ Logger.Log(LogLevel.Info, "eow", $"  and from the save ->{self.SourceId}");
 
         }
 
+        public static bool li_disable_berry_return = false;
         public static void li_lose_follower(On.Celeste.Leader.orig_LoseFollower orig, Leader self, Follower follower)
         {
-            orig(self, follower);
             Entity entity = follower.Entity;
+            if(entity is Strawberry && li_disable_berry_return && li_allowed(entity))
+            {
+Logger.Log(LogLevel.Info, "eow", $"berry lost");
+                ((Strawberry)entity).ReturnHomeWhenLost = false;
+            }
+
+
+            orig(self, follower);
+
             if(li_allowed(entity) && entity.Scene is not null)
             {
+
                 Level level = entity.Scene as Level;
                 make_invariant(level, entity, level.Session.LevelData.Name, true, false);
             }
@@ -940,7 +951,7 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                     string room_name = invariant_entities[e];
                     if(player.Holding == null || player.Holding.Entity != e)
                     {
-                        e.Active = next.Name == room_name;
+                        e.Active = next.Name == room_name || next.Bounds.Contains((int)e.Position.X, (int)e.Position.Y);
                     }
                 }
             foreach(Follower follower in player.Leader.Followers)
