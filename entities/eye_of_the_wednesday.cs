@@ -732,6 +732,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             On.Celeste.Leader.LoseFollower += li_lose_follower;
             On.Monocle.Entity.Removed += li_remove;
             On.Celeste.Key.RegisterUsed += li_register_used;
+            On.Celeste.Player.Pickup += li_pickup;
 
             invariant_entities.Clear();
             invariance_states.Clear();
@@ -747,6 +748,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             On.Celeste.Actor.Update -= li_actor_update;
             On.Celeste.Leader.GainFollower -= li_gain_follower;
             On.Celeste.Leader.LoseFollower -= li_lose_follower;
+            On.Celeste.Player.Pickup -= li_pickup;
             On.Monocle.Entity.Removed -= li_remove;
             On.Celeste.Key.RegisterUsed -= li_register_used;
             invariant_entities.Clear();
@@ -755,10 +757,26 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         }
         public static Dictionary<Entity, string> invariant_entities = new();
 
-        //TODO track holdables on pickup
         //TODO update all entity states on save and quit?
         //TODO update lore SourceData on damage, rotation, etc
         //TODO holdable active state based on room bounds?
+        //TODO i'm gonna need to figure out how to hold the game open after player death until things settle anyway so i might as well do that sooner than later
+
+        public static bool li_pickup(On.Celeste.Player.orig_Pickup orig, Player self, Holdable hold)
+        {
+            bool result = orig(self, hold);
+            if(result)
+            {
+                Level level = self.Scene as Level;
+                Entity entity = hold.Entity;
+        Logger.Log(LogLevel.Info, "eow", $"holdable on pickup ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
+                if(li_allowed(entity))
+                {
+                    make_invariant(level, entity, level.Session.LevelData.Name, false, false);
+                }
+            }
+            return result;
+        }
 
         public static void li_register_used(On.Celeste.Key.orig_RegisterUsed orig, Key self)
         { //the lock block dnl's itself before the key is removed
@@ -943,14 +961,6 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                     if(li_allowed(entity))
                     {
                         make_invariant(level, entity, next.Name, false, false);
-/*;
-                        entity.Tag |= Tags.Global;
-                        invariant_entities[entity] = next.Name;
-                        if(entity.SourceId.ID != default(EntityID).ID)
-                        {
-                            level.Session.DoNotLoad.Add(entity.SourceId);   
-                        }
-*/
                     }
                 }
             }
