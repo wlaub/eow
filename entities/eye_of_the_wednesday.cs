@@ -730,6 +730,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             On.Celeste.Actor.Update += li_actor_update;
             On.Celeste.Leader.GainFollower += li_gain_follower;
             On.Celeste.Leader.LoseFollower += li_lose_follower;
+            On.Monocle.Entity.Removed += li_remove;
+            On.Celeste.Key.RegisterUsed += li_register_used;
 
             invariant_entities.Clear();
             invariance_states.Clear();
@@ -745,15 +747,50 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             On.Celeste.Actor.Update -= li_actor_update;
             On.Celeste.Leader.GainFollower -= li_gain_follower;
             On.Celeste.Leader.LoseFollower -= li_lose_follower;
+            On.Monocle.Entity.Removed -= li_remove;
+            On.Celeste.Key.RegisterUsed -= li_register_used;
             invariant_entities.Clear();
             invariance_states.Clear();
             loop_invariance_enabled = false;
         }
         public static Dictionary<Entity, string> invariant_entities = new();
 
-        //TODO remove entities from state when they get removed
+        //TODO track holdables on pickup
         //TODO update all entity states on save and quit?
         //TODO update lore SourceData on damage, rotation, etc
+        //TODO holdable active state based on room bounds?
+
+        public static void li_register_used(On.Celeste.Key.orig_RegisterUsed orig, Key self)
+        { //the lock block dnl's itself before the key is removed
+            orig(self); // this calls Leader.LoseFollower, which makes the key tracked
+
+            li_untrack(self);
+        }
+
+        public static void li_remove(On.Monocle.Entity.orig_Removed orig, Entity self, Scene scene)
+        {
+            li_untrack(self);
+
+            orig(self, scene);
+
+        }
+
+        public static void li_untrack(Entity self)
+        {
+            if(invariance_states.ContainsKey(self))
+            {
+                invariant_entities.Remove(self);
+Logger.Log(LogLevel.Info, "eow", $"remove ->{self.SourceId}");
+ 
+                ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+                if(mod_session.invariance_state is not null)
+                {
+                    mod_session.invariance_state.remove_entity(self);
+Logger.Log(LogLevel.Info, "eow", $"  and from the save ->{self.SourceId}");
+                }
+            }
+ 
+        }
 
         public static void li_gain_follower(On.Celeste.Leader.orig_GainFollower orig, Leader self, Follower follower)
         {
@@ -801,6 +838,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
 
         public static PlayerDeadBody li_on_die(On.Celeste.Player.orig_Die orig, Player player, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats)
         {
+//TODO ideally if a key is in the middle of being used, we would wait for it to finish before respawning
+//otherwise it gets trapped inside the lock block, and a loop-invariant key would not stop being used on death
             Level level = player.Scene as Level;
             List<Follower> to_lose = new();
             foreach(Follower follower in player.Leader.Followers)

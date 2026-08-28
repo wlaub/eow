@@ -103,6 +103,13 @@ Logger.Log(LogLevel.Info, "eow", $"the item was created");
             EyeOfTheWednesday._save_invariant_entity(this, entity, room_name, is_follower, is_held);
             }
 
+        public void remove_entity(Entity entity) {
+                InvariantEntityState entry = EyeOfTheWednesday.invariance_states[entity];
+                entities.Remove(entry);
+                EyeOfTheWednesday.invariance_states.Remove(entity);
+            }
+        
+
         }
 
     public class InvariantEntityState {
