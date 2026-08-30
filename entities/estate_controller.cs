@@ -240,6 +240,9 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static int grid_width;
         public static int grid_height;
 
+        public static bool invisiblate_tiles;
+        public static string[] invisiblate_entities;
+
         public static Dictionary<string, EstateRoomInfo> rooms = new();
         public static HashSet<string> drafted_rooms = new();
 
@@ -479,6 +482,10 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             grid_height = data.Int("grid_height");
 
             camera_margin = data.Int("camera_margin", 16);
+
+            invisiblate_tiles = data.Bool("invisiblate_tiles", true); //TODO lonn
+            invisiblate_entities = data.Attr("invisiblate_entities", "").Split(","); //TODO lonn
+            //TODO make this hapen
 
 //            data.Nodes[0];
             Vector2 grid_ul = Vector2.Zero;

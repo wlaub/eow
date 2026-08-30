@@ -1,0 +1,24 @@
+
+local dyno = {}
+
+dyno.name = "eow/EstateMap"
+dyno.placements = {
+    {
+        name = "estate_map",
+        data = {
+            name = "",
+            number = 0,
+            sprite = "",
+            selection_count = 1,
+            selection_expression = "",
+            entries = "",
+            exits = "",
+            tags = "",
+        }
+    }
+}
+
+dyno.depth = -5
+dyno.texture = "objects/booster/booster00"
+
+return dyno
