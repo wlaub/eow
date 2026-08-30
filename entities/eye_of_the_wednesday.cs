@@ -759,8 +759,8 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         public static Dictionary<Entity, string> invariant_entities = new();
 
         //TODO update all entity states on save and quit?
-        //TODO holdable active state based on room bounds?
         //TODO i'm gonna need to figure out how to hold the game open after player death until things settle anyway so i might as well do that sooner than later
+            //i guess you'd want like public static bool ErrandOfWednesday.death_inhibited and then youd have to il hook PlayerDeadBody.DeathRoutine to insert a delay and hook PlayerDeadBody.End to nop while that flag is set
 
         public static bool li_pickup(On.Celeste.Player.orig_Pickup orig, Player self, Holdable hold)
         {

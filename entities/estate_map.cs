@@ -13,7 +13,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
     [Tracked]
     [CustomEntity("eow/EstateMap")]
-    public class EstateMap : Solid
+    public class EstateMap : Entity
     {
         public EntityID eid;
 
@@ -22,8 +22,10 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public int[,,] counts;
 
+        float w,h, offx, offy;
 
-        public EstateMap(EntityData data, Vector2 offset, EntityID eid) : base(data.Position+offset, data.Width, data.Height, safe:true)
+
+        public EstateMap(EntityData data, Vector2 offset, EntityID eid) : base(data.Position+offset)
         {
             this.eid = eid;
 
@@ -42,7 +44,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             counts = new int[grid.grid_width, grid.grid_height,4];
 
-            float w,h,offx,offy;
+//            float w,h,offx,offy;
 
             foreach (string room_key in grid.room_position.Keys)
             {
@@ -109,7 +111,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {//test draft left
                     tx = gx-1;
                     ty=gy;
-                    side = 0;
+                    side = 1;
+                    drafting_context.pool_depth = 0;
                     drafting_context.into_x = tx;
                     drafting_context.into_y = ty;
                     drafting_context.into_top = ty==0;
@@ -119,12 +122,17 @@ namespace Celeste.Mod.ErrandOfWednesday
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
+    if(pool.Count == 0)
+        Logger.Log(LogLevel.Info, "eow", $"from {gx},{gy} left yields nothing");
+
+
                 }
                 if(gx < grid.grid_width-1)
                 {//test draft right
                     tx = gx+1;
                     ty=gy;
-                    side = 1;
+                    side = 0;
+                    drafting_context.pool_depth = 0;
                     drafting_context.into_x = tx;
                     drafting_context.into_y = ty;
                     drafting_context.into_top = ty==0;
@@ -134,12 +142,18 @@ namespace Celeste.Mod.ErrandOfWednesday
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
+
+//    if(pool.Count > 0)
+//        Logger.Log(LogLevel.Info, "eow", $"from {gx},{gy} right");
+
+
                 }
                 if(gy > 0)
                 {//test draft up
                     tx = gx;
                     ty=gy-1;
-                    side = 2;
+                    side = 3;
+                    drafting_context.pool_depth = 0;
                     drafting_context.into_x = tx;
                     drafting_context.into_y = ty;
                     drafting_context.into_top = ty==0;
@@ -154,7 +168,8 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {//test draft down
                     tx = gx;
                     ty=gy+1;
-                    side = 3;
+                    side = 2;
+                    drafting_context.pool_depth = 0;
                     drafting_context.into_x = tx;
                     drafting_context.into_y = ty;
                     drafting_context.into_top = ty==0;
@@ -183,7 +198,51 @@ namespace Celeste.Mod.ErrandOfWednesday
         public override void Render()
         {
             base.Render();
+            EstateGrid grid = EstateController.grid;
 
+
+            for(int gx = 0; gx < grid.grid_width; ++gx)
+            {
+            for(int gy=0;gy<grid.grid_height;++gy)
+            {
+
+                float xc = offx+(gx+0.5f)*w;
+                float yc = offy+(gy+0.5f)*h;
+
+                string room_name = EstateController.room_at_grid(gx,gy);
+                if(room_name != null)
+                {
+                ActiveFont.Draw(room_name, 
+                    new Vector2(xc, yc),
+                    new Vector2(0.5f, 0.5f), Vector2.One*0.25f,
+                    Color.Blue
+                    );
+ 
+                }
+
+                ActiveFont.Draw($"{counts[gx,gy,1]}", 
+                    new Vector2(xc-w*.4f, yc),
+                    new Vector2(0f, 0.5f), Vector2.One*0.5f,
+                    Color.Black
+                    );
+                 ActiveFont.Draw($"{counts[gx,gy,0]}", 
+                    new Vector2(xc+w*.4f, yc),
+                    new Vector2(1f, 0.5f), Vector2.One*0.5f,
+                    Color.Black
+                    );
+                  ActiveFont.Draw($"{counts[gx,gy,3]}", 
+                    new Vector2(xc, yc-0.4f*h),
+                    new Vector2(0.5f, 0f), Vector2.One*0.5f,
+                    Color.Black
+                    );
+                   ActiveFont.Draw($"{counts[gx,gy,2]}", 
+                    new Vector2(xc, yc+0.4f*h),
+                    new Vector2(0.5f, 1f), Vector2.One*0.5f,
+                    Color.Black
+                    );
+ 
+            }
+            }
 
         }
 

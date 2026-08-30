@@ -747,11 +747,20 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
         public static string room_at_world(int world_x, int world_y)
         {
             grid.w2g(world_x, world_y, out world_x, out world_y);
-            Tuple<int, int> key= new Tuple<int, int>(world_x, world_y) ; //what is this language's fucking problem
+            return room_at_grid(world_x, world_y);
+//            Tuple<int, int> key= new Tuple<int, int>(world_x, world_y) ; //what is this language's fucking problem
 
-            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
+//            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
 
         }
+
+        public static string room_at_grid(int grid_x, int grid_y)
+        {
+            Tuple<int, int> key= new Tuple<int, int>(grid_x, grid_y) ; //what is this language's fucking problem
+            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
+        }
+
+
 
         public static void draft_room(Level level, LevelData from_level, int side, Action on_finish = null)
         {
