@@ -21,6 +21,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
 
         public int[,,] counts;
+        public int[,,] depths;
+
 
         float w,h, offx, offy;
 
@@ -43,6 +45,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             EstateGrid grid = EstateController.grid;
 
             counts = new int[grid.grid_width, grid.grid_height,4];
+            depths = new int[grid.grid_width, grid.grid_height,4];
+
 
 //            float w,h,offx,offy;
 
@@ -122,8 +126,9 @@ namespace Celeste.Mod.ErrandOfWednesday
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
-    if(pool.Count == 0)
-        Logger.Log(LogLevel.Info, "eow", $"from {gx},{gy} left yields nothing");
+                    depths[gx,gy,side]=drafting_context.pool_depth;
+//    if(pool.Count == 0)
+//        Logger.Log(LogLevel.Info, "eow", $"from {gx},{gy} left yields nothing");
 
 
                 }
@@ -142,7 +147,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
-
+                    depths[gx,gy,side]=drafting_context.pool_depth;
 //    if(pool.Count > 0)
 //        Logger.Log(LogLevel.Info, "eow", $"from {gx},{gy} right");
 
@@ -163,6 +168,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
+                    depths[gx,gy,side]=drafting_context.pool_depth;
                 }
                 if(gy < grid.grid_height-1)
                 {//test draft down
@@ -179,7 +185,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
- 
+                    depths[gx,gy,side]=drafting_context.pool_depth;
                 }
 
             }
@@ -220,27 +226,45 @@ namespace Celeste.Mod.ErrandOfWednesday
  
                 }
 
+
+                Color[] lookup = {Color.Magenta, Color.Black,Color.Lime,Color.Red,Color.Magenta};
+
+                if(gx > 0)
+                {
                 ActiveFont.Draw($"{counts[gx,gy,1]}", 
                     new Vector2(xc-w*.4f, yc),
                     new Vector2(0f, 0.5f), Vector2.One*0.5f,
-                    Color.Black
+                    lookup[Math.Min(depths[gx,gy,1], lookup.Length-1)]
+//                    Color.Black
                     );
+                }
+                if(gx < grid.grid_width-1)
+                {
                  ActiveFont.Draw($"{counts[gx,gy,0]}", 
                     new Vector2(xc+w*.4f, yc),
                     new Vector2(1f, 0.5f), Vector2.One*0.5f,
-                    Color.Black
+//                    Color.Black
+                    lookup[Math.Min(depths[gx,gy,0], lookup.Length-1)]
                     );
+                }
+                if(gy > 0)
+                {
                   ActiveFont.Draw($"{counts[gx,gy,3]}", 
                     new Vector2(xc, yc-0.4f*h),
                     new Vector2(0.5f, 0f), Vector2.One*0.5f,
-                    Color.Black
+                    lookup[Math.Min(depths[gx,gy,3], lookup.Length-1)]
+//                    Color.Black
                     );
+                 }
+                if(gy < grid.grid_height-1)
+                {
                    ActiveFont.Draw($"{counts[gx,gy,2]}", 
                     new Vector2(xc, yc+0.4f*h),
                     new Vector2(0.5f, 1f), Vector2.One*0.5f,
-                    Color.Black
+                    lookup[Math.Min(depths[gx,gy,2], lookup.Length-1)]
+//                    Color.Black
                     );
- 
+                }
             }
             }
 
