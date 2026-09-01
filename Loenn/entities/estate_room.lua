@@ -16,6 +16,7 @@ dyno.placements = {
             tags = "",
             on_draft_script = "",
             on_draft_args = "",
+            redraftable = false,
         }
     }
 }

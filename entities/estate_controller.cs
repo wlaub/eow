@@ -835,25 +835,30 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
             save_room_state(room_name, start_x, start_y, target_x, target_y);
 
             EstateRoomInfo room_info = rooms[room_name];
-//            if(!string.IsNullOrWhiteSpace(room_info.on_draft_script))
+            if(!string.IsNullOrWhiteSpace(room_info.on_draft_script))
             {
             
                 if (Level.EntityLoaders.TryGetValue("luaCutscenes/luaCutsceneTrigger", out var value))
                 {
-                    Logger.Log(LogLevel.Warn, "eow", $"trying to make that trigger {value}");
+
                     EntityData entity_data = new();
                     entity_data.Values = new();
                     entity_data.Values["onlyOnce"] = true;
                     entity_data.Values["filename"]  = room_info.on_draft_script;
                     entity_data.Values["arguments"] = room_info.on_draft_args;
                     Entity entity = value(level, level.Session.LevelData, Vector2.Zero, entity_data);
+
                     Player player = level.Tracker.GetEntity<Player>();
-                    Logger.Log(LogLevel.Warn, "eow", $"Player is {player}. Entity is {entity} is {entity as Trigger}");
                     level.Add(entity);
                     entity.Awake(level);
                     entity.Scene = level;
                     (entity as Trigger).OnEnter(player);
-                }                       
+                    level.Remove(entity);
+                }
+                else
+                {
+                     Logger.Log(LogLevel.Warn, "eow", $"can't instantiate lua cutscene trigger for on_draft_script for {room_name}");
+                }
             }
 
         }
