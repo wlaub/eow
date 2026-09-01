@@ -50,6 +50,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 //w=320, gap=160
                 //m=320
                 new_option.sprite.Position = new Vector2(320f+160f+idx*(320f+160f), 320f);
+                new_option.sprite.Scale = Vector2.One;
             }
 
             EstateGrid grid = EstateController.grid;
@@ -91,9 +92,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 {
                     Input.MenuConfirm.ConsumeBuffer();
                     EstateRoomInfo draft = options[selection];
-                    EstateController.drafted_rooms.Add(draft.key); 
-                    EstateController.grid.add_room_world(draft.key, target_x, target_y);
-                    EstateController.move_room(level, draft.key, target_x, target_y);
+                    EstateController.draft_room_world(level, draft.key, target_x, target_y);
                     break;                    
                 }
                 if(Input.MenuLeft.Pressed && selection > 0)
@@ -208,6 +207,24 @@ namespace Celeste.Mod.ErrandOfWednesday
             gx = (int)(wx-left_world)/rw_world;
             gy = (int)(wy-top_world)/rh_world;
         }
+
+        public string room_at_world(int world_x, int world_y)
+        {
+            w2g(world_x, world_y, out world_x, out world_y);
+            return room_at_grid(world_x, world_y);
+//            Tuple<int, int> key= new Tuple<int, int>(world_x, world_y) ; //what is this language's fucking problem
+
+//            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
+
+        }
+
+        public string room_at_grid(int grid_x, int grid_y)
+        {
+            Tuple<int, int> key= new Tuple<int, int>(grid_x, grid_y) ; //what is this language's fucking problem
+            return position_room.ContainsKey(key) ? position_room[key] : null;
+        }
+
+
  
         public void add_room(string room_key, int x, int y)
         {
@@ -215,6 +232,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             room_position[room_key] = new Vector2(x,y);
  Logger.Log(LogLevel.Info, "eow", $"added room {room_key} at {x},{y}");           
         }
+
         public void add_room_world(string room_key, int wx, int wy)
         {
             int x,y;
@@ -223,6 +241,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             
         }
 
+        public void remove_room(string room_key)
+        {
+            Vector2 pos = room_position[room_key];
+            Tuple<int, int> pos_key= new Tuple<int, int>((int)pos.X, (int)pos.Y);
+            room_position.Remove(room_key);
+            position_room.Remove(pos_key) ;
+        }
 
 
     }
@@ -620,29 +645,6 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                     result.Y = clamp_y;
                 }
  
-                /*
-                if(self.Left < l)
-                {
-                    result.X = MathHelper.Lerp(clamp_x, result.X, (l-self.Left)/m);
-                }
-                else if(self.Right > r)
-                {
-                    result.X = MathHelper.Lerp(clamp_x, result.X, (self.Right-r)/m);
-                }
-                else
-                {result.X=clamp_x;}
-                if(self.Top < t)
-                {
-                    result.Y = MathHelper.Lerp(clamp_y, result.Y, (t-self.Top)/m);
-                }
-                else if(self.Bottom > b)
-                {
-                    result.Y = MathHelper.Lerp(clamp_y, result.Y, (self.Bottom-b)/m);
-                }
-                else
-                {result.Y=clamp_y;}
-                */
-
             }
             return result;
         }
@@ -744,25 +746,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
         };
 
 
-        public static string room_at_world(int world_x, int world_y)
-        {
-            grid.w2g(world_x, world_y, out world_x, out world_y);
-            return room_at_grid(world_x, world_y);
-//            Tuple<int, int> key= new Tuple<int, int>(world_x, world_y) ; //what is this language's fucking problem
-
-//            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
-
-        }
-
-        public static string room_at_grid(int grid_x, int grid_y)
-        {
-            Tuple<int, int> key= new Tuple<int, int>(grid_x, grid_y) ; //what is this language's fucking problem
-            return grid.position_room.ContainsKey(key) ? grid.position_room[key] : null;
-        }
-
-
-
-        public static void draft_room(Level level, LevelData from_level, int side, Action on_finish = null)
+        public static void start_drafting(Level level, LevelData from_level, int side, Action on_finish = null)
         {
             int target_x;
             int target_y;
@@ -775,7 +759,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
             drafting_context.from_level = from_level;
             drafting_context.side = side;
 
-            if(room_at_world(target_x, target_y) != null){return;}
+            if(grid.room_at_world(target_x, target_y) != null){return;}
 
             int gx, gy;
             grid.w2g(target_x, target_y, out gx, out gy);
@@ -814,13 +798,6 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
                 mod_session.estate_state = new();
 //Logger.Log(LogLevel.Info, "eow", "did  not found state???"); 
             }
-            {
-
-
-
-            }
-
-
 
             EstateRoomState new_state = new();
             new_state.xstart=xstart;
@@ -830,6 +807,98 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
             new_state.ypos=ypos;
             mod_session.estate_state.drafted_rooms[key] = new_state;
            
+        }
+
+        public static void draft_room_world(Level level, string room_name, int target_x, int target_y)
+        {
+            if(drafted_rooms.Contains(room_name))
+            {
+                Logger.Log(LogLevel.Warn, "eow", $"attempted to draft already drafted room {room_name}"); 
+                return;
+            }
+
+            string existing_room = grid.room_at_world(target_x, target_y);
+            if(existing_room != null)
+            {
+                Logger.Log(LogLevel.Warn, "eow", $"attempted to draft over {existing_room}"); 
+                return;
+            }
+
+            LevelData level_data = level.Session.MapData.Get(room_name);
+
+            int start_x = level_data.Bounds.X;
+            int start_y = level_data.Bounds.Y;
+ 
+            drafted_rooms.Add(room_name); 
+            grid.add_room_world(room_name, target_x, target_y);
+            move_room(level, room_name, target_x, target_y);
+            save_room_state(room_name, start_x, start_y, target_x, target_y);
+
+            EstateRoomInfo room_info = rooms[room_name];
+//            if(!string.IsNullOrWhiteSpace(room_info.on_draft_script))
+            {
+            
+                if (Level.EntityLoaders.TryGetValue("luaCutscenes/luaCutsceneTrigger", out var value))
+                {
+                    Logger.Log(LogLevel.Warn, "eow", $"trying to make that trigger {value}");
+                    EntityData entity_data = new();
+                    entity_data.Values = new();
+                    entity_data.Values["onlyOnce"] = true;
+                    entity_data.Values["filename"]  = room_info.on_draft_script;
+                    entity_data.Values["arguments"] = room_info.on_draft_args;
+                    Entity entity = value(level, level.Session.LevelData, Vector2.Zero, entity_data);
+                    Player player = level.Tracker.GetEntity<Player>();
+                    Logger.Log(LogLevel.Warn, "eow", $"Player is {player}. Entity is {entity} is {entity as Trigger}");
+                    level.Add(entity);
+                    entity.Awake(level);
+                    entity.Scene = level;
+                    (entity as Trigger).OnEnter(player);
+                }                       
+            }
+
+        }
+
+
+        public static void draft_room(Level level, string room_name, int gx, int gy)
+        {
+            int wx,wy;
+            grid.w2g(gx, gy, out wx, out wy); //it is not lost on me
+            draft_room_world(level, room_name, wx, wy); 
+//if this were python my code would be pristine(and my frame rate measured in seconds-per-frame no doubt)
+        }
+
+        public static void undraft_room(Level level, string room_name)
+        {
+Logger.Log(LogLevel.Info, "eow", $"undrafting {room_name}"); 
+            if(level == null)
+            {
+                level = Engine.Scene as Level;
+            }
+            
+            if(!drafted_rooms.Contains(room_name))
+            {
+                Logger.Log(LogLevel.Debug, "eow", $"attempted to undraft already not-drafted room {room_name}"); 
+                return;
+            }
+
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+            if(mod_session.estate_state is null)
+            {
+                Logger.Log(LogLevel.Error, "eow", $"somehow, estate_state is null in undraft_room"); 
+                return;
+            }
+
+            EstateRoomState room_state = mod_session.estate_state.drafted_rooms[room_name];
+
+            //move room back to start position
+            move_room(level, room_name, room_state.xstart, room_state.ystart);
+
+            //clear state
+            grid.remove_room(room_name);
+            drafted_rooms.Remove(room_name);
+            mod_session.estate_state.drafted_rooms.Remove(room_name);
+
+
         }
 
 
@@ -861,11 +930,6 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
             }
 
             regenerate_tilebounds(level, level_data, start_x, start_y, target_x, target_y);
-
-            save_room_state(room_name, start_x, start_y, target_x, target_y);
-
-//            session.MapData.Reload(); //m,aybe need to hook and call this on chaper restart?
-//            AssetReloadHelper.ReloadLevel();
 
         }
 

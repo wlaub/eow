@@ -14,6 +14,8 @@ dyno.placements = {
             entries = "",
             exits = "",
             tags = "",
+            on_draft_script = "",
+            on_draft_args = "",
         }
     }
 }

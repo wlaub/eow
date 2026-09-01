@@ -40,6 +40,9 @@ namespace Celeste.Mod.ErrandOfWednesday
         public string selection_expression;
         public object session_expression;
 
+        public string on_draft_script;
+        public string on_draft_args;
+
         public Sprite sprite;
 
         public EstateRoomInfo(LevelData level_data, EntityData room_data)
@@ -52,6 +55,10 @@ namespace Celeste.Mod.ErrandOfWednesday
             selection_count = room_data.Int("selection_count",1);
             selection_expression = room_data.Attr("selection_expression", "");
            
+            on_draft_script = room_data.Attr("on_draft_script", "");
+            on_draft_args = room_data.Attr("on_draft_args", "");
+
+
             FrostHelperImports.TryCreateSessionExpression?.Invoke(selection_expression, out session_expression);
 //Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}");           
  

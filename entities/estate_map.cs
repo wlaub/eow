@@ -215,7 +215,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 float xc = offx+(gx+0.5f)*w;
                 float yc = offy+(gy+0.5f)*h;
 
-                string room_name = EstateController.room_at_grid(gx,gy);
+                string room_name = grid.room_at_grid(gx,gy);
                 if(room_name != null)
                 {
                 ActiveFont.Draw(room_name, 

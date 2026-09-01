@@ -53,7 +53,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             Level level = SceneAs<Level>();
             LevelData this_level = level.Session.LevelData;
-            EstateController.draft_room(level, this_level, side, do_open);
+            EstateController.start_drafting(level, this_level, side, do_open);
         }
 
         public void do_open()
@@ -104,7 +104,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             int test_y;
             if(EstateController.get_draft_target(this_level, side, out test_x, out test_y))
             {
-                if(EstateController.room_at_world(test_x, test_y) != null){
+                if(EstateController.grid.room_at_world(test_x, test_y) != null){
                     RemoveSelf();
                     return;
                     }

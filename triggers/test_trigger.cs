@@ -117,7 +117,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             else {return;}
 
-            EstateController.draft_room(level, this_level, side);
+            EstateController.start_drafting(level, this_level, side);
         }
 
         public override void OnEnter(Player player)
