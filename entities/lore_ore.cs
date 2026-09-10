@@ -168,6 +168,13 @@ namespace Celeste.Mod.ErrandOfWednesday
         public override void Update()
         {
             base.Update();
+/*            if(Scene.Entities.removing.Contains(this))
+            { //TODO make it not go through the right side of the level and despawn
+                Scene.Entities.removing.Remove(this);
+                Scene.Entities.toRemove.Remove(this);
+            }
+*/
+
             if(!Hold.IsHeld && Bottom <= Level.Bounds.Top+8)
             {
                 RemoveSelf();

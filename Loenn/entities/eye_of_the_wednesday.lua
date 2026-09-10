@@ -28,6 +28,8 @@ dyno.placements = {
             lore_enable = false,
             loop_invariance = false,
             invariance_targets = "",
+            disable_li_berry_return = true,
+            global_lookout = false,
         }
     }
 }

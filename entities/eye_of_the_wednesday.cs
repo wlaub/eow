@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
@@ -140,6 +141,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
             unload_lore();
             unload_loop_invariance();
+            unload_global_lookout();
 
             loaded = false;
         }
@@ -288,8 +290,12 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             if(data.Bool("loop_invariance", false)) 
             {
                 invariance_targets = data.Attr("invariance_targets","").Split(',');
-                li_disable_berry_return = data.Bool("disable_li_berry_return", false); //TODO update lonn
+                li_disable_berry_return = data.Bool("disable_li_berry_return", false);
                 enable_loop_invariance();
+            }
+            if(data.Bool("global_lookout", false)) 
+            {
+                enable_global_lookout();
             }
  
 
@@ -714,6 +720,39 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 self.RemoveSelf();*/
             }            
         }
+
+        static bool global_lookout_enabled;
+        public static void enable_global_lookout()
+        {
+            if(global_lookout_enabled) return;
+            On.Celeste.Lookout.LookRoutine += global_look_routine;
+            global_lookout_enabled = true;
+        }
+        public static void unload_global_lookout()
+        {
+            if(!global_lookout_enabled) return;
+            On.Celeste.Lookout.LookRoutine -= global_look_routine;
+            global_lookout_enabled = false;
+        }
+
+        public static IEnumerator global_look_routine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
+        {
+            var orig_enum = orig(self, player).SafeEnumerate();
+            while(true)
+            {
+                //before
+                Level level = self.Scene as Level;
+                Rectangle old_bounds = level.Bounds;
+            Logger.Log(LogLevel.Info, "eow", $"old bounds {old_bounds}");
+                Rectangle new_bounds = new(old_bounds.X-100, old_bounds.Y-100, old_bounds.Width+200, old_bounds.Height+200);
+                level.Session.LevelData.Bounds = new_bounds;
+                var result = orig_enum.MoveNext();
+                level.Session.LevelData.Bounds = old_bounds;
+                if(!result) break;
+                yield return orig_enum.Current;
+            }
+        }
+
 
         public static void enable_loop_invariance()
         {
