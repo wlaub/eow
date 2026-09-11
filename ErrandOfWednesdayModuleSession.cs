@@ -91,7 +91,8 @@ Logger.Log(LogLevel.Info, "eow", $"restoring {entry.id} {entry.room_name} at {en
 Logger.Log(LogLevel.Info, "eow", $"the item was created");
 
                     EyeOfTheWednesday.invariance_states[e] = entry;//has to come before make_invariant
-                    e.Active = level.Session.LevelData.Name == entry.room_name;
+                    e.Active = level.Session.LevelData.Name == entry.room_name && entry.is_present;
+                    e.Visible = entry.is_present;
                     e.Position = new Vector2(entry.x, entry.y); //must come before make_invariant
                     EyeOfTheWednesday.make_invariant(level, e, entry.room_name, entry.is_follower, entry.is_held);
 
@@ -120,6 +121,7 @@ Logger.Log(LogLevel.Info, "eow", $"the item was created");
         public string room_name;
         public bool is_follower;
         public bool is_held;
+        public bool is_present = true; 
 
         public void update_from(Entity e, string room_name, bool is_follower, bool is_held){
             id = e.SourceId;
@@ -132,7 +134,7 @@ Logger.Log(LogLevel.Info, "eow", $"the item was created");
             this.room_name = room_name;
             this.is_follower = is_follower;
             this.is_held = is_held;
- 
+            this.is_present = true;
             }
 
         public void update_position(Entity e) {

@@ -86,6 +86,7 @@ Input.MoveX.Inverted = (Input.Aim.InvertedX = (Input.Feather.InvertedX = SaveDat
                     level.Session.SetFlag(N_FROM_LEFT_FLAG, was_left&&!is_mirrored);
                     level.Session.SetFlag(N_FROM_RIGHT_FLAG, !was_left&&!is_mirrored);
 
+                    EyeOfTheWednesday.li_mirror_change(level, this, was_left);
 
                     is_left = !is_left;
                 }

@@ -970,6 +970,53 @@ Logger.Log(LogLevel.Info, "eow", $"saving new entity: ->{entity.SourceId}, {enti
 Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities saved");
         }
 
+        public static void li_mirror_change(Level level, StageMirror mirror, bool from_left)
+        {
+            if(!loop_invariance_enabled) return;
+           
+            Player player = level.Tracker.GetEntity<Player>();
+
+            HashSet<Entity> followers = new();
+            if(player != null)
+            {
+                foreach(Follower follower in player.Leader.Followers)
+                {
+                    followers.Add(follower.Entity);
+                } 
+            } 
+
+            foreach(Entity e in invariant_entities.Keys)
+            {
+                if(player != null)
+                {   //skip held and followers
+                    if(player.Holding != null && player.Holding.Entity == e) continue;
+                    if(followers.Contains(e)) continue;        
+ 
+                }
+               
+                InvariantEntityState entry = invariance_states[e];
+                //if room bounds contains entity 
+                if(!level.Bounds.Contains((int)e.Position.X, (int)e.Position.Y)) 
+                {    //entities not in room
+                    //are already inactive, but need visibility updated
+                    entry.is_present = !entry.is_present;
+                    e.Visible = entry.is_present;
+                }
+                else
+                {
+                    if(
+                        from_left && e.Right < mirror.Center.X //from left means left is no longer visible
+                        || !from_left && e.Left > mirror.Center.X //from right means right is no longer visible
+                    )
+                    {
+                        entry.is_present = !entry.is_present;
+                        e.Visible = entry.is_present;
+                        e.Active = entry.is_present;
+                    } 
+                }
+            }
+        }
+
         public static void li_transition_hook(Level level, LevelData next, Vector2 direction)
         {
             Player player = level.Tracker.GetEntity<Player>();
@@ -980,7 +1027,7 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                     string room_name = invariant_entities[e];
                     if(player.Holding == null || player.Holding.Entity != e)
                     {
-                        e.Active = next.Name == room_name || next.Bounds.Contains((int)e.Position.X, (int)e.Position.Y);
+                        e.Active = (next.Name == room_name || next.Bounds.Contains((int)e.Position.X, (int)e.Position.Y)) && invariance_states[e].is_present;
                     }
                 }
             foreach(Follower follower in player.Leader.Followers)
