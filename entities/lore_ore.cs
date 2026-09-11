@@ -168,17 +168,35 @@ namespace Celeste.Mod.ErrandOfWednesday
         public override void Update()
         {
             base.Update();
-/*            if(Scene.Entities.removing.Contains(this))
-            { //TODO make it not go through the right side of the level and despawn
+
+            if(Scene.Entities.removing.Contains(this))
+            { //cancel oob removal
                 Scene.Entities.removing.Remove(this);
                 Scene.Entities.toRemove.Remove(this);
             }
-*/
 
-            if(!Hold.IsHeld && Bottom <= Level.Bounds.Top+8)
+            if(!Hold.IsHeld)
             {
-                RemoveSelf();
+                if(Right > Level.Bounds.Right)
+                {
+
+                    if(Left < Level.Bounds.Right)
+                    { //bounce off the right side
+                        Right = Level.Bounds.Right;
+                        Speed.X *= -0.4f;
+                    }
+                    else
+                    { //don't suck it out of bounds
+                        MoveH(32f * Engine.DeltaTime);
+                    }
+                }
             }
+
+
+/*            if(!Hold.IsHeld && Bottom <= Level.Bounds.Top+8)
+             { //this should be handled by removers at this point or else needs to exempt non-anonyous invariant lores
+                RemoveSelf();
+            }*/
         }
 
         new public void OnCollideH(CollisionData data)
