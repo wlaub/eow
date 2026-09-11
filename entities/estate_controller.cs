@@ -743,6 +743,17 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
         public int into_y;
         //TODO from grid pos
         //TODO left, right, above, below rooms
+        //TODO this means we need to dry out drafting context setup
+
+        public void set_target_pos(EstateGrid grid, int gx, int gy){
+            into_x = gx;
+            into_y = gy;
+            into_top = gy==0;
+            into_bot = gy==grid.grid_height-1;
+            into_left = gx==0;
+            into_right = gx==grid.grid_width-1;
+            }
+
         };
 
 
@@ -763,12 +774,7 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
             int gx, gy;
             grid.w2g(target_x, target_y, out gx, out gy);
-            drafting_context.into_x = gx;
-            drafting_context.into_y = gy;
-            drafting_context.into_top = gy==0;
-            drafting_context.into_bot = gy==grid.grid_height-1;
-            drafting_context.into_left = gx==0;
-            drafting_context.into_right = gx==grid.grid_width-1;
+            drafting_context.set_target_pos(grid, gx, gy);
 
 //Logger.Log(LogLevel.Info, "eow", $"drafting into {gx},{gy}");
 

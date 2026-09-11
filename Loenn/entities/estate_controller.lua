@@ -10,6 +10,8 @@ dyno.placements = {
             room_height = 36,
             grid_width = 9,
             grid_height = 5,
+            invisiblate_tiles = false,
+            invisiblate_entities = "",
         }
     }
 }

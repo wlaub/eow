@@ -997,13 +997,13 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                 InvariantEntityState entry = invariance_states[e];
                 //if room bounds contains entity 
                 if(!level.Bounds.Contains((int)e.Position.X, (int)e.Position.Y)) 
-                {    //entities not in room
+                {   //entities not in room just toggle
                     //are already inactive, but need visibility updated
                     entry.is_present = !entry.is_present;
                     e.Visible = entry.is_present;
                 }
                 else
-                {
+                { //entities in room toggle if on opposite side of mirror after passing through
                     if(
                         from_left && e.Right < mirror.Center.X //from left means left is no longer visible
                         || !from_left && e.Left > mirror.Center.X //from right means right is no longer visible

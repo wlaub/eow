@@ -117,12 +117,13 @@ namespace Celeste.Mod.ErrandOfWednesday
                     ty=gy;
                     side = 1;
                     drafting_context.pool_depth = 0;
-                    drafting_context.into_x = tx;
+                    drafting_context.set_target_pos(grid, tx, ty);
+/*                    drafting_context.into_x = tx;
                     drafting_context.into_y = ty;
                     drafting_context.into_top = ty==0;
                     drafting_context.into_bot = ty==grid.grid_height-1;
                     drafting_context.into_left = tx==0;
-                    drafting_context.into_right = tx==grid.grid_width-1;
+                    drafting_context.into_right = tx==grid.grid_width-1;*/
                     drafting_context.side = side;
                     pool = EstateController.make_pool(side, level.Session, tx,ty);
                     counts[gx,gy, side] = pool.Count;
