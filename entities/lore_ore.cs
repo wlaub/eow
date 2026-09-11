@@ -169,7 +169,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             base.Update();
 
-            if(Scene.Entities.removing.Contains(this))
+            if(!dead && Scene.Entities.removing.Contains(this) )
             { //cancel oob removal
                 Scene.Entities.removing.Remove(this);
                 Scene.Entities.toRemove.Remove(this);
