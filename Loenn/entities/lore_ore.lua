@@ -8,6 +8,7 @@ uniqueGlider.placements = {
         data = {
             health = 7,
             contents = "",
+            start_mirrored = false,
         }
     }
 }

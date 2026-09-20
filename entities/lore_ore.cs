@@ -91,6 +91,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public int max_health;
         public int health;
         public string contents;
+        public bool start_mirrored;
 
         //TODO make named instance damager persistent
 
@@ -126,6 +127,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             health = data.Int("health", 7);
             max_health = data.Int("max_health", 7);
             contents = data.Attr("contents", "");
+            start_mirrored = data.Bool("start_mirrored", false);
 
             Hold.SlowFall = false;
             Hold.SlowRun = true;
@@ -157,12 +159,31 @@ namespace Celeste.Mod.ErrandOfWednesday
             source_data.Values["health"] = health;
             source_data.Values["max_health"] = max_health;
             source_data.Values["contents"] = contents;
+            source_data.Values["start_mirrored"] = SaveData.Instance.Assists.MirrorMode;
+ 
 
             LoreOre result = new(source_data, Vector2.Zero);
 
             result.SourceData = source_data;
 
             return result;
+        }
+
+        public override void Awake(Scene scene)
+        {
+            base.Awake(scene);
+            Level level = scene as Level;
+
+            if(start_mirrored != SaveData.Instance.Assists.MirrorMode)
+            {
+                EyeOfTheWednesday.make_invariant(level, this, level.Session.LevelData.Name, false, false);
+                if(EyeOfTheWednesday.invariance_states.ContainsKey(this))
+                {
+                    EyeOfTheWednesday.invariance_states[this].is_present=false;
+                }
+                Active = false;
+                Visible = false;
+            }
         }
 
         public override void Update()

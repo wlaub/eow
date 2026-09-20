@@ -153,6 +153,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 if(mod_session.invariance_state is not null)
                 {
+Logger.Log(LogLevel.Info, "eow", "invariance state already present");
                     if(isFromLoader)
                     {
                         mod_session.invariance_state.restore_state(level.Session, level);
@@ -161,6 +162,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 else
                 {
                     mod_session.invariance_state = new();
+Logger.Log(LogLevel.Info, "eow", "initialized invariance state");
                 }
             }
 
@@ -930,6 +932,14 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
         public static void make_invariant(Level level, Entity entity, string room_name, bool is_follower, bool is_held)
         {
 Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.GetType().FullName} {string.Join(",", invariance_targets)}");
+            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+            if(mod_session.invariance_state is null)
+            { //this should never happen, but i guess some times it does
+                Logger.Log(LogLevel.Error, "eow", $"loop invariance session data missing some how");               
+                return;
+            }
+ 
+
             entity.Tag |= Tags.Global;
             invariant_entities[entity] = room_name;
             if(entity.SourceId.ID != default(EntityID).ID)
@@ -937,7 +947,7 @@ Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.
                 level.Session.DoNotLoad.Add(entity.SourceId);   
             }
 
-            ErrandOfWednesdayModuleSession mod_session = ErrandOfWednesdayModule.Session;
+
             if(mod_session.invariance_state is not null)
             {
                 mod_session.invariance_state.save_entity(entity, room_name, is_follower, is_held);
