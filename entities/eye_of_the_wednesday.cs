@@ -153,7 +153,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 if(mod_session.invariance_state is not null)
                 {
-Logger.Log(LogLevel.Info, "eow", "invariance state already present");
+Logger.Log(LogLevel.Info, "eow", "invariance state already present"); //FIXME remove
                     if(isFromLoader)
                     {
                         mod_session.invariance_state.restore_state(level.Session, level);
@@ -162,7 +162,9 @@ Logger.Log(LogLevel.Info, "eow", "invariance state already present");
                 else
                 {
                     mod_session.invariance_state = new();
-Logger.Log(LogLevel.Info, "eow", "initialized invariance state");
+                    invariant_entities.Clear();
+                    invariance_states.Clear();
+Logger.Log(LogLevel.Info, "eow", "initialized invariance state"); //FIXME remove
                 }
             }
 
