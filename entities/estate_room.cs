@@ -45,6 +45,9 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public Sprite sprite;
 
+        public bool invisiblate_tiles;
+        public string[] invisiblate_entities;
+
         public EstateRoomInfo(LevelData level_data, EntityData room_data)
         {
             this.level_data = level_data;
@@ -58,6 +61,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             on_draft_script = room_data.Attr("on_draft_script", "");
             on_draft_args = room_data.Attr("on_draft_args", "");
 
+            invisiblate_tiles = room_data.Bool("invisiblate_tiles", true);
+            invisiblate_entities = room_data.Attr("invisiblate_entities", "").Split(",");
 
             FrostHelperImports.TryCreateSessionExpression?.Invoke(selection_expression, out session_expression);
 //Logger.Log(LogLevel.Info, "eow", $"{selection_expression}: {session_expression}");           

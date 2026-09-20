@@ -508,8 +508,8 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 
             camera_margin = data.Int("camera_margin", 16);
 
-            invisiblate_tiles = data.Bool("invisiblate_tiles", true); //TODO lonn
-            invisiblate_entities = data.Attr("invisiblate_entities", "").Split(","); //TODO lonn
+            invisiblate_tiles = data.Bool("invisiblate_tiles", true);
+            invisiblate_entities = data.Attr("invisiblate_entities", "").Split(",");
             //TODO make this hapen
 
 //            data.Nodes[0];
@@ -578,25 +578,25 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
                     Vector2 spawn = target_data.Spawns[i];
                 }
 
-            MapData map_data = session.MapData;
-            int left = map_data.Bounds.Left;
-            int right = map_data.Bounds.Right;
-            int top = map_data.Bounds.Top;
-            int bot = map_data.Bounds.Bottom;
+                MapData map_data = session.MapData;
+                int left = map_data.Bounds.Left;
+                int right = map_data.Bounds.Right;
+                int top = map_data.Bounds.Top;
+                int bot = map_data.Bounds.Bottom;
 
-            foreach (LevelData _level in map_data.Levels)
-            {
-                left = Math.Min(left, _level.Bounds.Left);
-                right = Math.Max(right, _level.Bounds.Right);
-                top = Math.Min(top, _level.Bounds.Top);
-                bot = Math.Max(bot, _level.Bounds.Top);
-            }
+                foreach (LevelData _level in map_data.Levels)
+                {
+                    left = Math.Min(left, _level.Bounds.Left);
+                    right = Math.Max(right, _level.Bounds.Right);
+                    top = Math.Min(top, _level.Bounds.Top);
+                    bot = Math.Max(bot, _level.Bounds.Top);
+                }
 
 
-            Rectangle old_bounds = map_data.Bounds;
-            Rectangle old_tb = map_data.TileBounds;
-            int m = 64;
-            map_data.Bounds = new Rectangle(left-m, top-m, right-left+2*m, bot-top + 2*m);
+                Rectangle old_bounds = map_data.Bounds;
+                Rectangle old_tb = map_data.TileBounds;
+                int m = 64;
+                map_data.Bounds = new Rectangle(left-m, top-m, right-left+2*m, bot-top + 2*m);
                
             }
 
@@ -612,6 +612,29 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
             loaded = true;
 
+        }
+
+        public static void invisiblate_room(Level level, string room_name)
+        {
+            Session session = level.Session;
+            LevelData level_data = session.MapData.Get(room_name);
+           
+            int sx = (level_data.Bounds.X-session.MapData.Bounds.Left)/8;
+            int sy = (level_data.Bounds.Y-session.MapData.Bounds.Right)/8; 
+            for(int x = 0; x < level_data.TileBounds.Width; ++x)
+            {
+                for(int y=0; y < level_data.TileBounds.Height; ++y)
+                {
+//TODO: animated tiles
+                    int tx = sx+x;
+                    int ty = sy+y;
+                    level.SolidTiles.Tiles.Tiles[tx,ty] = null;
+                    level.BgTiles.Tiles.Tiles[tx,ty] = null;
+                }
+            }
+
+
+           
         }
 
         private static Vector2 my_camera_target_hook(Func<Player, Vector2> orig, Player self)

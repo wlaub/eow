@@ -908,7 +908,11 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
 //                    make_invariant(level, entity, level.Session.LevelData.Name, true, false);
                     entity.Collidable = true;
                     to_lose.Add(follower);
-                    level.Session.Keys.Remove(entity.SourceId);
+                    //TODO something seems to be wrong with givekey keys
+                    if(entity is Key)
+                    {
+                        level.Session.Keys.Remove((entity as Key).ID);
+                    }
                 }
                 
             }
@@ -1004,9 +1008,10 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                 }
                 else
                 { //entities in room toggle if on opposite side of mirror after passing through
+//Logger.Log(LogLevel.Info, "eow", $"attempting entity flip {from_left} {e.Left} {mirror.Center.X} {e.Right}");
                     if(
-                        from_left && e.Right < mirror.Center.X //from left means left is no longer visible
-                        || !from_left && e.Left > mirror.Center.X //from right means right is no longer visible
+                        from_left && e.Left > mirror.Center.X //from left means right is not visible
+                        || !from_left && e.Right < mirror.Center.X //from right means left is not visible
                     )
                     {
                         entry.is_present = !entry.is_present;

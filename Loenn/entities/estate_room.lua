@@ -17,6 +17,8 @@ dyno.placements = {
             on_draft_script = "",
             on_draft_args = "",
             redraftable = false,
+            invisiblate_tiles = false,
+            invisiblate_entities = "",
         }
     }
 }
