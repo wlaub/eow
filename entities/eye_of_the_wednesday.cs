@@ -941,6 +941,23 @@ Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.
                 return;
             }
  
+            if(entity is Key && entity.SourceId.ID == default(EntityID).ID)
+            { //keys are such trouble makers
+                entity.SourceId = ((Key)entity).ID;
+            EntityData r = new();
+            r.ID = entity.SourceId.ID;
+            r.Name = "Celeste.Key";
+            r.Level = level.Session.MapData.Get(room_name);
+            r.Position = entity.Position;
+            r.Origin = Vector2.Zero;
+            r.Width = 0;
+            r.Height = 0;
+            r.Nodes = ((Key)entity).nodes;
+//            r.Values = Values;
+            entity.SourceData = r;
+                
+            }
+
 
             entity.Tag |= Tags.Global;
             invariant_entities[entity] = room_name;
@@ -948,7 +965,6 @@ Logger.Log(LogLevel.Info, "eow", $"make_invariant: ->{entity.SourceId}, {entity.
             {
                 level.Session.DoNotLoad.Add(entity.SourceId);   
             }
-
 
             if(mod_session.invariance_state is not null)
             {
