@@ -337,7 +337,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
                     BistableDecal.level_load(level);
 
                     EyeOfTheWednesday.hitbox_flag_on_load(level);
-
+                    EstateController.level_load(level);
                 }
             }
             EyeOfTheWednesday.on_load_level(level, playerIntro, isFromLoader);

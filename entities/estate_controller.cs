@@ -508,7 +508,7 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 
             camera_margin = data.Int("camera_margin", 16);
 
-            invisiblate_tiles = data.Bool("invisiblate_tiles", true);
+            invisiblate_tiles = data.Bool("invisiblate_tiles", false);
             invisiblate_entities = data.Attr("invisiblate_entities", "").Split(",");
             //TODO make this hapen
 
@@ -539,7 +539,7 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
                
             }
 
-Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
+Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}"); //FIXME
 
             foreach(string room_key in grid.room_position.Keys)
             {
@@ -614,13 +614,28 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}");
 
         }
 
+
+        public static void level_load(Level level)
+        {
+            if(!loaded) return;
+
+            foreach(string room_name in rooms.Keys)
+            {
+                EstateRoomInfo info = rooms[room_name];
+                if(invisiblate_tiles || info.invisiblate_tiles)
+                {
+                    invisiblate_room(level, info.key);
+                }
+            }
+        }
+
         public static void invisiblate_room(Level level, string room_name)
         {
             Session session = level.Session;
             LevelData level_data = session.MapData.Get(room_name);
            
             int sx = (level_data.Bounds.X-session.MapData.Bounds.Left)/8;
-            int sy = (level_data.Bounds.Y-session.MapData.Bounds.Right)/8; 
+            int sy = (level_data.Bounds.Y-session.MapData.Bounds.Top)/8; 
             for(int x = 0; x < level_data.TileBounds.Width; ++x)
             {
                 for(int y=0; y < level_data.TileBounds.Height; ++y)

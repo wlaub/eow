@@ -61,7 +61,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             on_draft_script = room_data.Attr("on_draft_script", "");
             on_draft_args = room_data.Attr("on_draft_args", "");
 
-            invisiblate_tiles = room_data.Bool("invisiblate_tiles", true);
+            invisiblate_tiles = room_data.Bool("invisiblate_tiles", false);
             invisiblate_entities = room_data.Attr("invisiblate_entities", "").Split(",");
 
             FrostHelperImports.TryCreateSessionExpression?.Invoke(selection_expression, out session_expression);
