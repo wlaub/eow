@@ -302,6 +302,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             {
                 enable_global_lookout();
             }
+            //TODO fix talk component rendering behind dash blocks and up side down
  
 
             string hitbox_flag = data.Attr("show_hitbox_flag", "");

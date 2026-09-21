@@ -321,7 +321,7 @@ namespace Celeste.Mod.ErrandOfWednesday {
 
         private void on_load_level(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
         {
-
+   Logger.Log(LogLevel.Info, "eow", $"on_load_level with {level} {playerIntro} {isFromLoader}");
             if(Session == null)
             {
    Logger.Log(LogLevel.Warn, "eow", $"Tragedy");

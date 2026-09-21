@@ -266,7 +266,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         public static int grid_height;
 
         public static bool invisiblate_tiles;
-        public static string[] invisiblate_entities;
+        public static HashSet<string> invisiblate_entities = new();
 
         public static Dictionary<string, EstateRoomInfo> rooms = new();
         public static HashSet<string> drafted_rooms = new();
@@ -441,6 +441,8 @@ namespace Celeste.Mod.ErrandOfWednesday
             camera_target_hook?.Dispose();
             camera_target_hook = null;
 
+            On.Monocle.Entity.Added -= entity_awake_hook;
+
             loaded = false;
         }
        
@@ -509,7 +511,7 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
             camera_margin = data.Int("camera_margin", 16);
 
             invisiblate_tiles = data.Bool("invisiblate_tiles", false);
-            invisiblate_entities = data.Attr("invisiblate_entities", "").Split(",");
+            invisiblate_entities.UnionWith(data.Attr("invisiblate_entities", "").Split(","));
             //TODO make this hapen
 
 //            data.Nodes[0];
@@ -606,6 +608,8 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}"); //FIXME
                 typeof(Player).GetMethod("get_CameraTarget"),
                 typeof(EstateController).GetMethod("my_camera_target_hook", BindingFlags.NonPublic | BindingFlags.Static));
 
+            On.Monocle.Entity.Added += entity_awake_hook;
+
             // Done
 
             Logger.Log(LogLevel.Debug, "eow", $"Finished loading everything");
@@ -627,6 +631,45 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}"); //FIXME
                     invisiblate_room(level, info.key);
                 }
             }
+        }
+
+        public static void hide_entity(Entity self)
+        {
+            self.Visible = false;
+            foreach (Component c in self.Components)
+            {
+                c.Visible = false;
+            }
+        }
+
+        public static void entity_awake_hook(On.Monocle.Entity.orig_Added orig, Entity self, Scene scene)
+        { //did i just do a bad thing?
+        //for some reason awake isn't called for jumpthru?
+            orig(self, scene);
+            string name = self.GetType().FullName;
+            if(invisiblate_entities.Contains(name))
+            { //globals first
+                hide_entity(self);
+            }
+            else
+            { //then room-specific
+                Level level = (scene as Level);
+                if(level != null)
+                {
+                    string room_name = (scene as Level).Session.LevelData.Name;
+                    if(rooms.ContainsKey(room_name))
+                    {
+                        EstateRoomInfo info = rooms[room_name];
+                Logger.Log(LogLevel.Info, "eow", $"testing {name} against {string.Join(",",info.invisiblate_entities)}"); //FIXME
+                        if(info.invisiblate_entities.Contains(name))
+                        {
+                            hide_entity(self);
+                        }
+                    }
+                }
+            }
+            
+
         }
 
         public static void invisiblate_room(Level level, string room_name)
