@@ -277,6 +277,17 @@ namespace Celeste.Mod.ErrandOfWednesday {
             EstateController.stats_command();
         }
 
+        [Command("draft", "")]
+        public static void estate_stats_command(string dir, string name, string p2 = "", string p3 = "", string p4 = "")
+        {   //this is the game
+            if(p2 != "") name += " " + p2;
+            if(p3 != "") name += " " + p3;
+            if(p4 != "") name += " " + p4;
+            EstateController.draft_command(dir, name);
+        }
+
+
+
         public override void Load() {
             On.Celeste.Lookout.Update += lookout_stop;
             On.Monocle.Engine.Update += Update;

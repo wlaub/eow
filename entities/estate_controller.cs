@@ -208,7 +208,13 @@ namespace Celeste.Mod.ErrandOfWednesday
             gy = (int)(wy-top_world)/rh_world;
         }
 
-        public string room_at_world(int world_x, int world_y)
+        public void g2w(int gx, int gy, out int wx, out int wy)
+        {
+            wx = gx*rw_world + left_world;
+            wy = gy*rh_world + top_world;
+        }
+
+       public string room_at_world(int world_x, int world_y)
         {
             w2g(world_x, world_y, out world_x, out world_y);
             return room_at_grid(world_x, world_y);
@@ -461,7 +467,6 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public static void try_load(Session session)
         {
-
             LevelData level_data = session.MapData.Get("!eow");
             if(level_data == null)
             {
@@ -603,6 +608,8 @@ Logger.Log(LogLevel.Info, "eow", $"l,r,t,d={string.Join(",", e)}"); //FIXME
             }
 
             // Hooks
+                //this is such a mess
+            if(loaded) return;
 
             camera_target_hook = new Hook(
                 typeof(Player).GetMethod("get_CameraTarget"),
@@ -953,12 +960,54 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
 
         public static void draft_room(Level level, string room_name, int gx, int gy)
         {
+            //TODO why does this undo mirroring??
             int wx,wy;
-            grid.w2g(gx, gy, out wx, out wy); //it is not lost on me
+            grid.g2w(gx, gy, out wx, out wy); //it is not lost on me
             draft_room_world(level, room_name, wx, wy); 
 //if this were python my code would be pristine(and my frame rate measured in seconds-per-frame no doubt)
         }
 
+        public static void draft_command(string dir, string room_name)
+        {
+            if(!loaded){ 
+                        Engine.Commands.Log("can't draft without loaded");
+                return; }
+            Level level = Engine.Scene as Level;
+            string curr_room = level.Session.LevelData.Name;
+            if(grid.room_position.ContainsKey(curr_room))
+            {
+                Vector2 pos = grid.room_position[curr_room];
+                int cx = (int)pos.X;
+                int cy =  (int)pos.Y;
+                Engine.Commands.Log($"drafting from {cx} {cy}");
+                switch(dir)
+                {
+                    case "left":
+                        cx -=1;
+                        break;
+                    case "right":
+                        cx += 1;
+                        break;
+                    case "up":
+                        cy -=1 ;
+                        break;
+                    case "down":
+                        cy +=1;
+                        break;
+                    default:
+                        Engine.Commands.Log("need a drafting direction");
+                        return;
+                }
+                Engine.Commands.Log($"drafting {room_name} at {cx} {cy}");
+                draft_room(level, room_name, cx, cy);
+
+            }
+            else
+            {
+                Engine.Commands.Log("current room {curr_room} is not drafted");
+            }
+        }
+        
         public static void undraft_room(Level level, string room_name)
         {
 Logger.Log(LogLevel.Info, "eow", $"undrafting {room_name}"); 
