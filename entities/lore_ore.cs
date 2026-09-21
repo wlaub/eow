@@ -183,6 +183,7 @@ namespace Celeste.Mod.ErrandOfWednesday
                 }
                 Active = false;
                 Visible = false;
+                Collidable = false;
             }
         }
 

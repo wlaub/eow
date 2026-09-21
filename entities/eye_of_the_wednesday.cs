@@ -1042,6 +1042,7 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                     entry.is_present = !entry.is_present;
                     e.Visible = entry.is_present;
                     //e.Active remains false regardles
+                    e.Collidable = entry.is_present;
                 }
                 else
                 { //entities in room toggle if on opposite side of mirror after passing through
@@ -1054,6 +1055,8 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                         entry.is_present = !entry.is_present;
                         e.Visible = entry.is_present;
                         e.Active = entry.is_present;
+                        e.Collidable = entry.is_present;
+                        //TODO non-present entities can still be grabbed?
                     } 
                 }
             }
@@ -1070,6 +1073,7 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                     if(player.Holding == null || player.Holding.Entity != e)
                     {
                         e.Active = (next.Name == room_name || next.Bounds.Contains((int)e.Position.X, (int)e.Position.Y)) && invariance_states[e].is_present;
+                        //TODO also make visible/collidable?
                     }
                 }
             foreach(Follower follower in player.Leader.Followers)
