@@ -10,7 +10,6 @@ using Celeste.Mod.Entities;
 
 namespace Celeste.Mod.ErrandOfWednesday
 {
-
     [Tracked]
     [CustomEntity("eow/EstateMap")]
     public class EstateMap : Entity
@@ -19,19 +18,11 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         public TalkComponent door_handle;
 
-
-        public int[,,] counts;
-        public int[,,] depths;
-
-
-        float w,h, offx, offy;
-
+        public EstateMapDisplay display;
 
         public EstateMap(EntityData data, Vector2 offset, EntityID eid) : base(data.Position+offset)
         {
             this.eid = eid;
-
-            base.Tag = Tags.HUD | Tags.FrozenUpdate;
 
             Add(door_handle = new TalkComponent(
                 new Rectangle((int)Position.X,(int)Position.Y, 16, 8),
@@ -39,8 +30,38 @@ namespace Celeste.Mod.ErrandOfWednesday
                 open_door
                 ));
 
-            Visible = false; 
+            Position = Vector2.Zero;
 
+            display = new();
+            display.Visible = false; 
+        }
+
+        public override void Added(Scene scene)
+        {
+            base.Added(scene);
+            scene.Add(display);
+        }
+
+        public void open_door(Player player)
+        {
+            display.Visible = !display.Visible;
+        }
+
+
+
+    }
+
+    public class EstateMapDisplay : Entity
+    {
+
+        public int[,,] counts;
+        public int[,,] depths;
+
+        float w,h, offx, offy;
+
+        public EstateMapDisplay()
+        {
+            base.Tag = Tags.HUD | Tags.FrozenUpdate;
 
             EstateGrid grid = EstateController.grid;
 
@@ -54,10 +75,6 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 Vector2 pos = grid.room_position[room_key];
                 EstateRoomInfo room = EstateController.rooms[room_key];
-
-
-
-
 
                 Position = Vector2.Zero;
 
@@ -74,11 +91,6 @@ namespace Celeste.Mod.ErrandOfWednesday
 
 
 
-        }
-
-        public void open_door(Player player)
-        {
-            Visible = !Visible;
         }
 
         public override void Added(Scene scene)

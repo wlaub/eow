@@ -326,9 +326,23 @@ namespace Celeste.Mod.ErrandOfWednesday
 
         }
 
+        public static EstateMapDisplay debug_map = null;
         public static void stats_command()
         {
             if(!loaded) return;
+
+            if(debug_map == null)
+            {
+                debug_map = new();
+                debug_map.Tag |= Tags.Global;
+                Engine.Scene.Add(debug_map);
+                debug_map.Visible = true;
+            }
+            else
+            {
+                debug_map.RemoveSelf();
+                debug_map = null;
+            }
 
             Engine.Commands.Log("~~ estate stats ~~");
 
