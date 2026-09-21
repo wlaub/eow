@@ -117,6 +117,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             {
                 stage_mirror_hook.Dispose();
                 stage_mirror_hook = null;
+                On.Celeste.Player.Update -= StageMirror.player_update_hook;
             }
             if(guitar_hands_enabled)
             {
@@ -432,7 +433,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
                 {
                      SaveData.Instance.Assists.MirrorMode = true;
                 }
-               
+                On.Celeste.Player.Update += StageMirror.player_update_hook;
             }
         }
 
@@ -989,17 +990,17 @@ Logger.Log(LogLevel.Error, "eow", $"can't save entity with null source data");
             {
                 entry = invariance_states[entity];
                 entry.update_from(entity, room_name, is_follower, is_held);
-Logger.Log(LogLevel.Info, "eow", $"updating saved entity: ->{entity.SourceId}, {entity.GetType().FullName}");
+Logger.Log(LogLevel.Info, "eow", $"updating saved entity: ->{entity.SourceId}, {entity.GetType().FullName}"); //FIXME
             }
             else
             {
-Logger.Log(LogLevel.Info, "eow", $"saving new entity: ->{entity.SourceId}, {entity.GetType().FullName}");
+Logger.Log(LogLevel.Info, "eow", $"saving new entity: ->{entity.SourceId}, {entity.GetType().FullName}"); //FIXME
                 entry = new();
                 entry.update_from(entity, room_name, is_follower, is_held);
                 self.entities.Add(entry);
                 invariance_states[entity] = entry;
             }
-Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities saved");
+Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities saved"); //FIXME
         }
 
         public static void li_mirror_change(Level level, StageMirror mirror, bool from_left)
@@ -1033,6 +1034,7 @@ Logger.Log(LogLevel.Info, "eow", $"there are {self.entities.Count} entities save
                     //are already inactive, but need visibility updated
                     entry.is_present = !entry.is_present;
                     e.Visible = entry.is_present;
+                    //e.Active remains false regardles
                 }
                 else
                 { //entities in room toggle if on opposite side of mirror after passing through

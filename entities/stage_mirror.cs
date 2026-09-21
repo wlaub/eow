@@ -21,22 +21,29 @@ namespace Celeste.Mod.ErrandOfWednesday
         public const string N_FROM_LEFT_FLAG = "eow_stage_normal_from_left";
         public const string N_FROM_RIGHT_FLAG = "eow_stage_normal_from_right";
 
+        public static void player_update_hook(On.Celeste.Player.orig_Update orig, Player player)
+        { //i guess this is how you make something selectively collidable?
+            foreach(Entity mirror in player.Scene.Tracker.GetEntities<StageMirror>())
+            {
+                mirror.Collidable = false;
+            }
+            orig(player);
+            foreach(Entity mirror in player.Scene.Tracker.GetEntities<StageMirror>())
+            {
+                mirror.Collidable = true;
+            }
+ 
+        }
 
 
         public bool was_left;
 
-        //TODO make persistent
-
-        public StageMirror(EntityData data, Vector2 offset) : base(data.Position + offset, data.Width, data.Height, safe:false)
+        public StageMirror(EntityData data, Vector2 offset) : base(data.Position + offset+new Vector2(-0.5f,0), 1, data.Height, safe:false)
         {
-            Collidable=false;
-
-            
-
         }
 
         public override void Awake(Scene scene)
-        {
+        { //TODO this still happens before on_load_level?
             base.Awake(scene);
 
             Level level = Scene as Level;
@@ -87,7 +94,6 @@ Input.MoveX.Inverted = (Input.Aim.InvertedX = (Input.Feather.InvertedX = SaveDat
                     level.Session.SetFlag(N_FROM_RIGHT_FLAG, !was_left&&!is_mirrored);
 
                     EyeOfTheWednesday.li_mirror_change(level, this, was_left);
-                    //TODO throwables need to bounce off the mirror
 
                     is_left = !is_left;
                 }
