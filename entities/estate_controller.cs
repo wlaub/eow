@@ -107,7 +107,7 @@ namespace Celeste.Mod.ErrandOfWednesday
             }
             yield return null;
             level.Frozen = false;
-            level.AutoSave();
+            level.AutoSave(); 
 
             if(on_finish is not null)
             {
@@ -531,7 +531,6 @@ Logger.Log(LogLevel.Debug, "eow", "found existing estate state");
 
             invisiblate_tiles = data.Bool("invisiblate_tiles", false);
             invisiblate_entities.UnionWith(data.Attr("invisiblate_entities", "").Split(","));
-            //TODO make this hapen
 
 //            data.Nodes[0];
             Vector2 grid_ul = Vector2.Zero;
@@ -939,6 +938,8 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
  
             drafted_rooms.Add(room_name); 
             grid.add_room_world(room_name, target_x, target_y);
+//SaveData.Instance.Assists.MirrorMode = true;
+//Logger.Log(LogLevel.Info, "eow", $"mm={SaveData.Instance.Assists.MirrorMode}"); //FIXME
             move_room(level, room_name, target_x, target_y);
             save_room_state(room_name, start_x, start_y, target_x, target_y);
 
@@ -974,7 +975,6 @@ Logger.Log(LogLevel.Info, "eow", $"drafting {draft.key}");
 
         public static void draft_room(Level level, string room_name, int gx, int gy)
         {
-            //TODO why does this undo mirroring??
             int wx,wy;
             grid.g2w(gx, gy, out wx, out wy); //it is not lost on me
             draft_room_world(level, room_name, wx, wy); 

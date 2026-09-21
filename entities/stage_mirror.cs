@@ -84,6 +84,7 @@ namespace Celeste.Mod.ErrandOfWednesday
 
                     SaveData.Instance.Assists.MirrorMode = !SaveData.Instance.Assists.MirrorMode;
 Input.MoveX.Inverted = (Input.Aim.InvertedX = (Input.Feather.InvertedX = SaveData.Instance.Assists.MirrorMode));
+                    SaveData.Instance.VariantMode = true; //required to prevent autosave from reverting
              Logger.Log(LogLevel.Info, "eow", $"doing flip {was_left} {eye_pos} {player.Speed} {level.Camera.Position} {Center}"); //FIXME
 
                     bool is_mirrored = SaveData.Instance.Assists.MirrorMode;
