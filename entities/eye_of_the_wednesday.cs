@@ -717,7 +717,7 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
             }            
         }
 
-        static bool global_lookout_enabled;
+        public static bool global_lookout_enabled;
         public static void enable_global_lookout()
         {
             if(global_lookout_enabled) return;
@@ -734,14 +734,21 @@ Logger.Log(LogLevel.Debug, "eow", "Eye of the Wednesday activated.");
         public static IEnumerator global_look_routine(On.Celeste.Lookout.orig_LookRoutine orig, Lookout self, Player player)
         {
             var orig_enum = orig(self, player).SafeEnumerate();
+            GlobalLookoutBounds glb = self.Scene.Tracker.GetEntity<GlobalLookoutBounds>();
+            Rectangle global_bounds = (self.Scene as Level).Bounds;
+            if(glb != null)
+            {
+                global_bounds = glb.bounds;
+            }
+            Logger.Log(LogLevel.Info, "eow", $"starting global look routine with {global_bounds}"); //FIXME
             while(true)
             {
                 //before
                 Level level = self.Scene as Level;
                 Rectangle old_bounds = level.Bounds;
-            Logger.Log(LogLevel.Info, "eow", $"old bounds {old_bounds}");
-                Rectangle new_bounds = new(old_bounds.X-100, old_bounds.Y-100, old_bounds.Width+200, old_bounds.Height+200);
-                level.Session.LevelData.Bounds = new_bounds;
+            Logger.Log(LogLevel.Info, "eow", $"old bounds {old_bounds}"); //FIXME
+//                Rectangle new_bounds = new(old_bounds.X-100, old_bounds.Y-100, old_bounds.Width+200, old_bounds.Height+200);
+                level.Session.LevelData.Bounds = global_bounds;
                 var result = orig_enum.MoveNext();
                 level.Session.LevelData.Bounds = old_bounds;
                 if(!result) break;
@@ -914,7 +921,6 @@ Logger.Log(LogLevel.Info, "eow", $"hello ->{entity.SourceId}, {entity.GetType().
 //                    make_invariant(level, entity, level.Session.LevelData.Name, true, false);
                     entity.Collidable = true;
                     to_lose.Add(follower);
-                    //TODO something seems to be wrong with givekey keys
                     if(entity is Key)
                     {
                         level.Session.Keys.Remove((entity as Key).ID);

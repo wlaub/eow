@@ -69,7 +69,8 @@ namespace Celeste.Mod.ErrandOfWednesday
 
                 bool is_left = eye_pos.X < Center.X;
 
-                if( (eye_pos.Y >= Top && eye_pos.Y <= Bottom) && 
+//                if( (eye_pos.Y >= Top && eye_pos.Y <= Bottom) && 
+                if( (player.Top >= Top && eye_pos.Y <= Bottom) && 
                     (was_left != is_left)
                     )
                 {

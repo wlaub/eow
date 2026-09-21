@@ -283,6 +283,7 @@ namespace Celeste.Mod.ErrandOfWednesday
         {
             //TODO i wonder if you can make a fake wall/dash block that just like batches up all the entities and runs all through the autotiler together somehow
             //like essentially just make a virtualmap<char> that is a composite of all the dash blocks in the room and then pass that whole thing to the autotiler once to generate a single overlay, and then regenerate that whenever one gets removed.
+            //TODO clear save state on draft
         }
 
         /* Actual implementation */
